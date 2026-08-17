@@ -215,7 +215,7 @@ export function AdminDashboard({ onOpenSpace }) {
                     onChange={(e) => { setSpaceCode(normalizeCode(e.target.value)); setError(""); }}
                     onKeyDown={(e) => e.key === "Enter" && !creating && handleCreate()}
                     style={{ ...inputStyle, fontWeight: 600 }}
-                    placeholder="scriberfam"
+                    placeholder="name-your-space"
                   />
                 </div>
                 <p style={{ color: colors.textDim, fontSize: 11, margin: "6px 0 0" }}>
