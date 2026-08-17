@@ -133,7 +133,7 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
             </div>
           </div>
 
-          {/* Admin · View Board · Sign Out — one row, never wrapping */}
+          {/* Home/View Board · Admin · Sign Out — one row, never wrapping */}
           <nav
             style={{
               display: "flex",
@@ -167,6 +167,18 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
               </span>
             )}
 
+            {/* Toggles with the board, so the home view is still reachable
+                now that the logo leaves the space instead */}
+            <button
+              onClick={onBoard ? onHome : onViewBoard}
+              style={{
+                ...navButton,
+                background: onBoard ? "#ffffff10" : "transparent",
+              }}
+            >
+              {onBoard ? "Home" : isMobile ? "Board" : "View Board"}
+            </button>
+
             {/* Admin — hidden for players */}
             {canAccessAdmin && (
               <button
@@ -180,18 +192,6 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
                 Admin
               </button>
             )}
-
-            {/* Toggles with the board, so the home view is still reachable
-                now that the logo leaves the space instead */}
-            <button
-              onClick={onBoard ? onHome : onViewBoard}
-              style={{
-                ...navButton,
-                background: onBoard ? "#ffffff10" : "transparent",
-              }}
-            >
-              {onBoard ? "Home" : isMobile ? "Board" : "View Board"}
-            </button>
 
             {/* Players are never signed in — only admins see a sign-out */}
             {isLoggedIn && (
