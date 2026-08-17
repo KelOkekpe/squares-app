@@ -1,5 +1,5 @@
 import React from "react";
-import { btnPrimary, btnSecondary } from "../../styles";
+import { btnPrimary } from "../../styles";
 import { SquaresGrid } from "../grid/SquaresGrid";
 import { WinnersSummary } from "../grid/WinnersSummary";
 
@@ -10,7 +10,6 @@ export function BoardView({
   scores,
   emptyCount,
   onJoin,
-  onHome,
 }) {
   return (
     <div>
@@ -39,21 +38,17 @@ export function BoardView({
             {config.teamX} vs {config.teamY}
           </p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button
-            onClick={onJoin}
-            disabled={config.submissionsDisabled || emptyCount === 0}
-            style={{
-              ...btnPrimary,
-              opacity: config.submissionsDisabled || emptyCount === 0 ? 0.5 : 1,
-            }}
-          >
-            {emptyCount === 0 ? "Pool Full" : "Join Pool"}
-          </button>
-          <button onClick={onHome} style={btnSecondary}>
-            Home
-          </button>
-        </div>
+        {/* Home lives in the header nav — no second one here */}
+        <button
+          onClick={onJoin}
+          disabled={config.submissionsDisabled || emptyCount === 0}
+          style={{
+            ...btnPrimary,
+            opacity: config.submissionsDisabled || emptyCount === 0 ? 0.5 : 1,
+          }}
+        >
+          {emptyCount === 0 ? "Pool Full" : "Join Pool"}
+        </button>
       </div>
 
       <SquaresGrid

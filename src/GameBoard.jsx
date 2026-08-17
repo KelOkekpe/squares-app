@@ -449,7 +449,6 @@ export function GameBoard({ spaceCode, onExit }) {
             scores={scores}
             emptyCount={emptyCount}
             onJoin={() => setView("join")}
-            onHome={() => setView("home")}
           />
         )}
       </main>
