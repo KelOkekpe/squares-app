@@ -1,4 +1,5 @@
 export { AdminApp } from "./AdminApp";
+export { AuthCallback } from "./AuthCallback";
 export { AdminLanding } from "./AdminLanding";
 export { AdminDashboard } from "./AdminDashboard";
 export { AdminPanel } from "./AdminPanel";

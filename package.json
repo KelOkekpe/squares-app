@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "start": "vite",
-    "check:keys": "node scripts/check-storage-keys.mjs"
+    "check:keys": "node scripts/check-storage-keys.mjs",
+    "check:routes": "node scripts/check-routes.mjs"
   },
   "dependencies": {
     "react": "^18.2.0",

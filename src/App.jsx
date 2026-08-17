@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useCallback, useState } from "react";
 import { useRoute } from "./hooks/useRoute";
 import { useAuth } from "./hooks/useAuth";
 import { isSupabaseEnabled } from "./lib/supabase";
-import { spacePath, ADMIN_PATH } from "./utils/routes";
+import { spacePath, ADMIN_PATH, isAuthCallbackHash } from "./utils/routes";
 import { PlayerLanding } from "./components/landing";
-import { AdminApp } from "./components/admin";
+import { AdminApp, AuthCallback } from "./components/admin";
 import { GameBoard } from "./GameBoard";
 import { pageStyle, containerStyle } from "./styles";
 
@@ -24,8 +24,22 @@ function SupabaseRequired() {
 export default function App() {
   const { route, navigate } = useRoute();
   const { isLoggedIn } = useAuth();
+  // Latched on mount: supabase-js clears the token fragment as soon as it reads
+  // it, which would otherwise bounce us out of the callback mid-sign-in.
+  const [handlingAuth, setHandlingAuth] = useState(() =>
+    typeof window !== "undefined" && isAuthCallbackHash(window.location.hash)
+  );
+
+  const finishAuth = useCallback(() => {
+    setHandlingAuth(false);
+    navigate(ADMIN_PATH, { replace: true });
+  }, [navigate]);
 
   if (!isSupabaseEnabled()) return <SupabaseRequired />;
+
+  if (handlingAuth || route.name === "auth") {
+    return <AuthCallback onDone={finishAuth} />;
+  }
 
   const enterSpace = (code) => navigate(spacePath(code));
   // Leaving a space returns you to whichever site you came from.
