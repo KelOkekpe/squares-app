@@ -67,12 +67,12 @@ export function useSpaceAdmins(spaceCode) {
     }
 
     try {
-      // Look up existing user by email (case-insensitive - auth may store different casing)
-      const { data: profile } = await supabase
-        .from("user_profiles")
-        .select("id")
-        .ilike("email", trimmed)
-        .maybeSingle();
+      // Look up existing user by email. user_profiles is not readable by other
+      // users, so this goes through a definer-rights RPC that returns only the
+      // id. A miss is fine — the invite is claimed on signup or first visit.
+      const { data: existingUserId } = await supabase.rpc("find_user_id_by_email", {
+        p_email: trimmed,
+      });
 
       const { data, error: insertError } = await supabase
         .from("space_admins")
@@ -80,10 +80,10 @@ export function useSpaceAdmins(spaceCode) {
           {
             space_code: spaceCode,
             email: trimmed,
-            user_id: profile?.id ?? null,
+            user_id: existingUserId ?? null,
             role: "admin",
             invited_by: user.id,
-            accepted: !!profile?.id,
+            accepted: !!existingUserId,
           },
           { onConflict: "space_code,email" }
         )

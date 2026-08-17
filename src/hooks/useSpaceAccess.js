@@ -62,7 +62,9 @@ export function useSpaceAccess() {
         return { ok: false, error: "Supabase is required for private spaces" };
       }
       try {
-        const { data: ok, error } = await supabase.rpc("verify_space_password", {
+        // Verifies the password and records the grant in one call — the two
+        // used to be separate RPCs, which let the grant be called on its own.
+        const { data: ok, error } = await supabase.rpc("unlock_space", {
           p_code: spaceCode,
           p_password: password,
         });
@@ -71,12 +73,7 @@ export function useSpaceAccess() {
         if (!ok) return { ok: false, error: "Incorrect password" };
 
         if (user) {
-          const { error: grantErr } = await supabase.rpc("grant_space_access", {
-            p_user_id: user.id,
-            p_space_code: spaceCode,
-          });
-          if (grantErr) console.warn("Could not grant access:", grantErr);
-          else setAccessCache((prev) => new Set([...prev, spaceCode]));
+          setAccessCache((prev) => new Set([...prev, spaceCode]));
         } else {
           setSessionAccess((prev) => {
             const next = new Set([...prev, spaceCode]);

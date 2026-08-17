@@ -4,7 +4,7 @@ import {
   generateHeaders, getInitialBoard, getEmptySquares, placeParticipant, calculateSquares,
 } from "./utils";
 import { usePersistedState, usePools, useAuth, useSpacesRegistry, useSpaceAccess, useUserSpaces } from "./hooks";
-import { isSupabaseEnabled } from "./lib/supabase";
+import { supabase, isSupabaseEnabled } from "./lib/supabase";
 import { pageStyle, containerStyle } from "./styles";
 import { colors, cardStyle, inputStyle, btnPrimary, btnSecondary } from "./styles";
 import { Header, Footer, BackgroundDecor, HomeView, JoinView, BoardView } from "./components/layout";
@@ -113,6 +113,8 @@ export function GameBoard({ spaceCode, onExit }) {
   const [amount, setAmount] = useState("");
   const [requestSubmitted, setRequestSubmitted] = useState(false);
   const [requestedCount, setRequestedCount] = useState(0);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [adminAuth, setAdminAuth] = useState(false);
 
   // ── derived ───────────────────────────────────────────
@@ -131,25 +133,34 @@ export function GameBoard({ spaceCode, onExit }) {
     setAmount("");
     setRequestSubmitted(false);
     setRequestedCount(0);
+    setSubmitError("");
   };
 
-  // Players queue a request; nothing touches the board until an admin approves.
-  const submitEntryRequest = useCallback(() => {
+  // Players are anonymous and have no write access to `spaces` — the request is
+  // appended server-side by submit_entry_request, which also serialises
+  // simultaneous submissions. Nothing touches the board until an admin approves.
+  const submitEntryRequest = useCallback(async () => {
     if (!amount || squaresForAmount < 1) return;
     const requested = Math.min(squaresForAmount, emptyCount);
-    setPending((list) => [
-      ...list,
-      {
-        id: `e${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        name: fullName,
-        amount: Number(amount),
-        squares: requested,
-        requestedAt: Date.now(),
-      },
-    ]);
+
+    setSubmitting(true);
+    setSubmitError("");
+    const { error } = await supabase.rpc("submit_entry_request", {
+      p_space_code: spaceCode,
+      p_pool_id: activePoolId,
+      p_name: fullName,
+      p_amount: Number(amount),
+      p_squares: requested,
+    });
+    setSubmitting(false);
+
+    if (error) {
+      setSubmitError(error.message || "Could not submit your request. Try again.");
+      return;
+    }
     setRequestedCount(requested);
     setRequestSubmitted(true);
-  }, [amount, squaresForAmount, emptyCount, fullName, setPending]);
+  }, [amount, squaresForAmount, emptyCount, fullName, spaceCode, activePoolId]);
 
   // Admin confirmed the money arrived — assign squares and record the entry.
   const approveEntry = useCallback(
@@ -358,6 +369,8 @@ export function GameBoard({ spaceCode, onExit }) {
             squaresForAmount={squaresForAmount}
             requestSubmitted={requestSubmitted}
             requestedCount={requestedCount}
+            submitting={submitting}
+            submitError={submitError}
             onSubmitRequest={submitEntryRequest}
             onViewBoard={() => setView("board")}
             onBack={() => {

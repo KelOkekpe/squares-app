@@ -8,10 +8,12 @@ export function PaymentStep({
   amount,
   setAmount,
   squaresForAmount,
+  submitting,
+  submitError,
   onConfirm,
   onViewBoard,
 }) {
-  const canSubmit = squaresForAmount >= 1 && !config.submissionsDisabled;
+  const canSubmit = squaresForAmount >= 1 && !config.submissionsDisabled && !submitting;
 
   return (
     <div>
@@ -137,13 +139,19 @@ export function PaymentStep({
         </p>
       </div>
 
+      {submitError && (
+        <p style={{ color: colors.accentRed, fontSize: 13, margin: "0 0 14px" }}>
+          {submitError}
+        </p>
+      )}
+
       <div style={{ display: "flex", gap: 10 }}>
         <button
           onClick={onConfirm}
           disabled={!canSubmit}
           style={{ ...btnPrimary, flex: 2, opacity: canSubmit ? 1 : 0.4 }}
         >
-          Submit Request
+          {submitting ? "Submitting…" : "Submit Request"}
         </button>
         <button onClick={onViewBoard} style={{ ...btnSecondary, flex: 1 }}>
           View Board

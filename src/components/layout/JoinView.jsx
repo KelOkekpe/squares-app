@@ -19,6 +19,8 @@ export function JoinView({
   squaresForAmount,
   requestSubmitted,
   requestedCount,
+  submitting,
+  submitError,
   onSubmitRequest,
   onViewBoard,
   onBack,
@@ -61,6 +63,8 @@ export function JoinView({
               amount={amount}
               setAmount={setAmount}
               squaresForAmount={squaresForAmount}
+              submitting={submitting}
+              submitError={submitError}
               onConfirm={onSubmitRequest}
               onViewBoard={onViewBoard}
             />
