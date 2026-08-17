@@ -113,7 +113,7 @@ export function PlayerLanding({ onEnterSpace }) {
                 onChange={(e) => { setCodeword(e.target.value); setError(""); }}
                 onKeyDown={(e) => e.key === "Enter" && handleEnter()}
                 style={{ ...inputStyle, fontWeight: 600 }}
-                placeholder="name-your-space"
+                placeholder="enter-space-code"
                 autoFocus
               />
             </div>
