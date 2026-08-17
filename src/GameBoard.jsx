@@ -102,6 +102,8 @@ export function GameBoard({ spaceCode, onExit }) {
     keys.participants,
     []
   );
+  // Entry requests awaiting admin payment confirmation
+  const [pending, setPending] = usePersistedState(keys.pending, []);
 
   // ── ephemeral UI state ────────────────────────────────
   const [view, setView] = useState("home");
@@ -109,13 +111,12 @@ export function GameBoard({ spaceCode, onExit }) {
   const [lastName, setLastName] = useState("");
   const [nameSubmitted, setNameSubmitted] = useState(false);
   const [amount, setAmount] = useState("");
-  const [paymentSent, setPaymentSent] = useState(false);
-  const [addedCount, setAddedCount] = useState(0);
+  const [requestSubmitted, setRequestSubmitted] = useState(false);
+  const [requestedCount, setRequestedCount] = useState(0);
   const [adminAuth, setAdminAuth] = useState(false);
 
   // ── derived ───────────────────────────────────────────
   const fullName = `${firstName} ${lastName}`.trim();
-  const qrMemo = `${fullName} football squares`;
   const squaresForAmount = calculateSquares(
     Number(amount),
     config.pricePerSquare
@@ -128,39 +129,57 @@ export function GameBoard({ spaceCode, onExit }) {
     setLastName("");
     setNameSubmitted(false);
     setAmount("");
-    setPaymentSent(false);
-    setAddedCount(0);
+    setRequestSubmitted(false);
+    setRequestedCount(0);
   };
 
-  const handlePayment = useCallback(() => {
+  // Players queue a request; nothing touches the board until an admin approves.
+  const submitEntryRequest = useCallback(() => {
     if (!amount || squaresForAmount < 1) return;
-    const actual = Math.min(squaresForAmount, emptyCount);
-    const { board: newBoard, placed } = placeParticipant(
-      board,
-      fullName,
-      actual
-    );
-    setBoard(newBoard);
-    setParticipants((p) => [
-      ...p,
+    const requested = Math.min(squaresForAmount, emptyCount);
+    setPending((list) => [
+      ...list,
       {
+        id: `e${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         name: fullName,
         amount: Number(amount),
-        squares: placed,
-        time: Date.now(),
+        squares: requested,
+        requestedAt: Date.now(),
       },
     ]);
-    setAddedCount(placed);
-    setPaymentSent(true);
-  }, [
-    amount,
-    squaresForAmount,
-    emptyCount,
-    board,
-    fullName,
-    setBoard,
-    setParticipants,
-  ]);
+    setRequestedCount(requested);
+    setRequestSubmitted(true);
+  }, [amount, squaresForAmount, emptyCount, fullName, setPending]);
+
+  // Admin confirmed the money arrived — assign squares and record the entry.
+  const approveEntry = useCallback(
+    (id) => {
+      const entry = pending.find((p) => p.id === id);
+      if (!entry) return;
+      const { board: newBoard, placed } = placeParticipant(
+        board,
+        entry.name,
+        entry.squares
+      );
+      setBoard(newBoard);
+      setParticipants((p) => [
+        ...p,
+        {
+          name: entry.name,
+          amount: entry.amount,
+          squares: placed,
+          time: Date.now(),
+        },
+      ]);
+      setPending((list) => list.filter((p) => p.id !== id));
+    },
+    [pending, board, setBoard, setParticipants, setPending]
+  );
+
+  const rejectEntry = useCallback(
+    (id) => setPending((list) => list.filter((p) => p.id !== id)),
+    [setPending]
+  );
 
   // ── Checking access or private space password gate ──
   if (checkingAccess) {
@@ -302,6 +321,10 @@ export function GameBoard({ spaceCode, onExit }) {
           onSwitchPool={switchPool}
           onClose={() => setView("home")}
           spaceCode={spaceCode}
+          pending={pending}
+          emptyCount={emptyCount}
+          onApproveEntry={approveEntry}
+          onRejectEntry={rejectEntry}
         />
       )}
 
@@ -328,15 +351,14 @@ export function GameBoard({ spaceCode, onExit }) {
             nameSubmitted={nameSubmitted}
             setNameSubmitted={setNameSubmitted}
             fullName={fullName}
-            qrMemo={qrMemo}
             config={config}
             emptyCount={emptyCount}
             amount={amount}
             setAmount={setAmount}
             squaresForAmount={squaresForAmount}
-            paymentSent={paymentSent}
-            addedCount={addedCount}
-            onConfirmPayment={handlePayment}
+            requestSubmitted={requestSubmitted}
+            requestedCount={requestedCount}
+            onSubmitRequest={submitEntryRequest}
             onViewBoard={() => setView("board")}
             onBack={() => {
               setView("home");

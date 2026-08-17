@@ -1,10 +1,8 @@
 import React from "react";
-import { QRCode } from "../common";
 import { inputStyle, labelStyle, btnPrimary, btnSecondary } from "../../styles";
 import { colors } from "../../styles";
 
 export function PaymentStep({
-  qrMemo,
   config,
   emptyCount,
   amount,
@@ -47,36 +45,35 @@ export function PaymentStep({
         </h3>
       </div>
 
-      {/* QR code */}
+      {/* Where to send the money — set by the admin in the admin panel */}
       <div
         style={{
-          textAlign: "center",
-          padding: 24,
+          padding: 20,
           background: "#0a0a1e",
           borderRadius: 16,
           border: `1px solid ${colors.border}`,
           marginBottom: 20,
         }}
       >
-        <QRCode
-          value={qrMemo}
-          size={180}
-          blurred={config.submissionsDisabled}
-        />
-        <p
-          style={{
-            marginTop: 14,
-            color: colors.textMuted,
-            fontSize: 12,
-            lineHeight: 1.5,
-          }}
-        >
-          Memo:{" "}
-          <span style={{ color: colors.textSecondary, fontWeight: 600 }}>
-            {qrMemo}
-          </span>
-        </p>
-        <p style={{ color: colors.textDim, fontSize: 11, margin: "8px 0 0" }}>
+        {config.paymentInstructions ? (
+          <p
+            style={{
+              margin: 0,
+              color: colors.textSecondary,
+              fontSize: 14,
+              lineHeight: 1.6,
+              whiteSpace: "pre-wrap",
+            }}
+          >
+            {config.paymentInstructions}
+          </p>
+        ) : (
+          <p style={{ margin: 0, color: colors.textMuted, fontSize: 13, lineHeight: 1.6 }}>
+            Your admin hasn't added payment details yet. Ask them where to send
+            payment before submitting.
+          </p>
+        )}
+        <p style={{ color: colors.textDim, fontSize: 11, margin: "12px 0 0" }}>
           ${config.pricePerSquare} per square · {emptyCount} available
         </p>
       </div>
@@ -97,7 +94,7 @@ export function PaymentStep({
         <p style={{ color: "#a0a0cc", fontSize: 13, margin: "4px 0 16px" }}>
           {squaresForAmount > 0 ? (
             <>
-              You'll get{" "}
+              You'll request{" "}
               <strong style={{ color: colors.accentPurple }}>
                 {Math.min(squaresForAmount, emptyCount)} square
                 {Math.min(squaresForAmount, emptyCount) !== 1 ? "s" : ""}
@@ -123,13 +120,30 @@ export function PaymentStep({
         </p>
       )}
 
+      {/* Set expectations before they submit */}
+      <div
+        style={{
+          padding: "12px 16px",
+          background: "#ffffff06",
+          border: `1px solid ${colors.border}`,
+          borderRadius: 10,
+          marginBottom: 16,
+        }}
+      >
+        <p style={{ margin: 0, color: colors.textMuted, fontSize: 12, lineHeight: 1.6 }}>
+          Send the payment first, then submit. Your squares are assigned once
+          your admin confirms the money arrived — they aren't reserved in the
+          meantime.
+        </p>
+      </div>
+
       <div style={{ display: "flex", gap: 10 }}>
         <button
           onClick={onConfirm}
           disabled={!canSubmit}
           style={{ ...btnPrimary, flex: 2, opacity: canSubmit ? 1 : 0.4 }}
         >
-          Confirm Payment
+          Submit Request
         </button>
         <button onClick={onViewBoard} style={{ ...btnSecondary, flex: 1 }}>
           View Board

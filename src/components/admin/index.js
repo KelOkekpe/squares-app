@@ -3,6 +3,7 @@ export { AdminLanding } from "./AdminLanding";
 export { AdminDashboard } from "./AdminDashboard";
 export { AdminPanel } from "./AdminPanel";
 export { AdminInviteSection } from "./AdminInviteSection";
+export { PendingEntriesSection } from "./PendingEntriesSection";
 export { BoardManagementSection } from "./BoardManagementSection";
 export { TeamColorSection } from "./TeamColorSection";
 export { PrizePoolSection } from "./PrizePoolSection";

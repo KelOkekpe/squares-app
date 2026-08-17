@@ -8,6 +8,7 @@ import { QuarterScoresSection } from "./QuarterScoresSection";
 import { OverrideCellSection } from "./OverrideCellSection";
 import { BoardManagementSection } from "./BoardManagementSection";
 import { AdminInviteSection } from "./AdminInviteSection";
+import { PendingEntriesSection } from "./PendingEntriesSection";
 
 export function AdminPanel({
   config,
@@ -26,6 +27,10 @@ export function AdminPanel({
   onSwitchPool,
   onClose,
   spaceCode,
+  pending = [],
+  emptyCount = 0,
+  onApproveEntry,
+  onRejectEntry,
 }) {
   const [confirmReset, setConfirmReset] = useState(false);
   const [canManageAdmins, setCanManageAdmins] = useState(false);
@@ -104,6 +109,14 @@ export function AdminPanel({
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {/* Entry requests awaiting payment confirmation */}
+          <PendingEntriesSection
+            pending={pending}
+            emptyCount={emptyCount}
+            onApprove={onApproveEntry}
+            onReject={onRejectEntry}
+          />
+
           {/* Price per square */}
           <div style={adminSectionStyle}>
             <label style={labelStyle}>Price per square ($)</label>
@@ -118,6 +131,24 @@ export function AdminPanel({
                 }))
               }
               style={adminInputStyle}
+            />
+          </div>
+
+          {/* Where players should send payment */}
+          <div style={adminSectionStyle}>
+            <label style={labelStyle}>Payment instructions</label>
+            <p style={{ color: colors.textDim, fontSize: 12, margin: "0 0 8px" }}>
+              Shown to players on the payment step — e.g. your Venmo handle or
+              Cash App $cashtag.
+            </p>
+            <textarea
+              rows={3}
+              value={config.paymentInstructions || ""}
+              onChange={(e) =>
+                setConfig((c) => ({ ...c, paymentInstructions: e.target.value }))
+              }
+              style={{ ...adminInputStyle, resize: "vertical", fontFamily: "inherit" }}
+              placeholder={"Venmo @your-handle\nInclude your name in the note"}
             />
           </div>
 

@@ -7,6 +7,7 @@ export const STORAGE_KEYS = (space, poolId) => ({
   board: `fb-${space}-${poolId}-board`,
   admin: `fb-${space}-${poolId}-admin`,
   participants: `fb-${space}-${poolId}-participants`,
+  pending: `fb-${space}-${poolId}-pending`,
   scores: `fb-${space}-${poolId}-scores`,
   headers: `fb-${space}-${poolId}-headers`,
 });
@@ -30,6 +31,9 @@ export const DEFAULT_BOARD_ENTRY = DEFAULT_POOL_ENTRY;
 
 export const DEFAULT_CONFIG = {
   pricePerSquare: DEFAULT_PRICE,
+  // Free text shown to players on the payment step, e.g. "Venmo @kel-okekpe".
+  // Squares are only assigned once an admin confirms the money arrived.
+  paymentInstructions: "",
   teamX: "Seattle Seahawks",
   teamY: "New England Patriots",
   submissionsDisabled: false,

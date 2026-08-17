@@ -2,7 +2,7 @@ import React from "react";
 import { cardStyle } from "../../styles";
 import { NameStep } from "../join/NameStep";
 import { PaymentStep } from "../join/PaymentStep";
-import { PaymentSuccess } from "../join/PaymentSuccess";
+import { EntrySubmitted } from "../join/EntrySubmitted";
 
 export function JoinView({
   firstName,
@@ -12,15 +12,14 @@ export function JoinView({
   nameSubmitted,
   setNameSubmitted,
   fullName,
-  qrMemo,
   config,
   emptyCount,
   amount,
   setAmount,
   squaresForAmount,
-  paymentSent,
-  addedCount,
-  onConfirmPayment,
+  requestSubmitted,
+  requestedCount,
+  onSubmitRequest,
   onViewBoard,
   onBack,
   onDone,
@@ -43,7 +42,7 @@ export function JoinView({
         ← Back
       </button>
 
-      {!paymentSent ? (
+      {!requestSubmitted ? (
         <div style={cardStyle}>
           <NameStep
             firstName={firstName}
@@ -57,21 +56,20 @@ export function JoinView({
 
           {nameSubmitted && (
             <PaymentStep
-              qrMemo={qrMemo}
               config={config}
               emptyCount={emptyCount}
               amount={amount}
               setAmount={setAmount}
               squaresForAmount={squaresForAmount}
-              onConfirm={onConfirmPayment}
+              onConfirm={onSubmitRequest}
               onViewBoard={onViewBoard}
             />
           )}
         </div>
       ) : (
-        <PaymentSuccess
+        <EntrySubmitted
           fullName={fullName}
-          addedCount={addedCount}
+          requestedCount={requestedCount}
           amount={amount}
           pricePerSquare={config.pricePerSquare}
           onViewBoard={onViewBoard}
