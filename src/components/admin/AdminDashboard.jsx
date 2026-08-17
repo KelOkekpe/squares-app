@@ -6,6 +6,7 @@ import { useCreateSpace } from "../../hooks/useCreateSpace";
 import { normalizeCode, spaceUrlPrefix } from "../../utils/routes";
 import { colors, radii, pageStyle, containerStyle, cardStyle, inputStyle, labelStyle, btnPrimary } from "../../styles";
 import { BackgroundDecor } from "../layout/BackgroundDecor";
+import { PasswordInput } from "../common";
 
 function LockIcon() {
   return (
@@ -275,8 +276,7 @@ export function AdminDashboard({ onOpenSpace }) {
               {isPrivate && (
                 <div>
                   <label style={labelStyle}>Space password</label>
-                  <input
-                    type="password"
+                  <PasswordInput
                     value={spacePassword}
                     onChange={(e) => { setSpacePassword(e.target.value); setError(""); }}
                     style={inputStyle}

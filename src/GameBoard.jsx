@@ -9,6 +9,7 @@ import { pageStyle, containerStyle } from "./styles";
 import { colors, cardStyle, inputStyle, btnPrimary, btnSecondary } from "./styles";
 import { Header, Footer, BackgroundDecor, HomeView, JoinView, BoardView } from "./components/layout";
 import { AdminPanel } from "./components/admin";
+import { PasswordInput } from "./components/common";
 
 export function GameBoard({ spaceCode, onExit }) {
   const { isSpaceAdmin, isOwner } = useAuth();
@@ -305,8 +306,7 @@ export function GameBoard({ spaceCode, onExit }) {
             <p style={{ color: colors.textMuted, fontSize: 13, margin: "0 0 16px" }}>
               Enter the password for <strong>#{spaceCode}</strong>
             </p>
-            <input
-              type="password"
+            <PasswordInput
               value={gatePassword}
               onChange={(e) => {
                 setGatePassword(e.target.value);

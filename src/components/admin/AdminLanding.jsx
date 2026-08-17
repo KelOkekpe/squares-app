@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
 import { colors, radii, pageStyle, containerStyle, cardStyle, inputStyle, labelStyle, btnPrimary } from "../../styles";
 import { BackgroundDecor } from "../layout/BackgroundDecor";
+import { PasswordInput } from "../common";
 
 /**
  * Admin site entry point (/admin). Sign in or sign up with email + password.
@@ -188,8 +189,7 @@ export function AdminLanding() {
               </div>
               <div>
                 <label style={labelStyle}>Password</label>
-                <input
-                  type="password"
+                <PasswordInput
                   value={password}
                   onChange={(e) => { setPassword(e.target.value); setError(""); }}
                   onKeyDown={(e) => e.key === "Enter" && handleSubmit()}

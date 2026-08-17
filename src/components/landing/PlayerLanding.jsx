@@ -4,6 +4,7 @@ import { useSpaceAccess } from "../../hooks/useSpaceAccess";
 import { normalizeCode, spaceUrlPrefix } from "../../utils/routes";
 import { colors, pageStyle, containerStyle, cardStyle, inputStyle, btnPrimary, btnSecondary } from "../../styles";
 import { BackgroundDecor } from "../layout/BackgroundDecor";
+import { PasswordInput } from "../common";
 
 /**
  * Player landing page. Players never sign up or sign in — they enter a space
@@ -183,8 +184,7 @@ export function PlayerLanding({ onEnterSpace }) {
             <p style={{ color: colors.textMuted, fontSize: 13, margin: "0 0 16px" }}>
               Enter the password for <strong>#{pendingSpaceCode}</strong>
             </p>
-            <input
-              type="password"
+            <PasswordInput
               value={passwordInput}
               onChange={(e) => { setPasswordInput(e.target.value); setError(""); }}
               onKeyDown={(e) => e.key === "Enter" && handlePasswordSubmit()}
