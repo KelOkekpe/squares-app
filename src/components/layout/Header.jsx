@@ -9,14 +9,19 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
   const isMobile = useIsMobile();
   const [canAccessAdmin, setCanAccessAdmin] = useState(false);
 
-  // The page clips horizontal overflow, so a non-wrapping nav put the Admin
-  // button off-screen with no way to reach it. Buttons shrink and wrap instead.
+  // Everything stays on one row, so mobile trims aggressively: smaller
+  // buttons, no wordmark, no user chip. overflowX is a safety valve — the page
+  // clips horizontal overflow, and a clipped nav is how the Admin button
+  // became unreachable in the first place.
   const navButton = {
     ...btnSecondary,
-    padding: isMobile ? "8px 12px" : "10px 20px",
-    fontSize: isMobile ? 12 : 13,
+    padding: isMobile ? "7px 10px" : "10px 20px",
+    fontSize: isMobile ? 11 : 13,
     whiteSpace: "nowrap",
+    flexShrink: 0,
   };
+
+  const onBoard = view === "board";
 
   // Determine if the current user should see the Admin button
   useEffect(() => {
@@ -63,65 +68,85 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
-            flexWrap: "wrap",
-            rowGap: 10,
+            flexWrap: "nowrap",
+            gap: 10,
           }}
         >
+          {/* Logo leaves the space — the conventional "home" affordance, and
+              the only way out now that Exit is gone. */}
           <div
             style={{
               cursor: "pointer",
               display: "flex",
               alignItems: "center",
-              gap: 12,
+              gap: isMobile ? 8 : 12,
+              minWidth: 0,
             }}
-            onClick={onHome}
+            onClick={onExit || onHome}
+            title={onExit ? "Leave this space" : undefined}
           >
             <div
               style={{
-                width: 40,
-                height: 40,
+                width: isMobile ? 32 : 40,
+                height: isMobile ? 32 : 40,
+                flexShrink: 0,
                 borderRadius: 10,
                 background: `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                fontSize: 20,
+                fontSize: isMobile ? 17 : 20,
               }}
             >
               🏈
             </div>
-            <div style={{ display: "flex", flexDirection: "column" }}>
-              <span
-                style={{
-                  fontWeight: 800,
-                  fontSize: 18,
-                  letterSpacing: -0.5,
-                  color: colors.white,
-                }}
-              >
-                GRID
-                <span style={{ color: colors.accentViolet }}>IRON</span>
-              </span>
+            <div style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+              {/* Wordmark is dropped on mobile so three buttons fit one row */}
+              {!isMobile && (
+                <span
+                  style={{
+                    fontWeight: 800,
+                    fontSize: 18,
+                    letterSpacing: -0.5,
+                    color: colors.white,
+                  }}
+                >
+                  GRID
+                  <span style={{ color: colors.accentViolet }}>IRON</span>
+                </span>
+              )}
               {spaceCode && (
-                <span style={{ fontSize: 11, color: colors.textMuted, letterSpacing: 1, textTransform: "lowercase" }}>
+                <span
+                  style={{
+                    fontSize: 11,
+                    color: colors.textMuted,
+                    letterSpacing: 1,
+                    textTransform: "lowercase",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
                   #{spaceCode}
                 </span>
               )}
             </div>
           </div>
 
+          {/* Admin · View Board · Sign Out — one row, never wrapping */}
           <nav
             style={{
               display: "flex",
-              gap: 8,
+              gap: isMobile ? 6 : 8,
               alignItems: "center",
-              flexWrap: "wrap",
-              justifyContent: isMobile ? "flex-start" : "flex-end",
-              width: isMobile ? "100%" : "auto",
+              flexWrap: "nowrap",
+              justifyContent: "flex-end",
+              overflowX: "auto",
+              scrollbarWidth: "none",
             }}
           >
-            {/* User indicator */}
-            {isLoggedIn && (
+            {/* User indicator — desktop only, it costs a button's width */}
+            {isLoggedIn && !isMobile && (
               <span style={{
                 color: colors.textDim,
                 fontSize: 11,
@@ -129,6 +154,7 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
                 display: "flex",
                 alignItems: "center",
                 gap: 4,
+                whiteSpace: "nowrap",
               }}>
                 <span style={{
                   width: 6,
@@ -141,6 +167,32 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
               </span>
             )}
 
+            {/* Admin — hidden for players */}
+            {canAccessAdmin && (
+              <button
+                onClick={onAdmin}
+                style={{
+                  ...navButton,
+                  color: colors.accentRed,
+                  borderColor: "#ff6b6b30",
+                }}
+              >
+                Admin
+              </button>
+            )}
+
+            {/* Toggles with the board, so the home view is still reachable
+                now that the logo leaves the space instead */}
+            <button
+              onClick={onBoard ? onHome : onViewBoard}
+              style={{
+                ...navButton,
+                background: onBoard ? "#ffffff10" : "transparent",
+              }}
+            >
+              {onBoard ? "Home" : isMobile ? "Board" : "View Board"}
+            </button>
+
             {/* Players are never signed in — only admins see a sign-out */}
             {isLoggedIn && (
               <button
@@ -152,37 +204,6 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
                 style={{ ...navButton, color: colors.textDim }}
               >
                 Sign Out
-              </button>
-            )}
-
-            {onExit && (
-              <button
-                onClick={onExit}
-                style={{ ...navButton, color: colors.textDim }}
-              >
-                Exit
-              </button>
-            )}
-            <button
-              onClick={onViewBoard}
-              style={{
-                ...navButton,
-                background: view === "board" ? "#ffffff10" : "transparent",
-              }}
-            >
-              View Board
-            </button>
-            {/* Admin button — hidden for logged-in players */}
-            {canAccessAdmin && (
-              <button
-                onClick={onAdmin}
-                style={{
-                  ...navButton,
-                  color: colors.accentRed,
-                  borderColor: "#ff6b6b30",
-                }}
-              >
-                Admin
               </button>
             )}
           </nav>
