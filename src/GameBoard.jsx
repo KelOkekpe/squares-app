@@ -192,6 +192,38 @@ export function GameBoard({ spaceCode, onExit }) {
     [setPending]
   );
 
+  // Remove a confirmed entry. The board stores only names, so it can't tell
+  // which entry a square came from — if this is the person's last entry we
+  // clear every square in their name, otherwise just the count this entry
+  // bought. Both stores have to change or the entry lingers in Recent Entries.
+  const removeEntry = useCallback(
+    (index) => {
+      const entry = participants[index];
+      if (!entry) return;
+
+      const hasOtherEntries = participants.some(
+        (p, i) => i !== index && p.name === entry.name
+      );
+
+      setBoard((current) => {
+        const next = current.map((row) => [...row]);
+        let toClear = hasOtherEntries ? entry.squares : Infinity;
+        for (let r = 0; r < next.length; r++) {
+          for (let c = 0; c < next[r].length; c++) {
+            if (toClear > 0 && next[r][c] === entry.name) {
+              next[r][c] = null;
+              toClear--;
+            }
+          }
+        }
+        return next;
+      });
+
+      setParticipants((list) => list.filter((_, i) => i !== index));
+    },
+    [participants, setBoard, setParticipants]
+  );
+
   // ── Checking access or private space password gate ──
   if (checkingAccess) {
     return (
@@ -336,6 +368,9 @@ export function GameBoard({ spaceCode, onExit }) {
           emptyCount={emptyCount}
           onApproveEntry={approveEntry}
           onRejectEntry={rejectEntry}
+          participants={participants}
+          setParticipants={setParticipants}
+          onRemoveEntry={removeEntry}
         />
       )}
 

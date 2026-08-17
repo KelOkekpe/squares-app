@@ -9,6 +9,7 @@ import { OverrideCellSection } from "./OverrideCellSection";
 import { BoardManagementSection } from "./BoardManagementSection";
 import { AdminInviteSection } from "./AdminInviteSection";
 import { PendingEntriesSection } from "./PendingEntriesSection";
+import { EntriesSection } from "./EntriesSection";
 
 export function AdminPanel({
   config,
@@ -31,6 +32,9 @@ export function AdminPanel({
   emptyCount = 0,
   onApproveEntry,
   onRejectEntry,
+  participants = [],
+  setParticipants,
+  onRemoveEntry,
 }) {
   const [confirmReset, setConfirmReset] = useState(false);
   const [canManageAdmins, setCanManageAdmins] = useState(false);
@@ -116,6 +120,9 @@ export function AdminPanel({
             onApprove={onApproveEntry}
             onReject={onRejectEntry}
           />
+
+          {/* Confirmed entries */}
+          <EntriesSection participants={participants} onRemove={onRemoveEntry} />
 
           {/* Price per square */}
           <div style={adminSectionStyle}>
@@ -312,6 +319,9 @@ export function AdminPanel({
                   onClick={() => {
                     setBoard(getInitialBoard());
                     setScores({});
+                    // Entries live separately from the board — clearing only the
+                    // board left every name behind in Recent Entries.
+                    setParticipants?.([]);
                     setConfirmReset(false);
                   }}
                   style={{

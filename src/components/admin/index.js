@@ -5,6 +5,7 @@ export { AdminDashboard } from "./AdminDashboard";
 export { AdminPanel } from "./AdminPanel";
 export { AdminInviteSection } from "./AdminInviteSection";
 export { PendingEntriesSection } from "./PendingEntriesSection";
+export { EntriesSection } from "./EntriesSection";
 export { BoardManagementSection } from "./BoardManagementSection";
 export { TeamColorSection } from "./TeamColorSection";
 export { PrizePoolSection } from "./PrizePoolSection";
