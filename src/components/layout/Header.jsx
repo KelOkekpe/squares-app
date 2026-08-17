@@ -2,10 +2,21 @@ import React, { useState, useEffect } from "react";
 import { containerStyle, btnSecondary } from "../../styles";
 import { colors, radii } from "../../styles";
 import { useAuth } from "../../hooks/useAuth";
+import { useIsMobile } from "../../hooks/useMediaQuery";
 
 export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }) {
   const { isLoggedIn, isOwner, profile, isSpaceAdmin, signOut } = useAuth();
+  const isMobile = useIsMobile();
   const [canAccessAdmin, setCanAccessAdmin] = useState(false);
+
+  // The page clips horizontal overflow, so a non-wrapping nav put the Admin
+  // button off-screen with no way to reach it. Buttons shrink and wrap instead.
+  const navButton = {
+    ...btnSecondary,
+    padding: isMobile ? "8px 12px" : "10px 20px",
+    fontSize: isMobile ? 12 : 13,
+    whiteSpace: "nowrap",
+  };
 
   // Determine if the current user should see the Admin button
   useEffect(() => {
@@ -40,7 +51,7 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
     <>
       <header
         style={{
-          padding: "20px 0",
+          padding: isMobile ? "14px 0" : "20px 0",
           borderBottom: `1px solid ${colors.border}`,
           position: "relative",
           zIndex: 10,
@@ -52,6 +63,8 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
             display: "flex",
             justifyContent: "space-between",
             alignItems: "center",
+            flexWrap: "wrap",
+            rowGap: 10,
           }}
         >
           <div
@@ -97,7 +110,16 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
             </div>
           </div>
 
-          <nav style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <nav
+            style={{
+              display: "flex",
+              gap: 8,
+              alignItems: "center",
+              flexWrap: "wrap",
+              justifyContent: isMobile ? "flex-start" : "flex-end",
+              width: isMobile ? "100%" : "auto",
+            }}
+          >
             {/* User indicator */}
             {isLoggedIn && (
               <span style={{
@@ -127,12 +149,7 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
                   signOut();
                   onExit?.(); // Leave space so we don't hit the private-space password gate
                 }}
-                style={{
-                  ...btnSecondary,
-                  padding: "8px 14px",
-                  fontSize: 12,
-                  color: colors.textDim,
-                }}
+                style={{ ...navButton, color: colors.textDim }}
               >
                 Sign Out
               </button>
@@ -141,12 +158,7 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
             {onExit && (
               <button
                 onClick={onExit}
-                style={{
-                  ...btnSecondary,
-                  padding: "10px 20px",
-                  fontSize: 13,
-                  color: colors.textDim,
-                }}
+                style={{ ...navButton, color: colors.textDim }}
               >
                 Exit
               </button>
@@ -154,9 +166,7 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
             <button
               onClick={onViewBoard}
               style={{
-                ...btnSecondary,
-                padding: "10px 20px",
-                fontSize: 13,
+                ...navButton,
                 background: view === "board" ? "#ffffff10" : "transparent",
               }}
             >
@@ -167,9 +177,7 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
               <button
                 onClick={onAdmin}
                 style={{
-                  ...btnSecondary,
-                  padding: "10px 20px",
-                  fontSize: 13,
+                  ...navButton,
                   color: colors.accentRed,
                   borderColor: "#ff6b6b30",
                 }}

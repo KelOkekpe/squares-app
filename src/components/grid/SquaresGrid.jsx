@@ -2,9 +2,22 @@ import React, { useMemo } from "react";
 import { GRID_SIZE, QUARTERS, getWinnerCell } from "../../utils";
 import { darken } from "../../utils";
 import { colors, fonts } from "../../styles";
+import { useIsMobile } from "../../hooks/useMediaQuery";
 import { PrizePotBar } from "./PrizePotBar";
 
 export function SquaresGrid({ board, headers, config, scores }) {
+  const isMobile = useIsMobile();
+  // On a phone the desktop sizing forces both horizontal and a lot of vertical
+  // scrolling. Shrinking the axis gutters and cell height fits 10 columns in a
+  // ~360px viewport, so the whole board is visible at once.
+  const axisSize = isMobile ? 22 : 40;
+  const cellHeight = isMobile ? 30 : 52;
+  const cellGap = isMobile ? 1 : 2;
+  const gridMinWidth = isMobile ? 0 : 700;
+  const nameSize = (name) =>
+    isMobile
+      ? name.length > 12 ? 6 : name.length > 8 ? 7 : 8
+      : name.length > 14 ? 8 : name.length > 10 ? 9 : 10;
   /* ── derive winner map ────────────────────────────────── */
   const winners = useMemo(() => {
     const w = {};
@@ -69,10 +82,10 @@ export function SquaresGrid({ board, headers, config, scores }) {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: `40px 40px repeat(${GRID_SIZE}, 1fr)`,
-          gridTemplateRows: `40px 40px repeat(${GRID_SIZE}, 1fr)`,
-          gap: 2,
-          minWidth: 700,
+          gridTemplateColumns: `${axisSize}px ${axisSize}px repeat(${GRID_SIZE}, 1fr)`,
+          gridTemplateRows: `${axisSize}px ${axisSize}px repeat(${GRID_SIZE}, 1fr)`,
+          gap: cellGap,
+          minWidth: gridMinWidth,
         }}
       >
         {/* corner blank (2 cols × 2 rows) */}
@@ -104,9 +117,9 @@ export function SquaresGrid({ board, headers, config, scores }) {
             alignItems: "center",
             justifyContent: "center",
             color: teamXColor,
-            fontSize: 13,
+            fontSize: isMobile ? 10 : 13,
             fontWeight: 700,
-            letterSpacing: 2,
+            letterSpacing: isMobile ? 1 : 2,
             textTransform: "uppercase",
             borderRadius: "0 8px 0 0",
           }}
@@ -127,7 +140,7 @@ export function SquaresGrid({ board, headers, config, scores }) {
               justifyContent: "center",
               color: teamXColor,
               fontWeight: 800,
-              fontSize: 16,
+              fontSize: isMobile ? 11 : 16,
               fontFamily: fonts.mono,
             }}
           >
@@ -148,9 +161,9 @@ export function SquaresGrid({ board, headers, config, scores }) {
             writingMode: "vertical-rl",
             textOrientation: "mixed",
             color: teamYColor,
-            fontSize: 13,
+            fontSize: isMobile ? 10 : 13,
             fontWeight: 700,
-            letterSpacing: 2,
+            letterSpacing: isMobile ? 1 : 2,
             textTransform: "uppercase",
             transform: "rotate(180deg)",
           }}
@@ -171,7 +184,7 @@ export function SquaresGrid({ board, headers, config, scores }) {
                 justifyContent: "center",
                 color: teamYColor,
                 fontWeight: 800,
-                fontSize: 16,
+                fontSize: isMobile ? 11 : 16,
                 fontFamily: fonts.mono,
               }}
             >
@@ -195,13 +208,13 @@ export function SquaresGrid({ board, headers, config, scores }) {
                     border: winQ
                       ? `2px solid ${colors.accentGold}`
                       : `1px solid ${colors.border}`,
-                    borderRadius: 4,
+                    borderRadius: isMobile ? 3 : 4,
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
-                    padding: 4,
-                    minHeight: 52,
+                    padding: isMobile ? 1 : 4,
+                    minHeight: cellHeight,
                     position: "relative",
                     transition: "all 0.2s",
                     cursor: "default",
@@ -231,8 +244,7 @@ export function SquaresGrid({ board, headers, config, scores }) {
                   {cell ? (
                     <span
                       style={{
-                        fontSize:
-                          cell.length > 14 ? 8 : cell.length > 10 ? 9 : 10,
+                        fontSize: nameSize(cell),
                         color: winQ ? colors.accentGold : colors.textSecondary,
                         fontWeight: winQ ? 800 : 500,
                         textAlign: "center",
@@ -245,7 +257,7 @@ export function SquaresGrid({ board, headers, config, scores }) {
                       {cell}
                     </span>
                   ) : (
-                    <span style={{ fontSize: 16, color: colors.border }}>
+                    <span style={{ fontSize: isMobile ? 10 : 16, color: colors.border }}>
                       ·
                     </span>
                   )}
