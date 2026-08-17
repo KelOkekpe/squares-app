@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase, isSupabaseEnabled } from "../lib/supabase";
+import { parseStorageKey } from "../utils/storageKeys";
 
 /**
  * Like useState but persists to Supabase (with localStorage fallback).
@@ -34,16 +35,7 @@ export function useSupabaseState(key, initialValue, options = {}) {
       }
 
       try {
-        // Parse key to extract space and pool info
-        // Format: fb-{spaceCode}-{poolId}-{type} or fb-{spaceCode}-meta
-        // poolId can be UUID (with hyphens) or legacy p123 format
-        const metaMatch = storageKey.match(/^fb-(.+)-meta$/);
-        const poolMatch = storageKey.match(/^fb-(.+)-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|p\d+)-(board|admin|participants|scores|headers)$/i);
-        const match = metaMatch
-          ? [null, metaMatch[1], '', 'meta']
-          : poolMatch
-            ? [null, poolMatch[1], poolMatch[2], poolMatch[3]]
-            : null;
+        const match = parseStorageKey(storageKey);
 
         // Try key lookup first (works for all keys once we save with key)
         const { data: dataByKey, error: keyErr } = await supabase
@@ -58,8 +50,8 @@ export function useSupabaseState(key, initialValue, options = {}) {
             setLoading(false);
           }
         } else if (match) {
-          const [, space, pool, type] = match;
-          
+          const { space, pool, type } = match;
+
           // Use structured query
           let query = supabase
             .from(table)
@@ -109,12 +101,10 @@ export function useSupabaseState(key, initialValue, options = {}) {
     // Set up real-time subscription if Supabase is enabled
     let subscription = null;
     if (isSupabaseEnabled()) {
-      const metaMatch = storageKey.match(/^fb-(.+)-meta$/);
-      const poolMatch = storageKey.match(/^fb-(.+)-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|p\d+)-(board|admin|participants|scores|headers)$/i);
-      const match = metaMatch ? [null, metaMatch[1], '', 'meta'] : poolMatch ? [null, poolMatch[1], poolMatch[2], poolMatch[3]] : null;
+      const match = parseStorageKey(storageKey);
       if (match) {
-        const [, space, pool, type] = match;
-        
+        const { space, pool, type } = match;
+
         const channel = supabase
           .channel(`state:${storageKey}`)
           .on(
@@ -162,27 +152,17 @@ export function useSupabaseState(key, initialValue, options = {}) {
       if (!isSupabaseEnabled()) return;
 
       try {
-        const metaMatch = storageKey.match(/^fb-(.+)-meta$/);
-        const poolMatch = storageKey.match(/^fb-(.+)-([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}|p\d+)-(board|admin|participants|scores|headers)$/i);
-        const match = metaMatch
-          ? [null, metaMatch[1], '', 'meta']
-          : poolMatch
-            ? [null, poolMatch[1], poolMatch[2], poolMatch[3]]
-            : null;
+        const match = parseStorageKey(storageKey);
 
         if (!match) {
-          // Upsert with key
-          const { error } = await supabase
-            .from(table)
-            .upsert({
-              key: storageKey,
-              value: newState,
-              updated_at: new Date().toISOString(),
-            });
-
-          if (error) throw error;
+          // spaces.space_code and spaces.type are NOT NULL, so a key that
+          // doesn't parse cannot be written. Fail loudly rather than letting
+          // the row be silently rejected.
+          throw new Error(
+            `Storage key "${storageKey}" does not parse — add its type to POOL_STATE_TYPES in utils/storageKeys.js`
+          );
         } else {
-          const [, space, pool, type] = match;
+          const { space, pool, type } = match;
           const poolVal = pool || '';
           const row = {
             key: storageKey,
