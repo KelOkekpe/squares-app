@@ -1,0 +1,372 @@
+import React, { useState, useCallback, useEffect } from "react";
+import {
+  STORAGE_KEYS, SPACE_META_KEY, DEFAULT_CONFIG,
+  generateHeaders, getInitialBoard, getEmptySquares, placeParticipant, calculateSquares,
+} from "./utils";
+import { usePersistedState, usePools, useAuth, useSpacesRegistry, useSpaceAccess, useUserSpaces } from "./hooks";
+import { isSupabaseEnabled } from "./lib/supabase";
+import { pageStyle, containerStyle } from "./styles";
+import { colors, cardStyle, inputStyle, btnPrimary, btnSecondary } from "./styles";
+import { Header, Footer, BackgroundDecor, HomeView, JoinView, BoardView } from "./components/layout";
+import { AdminPanel } from "./components/admin";
+
+export function GameBoard({ spaceCode, onExit }) {
+  const { isSpaceAdmin, isOwner } = useAuth();
+  const { spaces, loading: registryLoading } = useSpacesRegistry();
+  const { hasAccess, verifyAndGrantAccess, refetch: refetchAccess } = useSpaceAccess();
+  const { spaces: userSpaces, loading: userSpacesLoading } = useUserSpaces();
+
+  const space = spaces.find((s) => s.code === spaceCode);
+  const isOwnerOrAdmin = userSpaces.some((s) => s.code === spaceCode);
+  const checkingAccess = registryLoading || userSpacesLoading;
+  const needsPassword =
+    !checkingAccess &&
+    space?.isPrivate &&
+    !hasAccess(spaceCode) &&
+    !isOwnerOrAdmin;
+
+  const [gatePassword, setGatePassword] = useState("");
+  const [gateError, setGateError] = useState("");
+
+  const handleGateSubmit = useCallback(async () => {
+    if (!gatePassword.trim()) return;
+    const { ok, error: verifyError } = await verifyAndGrantAccess(spaceCode, gatePassword);
+    if (ok) {
+      setGateError("");
+      setGatePassword("");
+      refetchAccess();
+    } else {
+      setGateError(verifyError || "Incorrect password");
+    }
+  }, [spaceCode, gatePassword, verifyAndGrantAccess, refetchAccess]);
+
+  // ── Load pools from database ────────
+  const {
+    pools: dbPools,
+    createPool: createPoolInDb,
+    updatePool: updatePoolInDb,
+    toggleArchivePool,
+    loading: poolsLoading,
+  } = usePools(spaceCode);
+
+  // ── space-level meta (active pool only) ────────
+  const [spaceMeta, setSpaceMeta] = usePersistedState(SPACE_META_KEY(spaceCode), {
+    activePoolId: null,
+  });
+
+  // Use pools from database
+  const pools = dbPools;
+  const activePools = pools.filter((p) => !p.archived);
+  const activePoolId =
+    spaceMeta.activePoolId && pools.find((p) => p.id === spaceMeta.activePoolId)
+      ? spaceMeta.activePoolId
+      : activePools[0]?.id || pools[0]?.id;
+
+  // Ensure activePoolId is saved when pools change
+  useEffect(() => {
+    if (pools.length > 0 && !spaceMeta.activePoolId) {
+      setSpaceMeta((prev) => ({ ...prev, activePoolId: activePools[0]?.id || pools[0]?.id }));
+    }
+  }, [pools, activePools, spaceMeta.activePoolId, setSpaceMeta]);
+
+  const setPools = useCallback((updater) => {
+    const newPools = typeof updater === "function" ? updater(pools) : updater;
+    // Update each pool in database
+    newPools.forEach((pool) => {
+      const existing = pools.find((p) => p.id === pool.id);
+      if (!existing) {
+        // New pool - create it
+        createPoolInDb(pool.name);
+      } else if (existing.name !== pool.name || existing.archived !== pool.archived) {
+        // Pool changed - update it
+        updatePoolInDb(pool.id, {
+          name: pool.name,
+          archived: pool.archived || false,
+        });
+      }
+    });
+  }, [pools, createPoolInDb, updatePoolInDb]);
+
+  const switchPool = (id) => {
+    setSpaceMeta((prev) => ({ ...prev, activePoolId: id }));
+  };
+
+  // ── pool-level persistent state (scoped by poolId) ──
+  const keys = STORAGE_KEYS(spaceCode, activePoolId);
+  // Use function initializers to prevent regeneration on every render
+  const [headers] = usePersistedState(keys.headers, () => generateHeaders());
+  const [board, setBoard] = usePersistedState(keys.board, () => getInitialBoard());
+  const [config, setConfig] = usePersistedState(keys.admin, DEFAULT_CONFIG);
+  const [scores, setScores] = usePersistedState(keys.scores, {});
+  const [participants, setParticipants] = usePersistedState(
+    keys.participants,
+    []
+  );
+
+  // ── ephemeral UI state ────────────────────────────────
+  const [view, setView] = useState("home");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [nameSubmitted, setNameSubmitted] = useState(false);
+  const [amount, setAmount] = useState("");
+  const [paymentSent, setPaymentSent] = useState(false);
+  const [addedCount, setAddedCount] = useState(0);
+  const [adminAuth, setAdminAuth] = useState(false);
+
+  // ── derived ───────────────────────────────────────────
+  const fullName = `${firstName} ${lastName}`.trim();
+  const qrMemo = `${fullName} football squares`;
+  const squaresForAmount = calculateSquares(
+    Number(amount),
+    config.pricePerSquare
+  );
+  const emptyCount = getEmptySquares(board).length;
+
+  // ── handlers ──────────────────────────────────────────
+  const resetJoinFlow = () => {
+    setFirstName("");
+    setLastName("");
+    setNameSubmitted(false);
+    setAmount("");
+    setPaymentSent(false);
+    setAddedCount(0);
+  };
+
+  const handlePayment = useCallback(() => {
+    if (!amount || squaresForAmount < 1) return;
+    const actual = Math.min(squaresForAmount, emptyCount);
+    const { board: newBoard, placed } = placeParticipant(
+      board,
+      fullName,
+      actual
+    );
+    setBoard(newBoard);
+    setParticipants((p) => [
+      ...p,
+      {
+        name: fullName,
+        amount: Number(amount),
+        squares: placed,
+        time: Date.now(),
+      },
+    ]);
+    setAddedCount(placed);
+    setPaymentSent(true);
+  }, [
+    amount,
+    squaresForAmount,
+    emptyCount,
+    board,
+    fullName,
+    setBoard,
+    setParticipants,
+  ]);
+
+  // ── Checking access or private space password gate ──
+  if (checkingAccess) {
+    return (
+      <div style={pageStyle}>
+        <BackgroundDecor />
+        <div style={{
+          ...containerStyle,
+          paddingTop: 120,
+          textAlign: "center",
+          color: colors.textMuted,
+          fontSize: 14,
+        }}>
+          Checking access…
+        </div>
+      </div>
+    );
+  }
+  // Typo'd or deleted space code in the URL
+  if (!space) {
+    return (
+      <div style={pageStyle}>
+        <BackgroundDecor />
+        <div style={{ ...containerStyle, paddingTop: 120, textAlign: "center" }}>
+          <h2 style={{ margin: "0 0 12px", fontSize: 24 }}>Space not found</h2>
+          <p style={{ color: colors.textMuted, fontSize: 15, margin: "0 0 24px" }}>
+            No space exists at <strong>#{spaceCode}</strong>. Check the code with whoever
+            shared it with you.
+          </p>
+          <button type="button" onClick={onExit} style={btnPrimary}>
+            Back
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (needsPassword) {
+    return (
+      <div style={pageStyle}>
+        <BackgroundDecor />
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: colors.overlay,
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 20,
+          }}
+        >
+          <div style={{ ...cardStyle, maxWidth: 360, width: "100%" }}>
+            <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 800 }}>
+              Private Space
+            </h3>
+            <p style={{ color: colors.textMuted, fontSize: 13, margin: "0 0 16px" }}>
+              Enter the password for <strong>#{spaceCode}</strong>
+            </p>
+            <input
+              type="password"
+              value={gatePassword}
+              onChange={(e) => {
+                setGatePassword(e.target.value);
+                setGateError("");
+              }}
+              onKeyDown={(e) => e.key === "Enter" && handleGateSubmit()}
+              placeholder="Space password"
+              style={{ ...inputStyle, marginBottom: 16 }}
+            />
+            {gateError && (
+              <p style={{ color: colors.accentRed, fontSize: 12, margin: "0 0 12px" }}>
+                {gateError}
+              </p>
+            )}
+            <div style={{ display: "flex", gap: 8 }}>
+              <button type="button" onClick={onExit} style={{ ...btnSecondary, flex: 1 }}>
+                Cancel
+              </button>
+              <button type="button" onClick={handleGateSubmit} style={{ ...btnPrimary, flex: 1 }}>
+                Enter
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── render ────────────────────────────────────────────
+  return (
+    <div style={pageStyle}>
+      <BackgroundDecor />
+
+      <Header
+        view={view}
+        spaceCode={spaceCode}
+        onHome={() => {
+          setView("home");
+          resetJoinFlow();
+        }}
+        onViewBoard={() => {
+          setView("board");
+          resetJoinFlow();
+        }}
+        onAdmin={() => {
+          // Global owners and space admins can access; non-Supabase mode falls back to isOwner
+          if (isOwner) {
+            setAdminAuth(true);
+            setView("admin");
+            return;
+          }
+          isSpaceAdmin(spaceCode).then((ok) => {
+            if (ok) {
+              setAdminAuth(true);
+              setView("admin");
+            }
+          });
+        }}
+        onExit={onExit}
+      />
+
+      {view === "admin" && adminAuth && (
+        <AdminPanel
+          config={config}
+          setConfig={setConfig}
+          board={board}
+          setBoard={setBoard}
+          headers={headers}
+          scores={scores}
+          setScores={setScores}
+          pools={pools}
+          setPools={setPools}
+          createPool={createPoolInDb}
+          updatePool={updatePoolInDb}
+          toggleArchivePool={toggleArchivePool}
+          activePoolId={activePoolId}
+          onSwitchPool={switchPool}
+          onClose={() => setView("home")}
+          spaceCode={spaceCode}
+        />
+      )}
+
+      <main style={{ ...containerStyle, paddingTop: 40, paddingBottom: 60 }}>
+        {view === "home" && (
+          <HomeView
+            config={config}
+            emptyCount={emptyCount}
+            participants={participants}
+            pools={pools}
+            activePoolId={activePoolId}
+            onSwitchPool={switchPool}
+            onJoin={() => setView("join")}
+            onViewBoard={() => setView("board")}
+          />
+        )}
+
+        {view === "join" && (
+          <JoinView
+            firstName={firstName}
+            setFirstName={setFirstName}
+            lastName={lastName}
+            setLastName={setLastName}
+            nameSubmitted={nameSubmitted}
+            setNameSubmitted={setNameSubmitted}
+            fullName={fullName}
+            qrMemo={qrMemo}
+            config={config}
+            emptyCount={emptyCount}
+            amount={amount}
+            setAmount={setAmount}
+            squaresForAmount={squaresForAmount}
+            paymentSent={paymentSent}
+            addedCount={addedCount}
+            onConfirmPayment={handlePayment}
+            onViewBoard={() => setView("board")}
+            onBack={() => {
+              setView("home");
+              resetJoinFlow();
+            }}
+            onDone={() => {
+              setView("home");
+              resetJoinFlow();
+            }}
+          />
+        )}
+
+        {view === "board" && (
+          <BoardView
+            board={board}
+            headers={headers}
+            config={config}
+            scores={scores}
+            emptyCount={emptyCount}
+            onJoin={() => setView("join")}
+            onHome={() => setView("home")}
+          />
+        )}
+      </main>
+
+      <Footer
+        pricePerSquare={config.pricePerSquare}
+        filledCount={100 - emptyCount}
+        poolName={pools.find((p) => p.id === activePoolId)?.name}
+      />
+    </div>
+  );
+}
