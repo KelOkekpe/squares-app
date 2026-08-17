@@ -10,7 +10,7 @@ import { BackgroundDecor } from "../layout/BackgroundDecor";
  * code, clear the password gate if the space is private, and play.
  */
 export function PlayerLanding({ onEnterSpace }) {
-  const { spaces, loading } = useSpacesRegistry();
+  const { spaces, loading, error: registryError, refetch: refetchSpaces } = useSpacesRegistry();
   const { hasAccess, verifyAndGrantAccess } = useSpaceAccess();
 
   const [codeword, setCodeword] = useState("");
@@ -122,11 +122,29 @@ export function PlayerLanding({ onEnterSpace }) {
                 {error}
               </p>
             )}
+            {registryError && (
+              <p style={{ color: colors.accentRed, fontSize: 13, margin: "12px 0 0", textAlign: "left" }}>
+                Couldn't reach the server.{" "}
+                <span
+                  onClick={() => { setError(""); refetchSpaces(); }}
+                  style={{ color: colors.accentViolet, cursor: "pointer", fontWeight: 700 }}
+                >
+                  Retry
+                </span>
+              </p>
+            )}
             <button
               onClick={handleEnter}
-              style={{ ...btnPrimary, width: "100%", marginTop: 20 }}
+              disabled={loading}
+              style={{
+                ...btnPrimary,
+                width: "100%",
+                marginTop: 20,
+                opacity: loading ? 0.6 : 1,
+                cursor: loading ? "not-allowed" : "pointer",
+              }}
             >
-              Enter Space
+              {loading ? "Loading…" : "Enter Space"}
             </button>
           </div>
 

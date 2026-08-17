@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase, isSupabaseEnabled } from "../lib/supabase";
+import { withTimeout } from "../utils/async";
 import { useAuth } from "./useAuth";
 
 /**
@@ -24,11 +25,15 @@ export function useUserSpaces() {
     }
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from("space_admins")
-        .select("space_code, role, accepted")
-        .eq("user_id", user.id)
-        .eq("accepted", true);
+      const { data, error } = await withTimeout(
+        supabase
+          .from("space_admins")
+          .select("space_code, role, accepted")
+          .eq("user_id", user.id)
+          .eq("accepted", true),
+        8000,
+        "user spaces"
+      );
 
       if (error) throw error;
       const rows = data || [];
@@ -38,10 +43,11 @@ export function useUserSpaces() {
         return;
       }
       const codes = rows.map((r) => r.space_code);
-      const { data: registry } = await supabase
-        .from("spaces_registry")
-        .select("code, is_private")
-        .in("code", codes);
+      const { data: registry } = await withTimeout(
+        supabase.from("spaces_registry").select("code, is_private").in("code", codes),
+        8000,
+        "user space privacy"
+      );
       const privMap = Object.fromEntries(
         (registry || []).map((r) => [r.code, !!r.is_private])
       );

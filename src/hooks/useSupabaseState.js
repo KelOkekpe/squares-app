@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase, isSupabaseEnabled } from "../lib/supabase";
 import { parseStorageKey } from "../utils/storageKeys";
+import { withTimeout } from "../utils/async";
 
 /**
  * Like useState but persists to Supabase (with localStorage fallback).
@@ -38,11 +39,11 @@ export function useSupabaseState(key, initialValue, options = {}) {
         const match = parseStorageKey(storageKey);
 
         // Try key lookup first (works for all keys once we save with key)
-        const { data: dataByKey, error: keyErr } = await supabase
-          .from(table)
-          .select('value')
-          .eq('key', storageKey)
-          .maybeSingle();
+        const { data: dataByKey, error: keyErr } = await withTimeout(
+          supabase.from(table).select('value').eq('key', storageKey).maybeSingle(),
+          8000,
+          `load ${storageKey}`
+        );
 
         if (!keyErr && dataByKey != null) {
           if (mounted) {
@@ -66,7 +67,11 @@ export function useSupabaseState(key, initialValue, options = {}) {
 
           // Use .maybeSingle() instead of .single() to handle missing rows gracefully
           // .maybeSingle() returns null instead of throwing 406 when no row exists
-          const { data, error } = await query.maybeSingle();
+          const { data, error } = await withTimeout(
+            query.maybeSingle(),
+            8000,
+            `load ${storageKey}`
+          );
 
           if (error) {
             // Only throw if it's not a "not found" error

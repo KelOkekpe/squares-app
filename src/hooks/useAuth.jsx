@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { supabase, isSupabaseEnabled } from "../lib/supabase";
+import { supabase, isSupabaseEnabled, clearAuthStorage, recoverFromStaleSession } from "../lib/supabase";
+import { withTimeout } from "../utils/async";
 
 const AuthContext = createContext(null);
 
@@ -15,11 +16,11 @@ export function AuthProvider({ children }) {
       return null;
     }
     try {
-      const { data, error } = await supabase
-        .from("user_profiles")
-        .select("*")
-        .eq("id", authUser.id)
-        .maybeSingle();
+      const { data, error } = await withTimeout(
+        supabase.from("user_profiles").select("*").eq("id", authUser.id).maybeSingle(),
+        8000,
+        "profile load"
+      );
 
       if (error) throw error;
       setProfile(data);
@@ -38,17 +39,33 @@ export function AuthProvider({ children }) {
       return;
     }
 
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      const authUser = session?.user ?? null;
-      setUser(authUser);
-      if (authUser) {
-        loadProfile(authUser).finally(() => setLoading(false));
-      } else {
+    // Get initial session.
+    //
+    // This used to have no .catch(): if getSession() rejected or hung on a
+    // stale refresh token, `loading` stayed true forever and the app sat on
+    // "Loading…" until localStorage was cleared by hand. Now a failure drops
+    // the unusable session and continues as signed-out, which is recoverable.
+    let cancelled = false;
+    withTimeout(supabase.auth.getSession(), 8000, "auth session")
+      .then((result) => {
+        if (cancelled) return;
+        const authUser = result?.data?.session?.user ?? null;
+        setUser(authUser);
+        if (authUser) {
+          loadProfile(authUser).finally(() => !cancelled && setLoading(false));
+        } else {
+          setProfile(null);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.warn("Could not restore session — clearing stale credentials:", err?.message || err);
+        recoverFromStaleSession();
+        setUser(null);
         setProfile(null);
         setLoading(false);
-      }
-    });
+      });
 
     // Listen for changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -63,7 +80,10 @@ export function AuthProvider({ children }) {
       }
     );
 
-    return () => subscription.unsubscribe();
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, [loadProfile]);
 
   // ── Sign up with email/password ──
@@ -136,17 +156,6 @@ export function AuthProvider({ children }) {
   // right away. When the server is down or restarted, supabase.auth.signOut()
   // can hang on its revocation request; we must not await it or the user will
   // appear stuck. We clear localStorage ourselves so a refresh stays logged out.
-  const clearSupabaseAuthStorage = () => {
-    try {
-      const keys = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const k = localStorage.key(i);
-        if (k && k.startsWith("sb-") && k.includes("-auth-token")) keys.push(k);
-      }
-      keys.forEach((k) => localStorage.removeItem(k));
-    } catch {}
-  };
-
   const signOut = useCallback(() => {
     if (!isSupabaseEnabled()) {
       setUser(null);
@@ -155,7 +164,7 @@ export function AuthProvider({ children }) {
     }
     setUser(null);
     setProfile(null);
-    clearSupabaseAuthStorage();
+    clearAuthStorage();
     supabase.auth.signOut({ scope: "local" }).catch((err) => {
       console.warn("Sign out (background):", err);
     });

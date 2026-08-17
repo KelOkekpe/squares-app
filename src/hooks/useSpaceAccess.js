@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase, isSupabaseEnabled } from "../lib/supabase";
+import { withTimeout } from "../utils/async";
 import { useAuth } from "./useAuth";
 
 const SESSION_ACCESS_KEY = "fb-space-access-guest";
@@ -33,10 +34,11 @@ export function useSpaceAccess() {
     if (!isLoggedIn || !user || !isSupabaseEnabled()) return;
 
     try {
-      const { data, error } = await supabase
-        .from("user_space_access")
-        .select("space_code")
-        .eq("user_id", user.id);
+      const { data, error } = await withTimeout(
+        supabase.from("user_space_access").select("space_code").eq("user_id", user.id),
+        8000,
+        "space access"
+      );
 
       if (error) throw error;
       setAccessCache(new Set((data || []).map((r) => r.space_code)));

@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
-import { supabase, isSupabaseEnabled } from "../lib/supabase";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { supabase, isSupabaseEnabled, recoverFromStaleSession } from "../lib/supabase";
+import { withTimeout, isStaleSessionError } from "../utils/async";
 
 /**
  * Manages the global spaces registry (Supabase spaces_registry table).
@@ -8,6 +9,9 @@ import { supabase, isSupabaseEnabled } from "../lib/supabase";
 export function useSpacesRegistry() {
   const [spaces, setSpaces] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  // One recovery attempt per mount, so a genuinely broken backend can't loop
+  const recoveredRef = useRef(false);
 
   const loadSpaces = useCallback(async () => {
     if (!isSupabaseEnabled()) {
@@ -17,13 +21,33 @@ export function useSpacesRegistry() {
     }
 
     setLoading(true);
+    setError(null);
     try {
-      const { data, error } = await supabase
-        .from("spaces_registry")
-        .select("code, admin_name, created_at, is_private")
-        .order("created_at", { ascending: false });
+      const query = () =>
+        withTimeout(
+          supabase
+            .from("spaces_registry")
+            .select("code, admin_name, created_at, is_private")
+            .order("created_at", { ascending: false }),
+          8000,
+          "spaces registry"
+        );
 
-      if (error) throw error;
+      let result;
+      try {
+        result = await query();
+      } catch (err) {
+        // A stale stored session stalls even anonymous reads. Drop it and retry
+        // once — this is what clearing site data by hand was accomplishing.
+        if (!isStaleSessionError(err) || recoveredRef.current) throw err;
+        recoveredRef.current = true;
+        console.warn("Registry load failed; clearing stale session and retrying:", err?.message || err);
+        recoverFromStaleSession();
+        result = await query();
+      }
+
+      const { data, error: queryError } = result;
+      if (queryError) throw queryError;
       const list = (data || []).map((row) => ({
         code: row.code,
         admin: row.admin_name ?? null,
@@ -34,6 +58,7 @@ export function useSpacesRegistry() {
     } catch (err) {
       console.error("Error loading spaces registry:", err);
       setSpaces([]);
+      setError(err);
     } finally {
       setLoading(false);
     }
@@ -41,6 +66,21 @@ export function useSpacesRegistry() {
 
   useEffect(() => {
     loadSpaces();
+  }, [loadSpaces]);
+
+  // Tabs left open get suspended, and the token can expire while they sleep.
+  // Reload when the tab comes back so returning to it doesn't show stale or
+  // empty data — this is the "after periods of inactivity" case.
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") loadSpaces();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
   }, [loadSpaces]);
 
   const addSpace = useCallback(
@@ -94,5 +134,5 @@ export function useSpacesRegistry() {
     []
   );
 
-  return { spaces, addSpace, loading, refetch: loadSpaces };
+  return { spaces, addSpace, loading, error, refetch: loadSpaces };
 }

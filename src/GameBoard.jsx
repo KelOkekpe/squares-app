@@ -28,6 +28,17 @@ export function GameBoard({ spaceCode, onExit }) {
   const [gatePassword, setGatePassword] = useState("");
   const [gateError, setGateError] = useState("");
 
+  // Surface a way out if the access check stalls rather than spinning forever
+  const [accessSlow, setAccessSlow] = useState(false);
+  useEffect(() => {
+    if (!checkingAccess) {
+      setAccessSlow(false);
+      return undefined;
+    }
+    const timer = setTimeout(() => setAccessSlow(true), 9000);
+    return () => clearTimeout(timer);
+  }, [checkingAccess]);
+
   const handleGateSubmit = useCallback(async () => {
     if (!gatePassword.trim()) return;
     const { ok, error: verifyError } = await verifyAndGrantAccess(spaceCode, gatePassword);
@@ -236,7 +247,18 @@ export function GameBoard({ spaceCode, onExit }) {
           color: colors.textMuted,
           fontSize: 14,
         }}>
-          Checking access…
+          <p style={{ margin: 0 }}>Checking access…</p>
+          {accessSlow && (
+            <p style={{ margin: "16px 0 0", fontSize: 13 }}>
+              Taking longer than usual.{" "}
+              <span
+                onClick={() => window.location.reload()}
+                style={{ color: colors.accentViolet, cursor: "pointer", fontWeight: 700 }}
+              >
+                Reload
+              </span>
+            </p>
+          )}
         </div>
       </div>
     );

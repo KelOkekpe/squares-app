@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase, isSupabaseEnabled } from "../lib/supabase";
+import { withTimeout } from "../utils/async";
 
 /**
  * Hook to manage pools for a space
@@ -28,11 +29,15 @@ export function usePools(spaceCode) {
     }
 
     try {
-      const { data, error: fetchError } = await supabase
-        .from('pools')
-        .select('*')
-        .eq('space_code', spaceCode)
-        .order('created_at', { ascending: true });
+      const { data, error: fetchError } = await withTimeout(
+        supabase
+          .from('pools')
+          .select('*')
+          .eq('space_code', spaceCode)
+          .order('created_at', { ascending: true }),
+        8000,
+        'pools'
+      );
 
       if (fetchError) throw fetchError;
 
