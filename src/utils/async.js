@@ -25,14 +25,9 @@ export const DEFAULT_TIMEOUT_MS = 8000;
 export function withTimeout(promise, ms = DEFAULT_TIMEOUT_MS, label = "request") {
   let timer;
   const timeout = new Promise((_, reject) => {
-    timer = setTimeout(
-      () => reject(new TimeoutError(`${label} timed out after ${ms}ms`)),
-      ms
-    );
+    timer = setTimeout(() => reject(new TimeoutError(`${label} timed out after ${ms}ms`)), ms);
   });
-  return Promise.race([Promise.resolve(promise), timeout]).finally(() =>
-    clearTimeout(timer)
-  );
+  return Promise.race([Promise.resolve(promise), timeout]).finally(() => clearTimeout(timer));
 }
 
 /** True for the failures that a stale stored session tends to produce. */

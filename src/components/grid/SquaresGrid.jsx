@@ -16,8 +16,16 @@ export function SquaresGrid({ board, headers, config, scores }) {
   const gridMinWidth = isMobile ? 0 : 700;
   const nameSize = (name) =>
     isMobile
-      ? name.length > 12 ? 6 : name.length > 8 ? 7 : 8
-      : name.length > 14 ? 8 : name.length > 10 ? 9 : 10;
+      ? name.length > 12
+        ? 6
+        : name.length > 8
+          ? 7
+          : 8
+      : name.length > 14
+        ? 8
+        : name.length > 10
+          ? 9
+          : 10;
   /* ── derive winner map ────────────────────────────────── */
   const winners = useMemo(() => {
     const w = {};
@@ -203,11 +211,9 @@ export function SquaresGrid({ board, headers, config, scores }) {
                     background: winQ
                       ? "linear-gradient(135deg, #ffd70030, #ff8c0025)"
                       : isEmpty
-                      ? colors.surfaceDeep
-                      : colors.surfaceFilled,
-                    border: winQ
-                      ? `2px solid ${colors.accentGold}`
-                      : `1px solid ${colors.border}`,
+                        ? colors.surfaceDeep
+                        : colors.surfaceFilled,
+                    border: winQ ? `2px solid ${colors.accentGold}` : `1px solid ${colors.border}`,
                     borderRadius: isMobile ? 3 : 4,
                     display: "flex",
                     flexDirection: "column",
@@ -220,11 +226,7 @@ export function SquaresGrid({ board, headers, config, scores }) {
                     cursor: "default",
                     boxShadow: winQ ? "0 0 20px #ffd70030" : "none",
                   }}
-                  title={
-                    cell
-                      ? `${cell}${winQ ? ` — ${winQ} Winner!` : ""}`
-                      : "Empty"
-                  }
+                  title={cell ? `${cell}${winQ ? ` — ${winQ} Winner!` : ""}` : "Empty"}
                 >
                   {winQ && (
                     <span
@@ -257,9 +259,7 @@ export function SquaresGrid({ board, headers, config, scores }) {
                       {cell}
                     </span>
                   ) : (
-                    <span style={{ fontSize: isMobile ? 10 : 16, color: colors.border }}>
-                      ·
-                    </span>
+                    <span style={{ fontSize: isMobile ? 10 : 16, color: colors.border }}>·</span>
                   )}
                 </div>
               );
@@ -269,10 +269,7 @@ export function SquaresGrid({ board, headers, config, scores }) {
       </div>
 
       {/* prize pot bar */}
-      <PrizePotBar
-        totalPot={config.totalPot}
-        quarterlyPayout={config.quarterlyPayout}
-      />
+      <PrizePotBar totalPot={config.totalPot} quarterlyPayout={config.quarterlyPayout} />
     </div>
   );
 }

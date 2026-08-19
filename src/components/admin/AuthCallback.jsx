@@ -39,7 +39,14 @@ export function AuthCallback({ onDone }) {
               <h2 style={{ margin: "0 0 10px", fontSize: 22, fontWeight: 800 }}>
                 Couldn't complete sign-in
               </h2>
-              <p style={{ color: colors.textMuted, fontSize: 14, margin: "0 0 24px", lineHeight: 1.6 }}>
+              <p
+                style={{
+                  color: colors.textMuted,
+                  fontSize: 14,
+                  margin: "0 0 24px",
+                  lineHeight: 1.6,
+                }}
+              >
                 {error ||
                   "This link didn't sign you in. It may have already been used or expired — try signing in directly."}
               </p>
@@ -49,9 +56,7 @@ export function AuthCallback({ onDone }) {
             </>
           ) : (
             <>
-              <h2 style={{ margin: "0 0 10px", fontSize: 22, fontWeight: 800 }}>
-                Signing you in…
-              </h2>
+              <h2 style={{ margin: "0 0 10px", fontSize: 22, fontWeight: 800 }}>Signing you in…</h2>
               <p style={{ color: colors.textMuted, fontSize: 14, margin: 0 }}>
                 Confirming your email and opening your dashboard.
               </p>

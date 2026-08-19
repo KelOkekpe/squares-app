@@ -40,9 +40,7 @@ export function NameStep({
         >
           {nameSubmitted ? "✓" : "1"}
         </div>
-        <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>
-          Enter Your Name
-        </h3>
+        <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>Enter Your Name</h3>
       </div>
 
       {!nameSubmitted ? (

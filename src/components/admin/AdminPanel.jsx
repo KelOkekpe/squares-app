@@ -145,15 +145,12 @@ export function AdminPanel({
           <div style={adminSectionStyle}>
             <label style={labelStyle}>Payment instructions</label>
             <p style={{ color: colors.textDim, fontSize: 12, margin: "0 0 8px" }}>
-              Shown to players on the payment step — e.g. your Venmo handle or
-              Cash App $cashtag.
+              Shown to players on the payment step — e.g. your Venmo handle or Cash App $cashtag.
             </p>
             <textarea
               rows={3}
               value={config.paymentInstructions || ""}
-              onChange={(e) =>
-                setConfig((c) => ({ ...c, paymentInstructions: e.target.value }))
-              }
+              onChange={(e) => setConfig((c) => ({ ...c, paymentInstructions: e.target.value }))}
               style={{ ...adminInputStyle, resize: "vertical", fontFamily: "inherit" }}
               placeholder={"Venmo @your-handle\nInclude your name in the note"}
             />
@@ -241,11 +238,7 @@ export function AdminPanel({
           <PrizePoolSection config={config} setConfig={setConfig} />
 
           {/* Quarter scores */}
-          <QuarterScoresSection
-            config={config}
-            scores={scores}
-            setScores={setScores}
-          />
+          <QuarterScoresSection config={config} scores={scores} setScores={setScores} />
 
           {/* Override cell */}
           <OverrideCellSection setBoard={setBoard} />
@@ -260,13 +253,9 @@ export function AdminPanel({
               }}
             >
               <div>
-                <label style={{ ...labelStyle, marginBottom: 2 }}>
-                  Submissions
-                </label>
+                <label style={{ ...labelStyle, marginBottom: 2 }}>Submissions</label>
                 <span style={{ color: "#666", fontSize: 12 }}>
-                  {config.submissionsDisabled
-                    ? "Currently closed"
-                    : "Currently open"}
+                  {config.submissionsDisabled ? "Currently closed" : "Currently open"}
                 </span>
               </div>
               <button

@@ -27,7 +27,8 @@ export function useSpaceAdmins(spaceCode) {
     try {
       const { data, error: fetchError } = await supabase
         .from("space_admins")
-        .select(`
+        .select(
+          `
           id,
           space_code,
           user_id,
@@ -36,7 +37,8 @@ export function useSpaceAdmins(spaceCode) {
           invited_by,
           accepted,
           created_at
-        `)
+        `
+        )
         .eq("space_code", spaceCode)
         .order("created_at", { ascending: true });
 
@@ -57,71 +59,77 @@ export function useSpaceAdmins(spaceCode) {
   }, [loadAdmins]);
 
   // Assign or invite a user by email. If they exist in user_profiles, assign with accepted: true.
-  const inviteAdmin = useCallback(async (email) => {
-    if (!spaceCode || !user) return { error: { message: "Not authorized" } };
+  const inviteAdmin = useCallback(
+    async (email) => {
+      if (!spaceCode || !user) return { error: { message: "Not authorized" } };
 
-    const trimmed = email.trim().toLowerCase();
+      const trimmed = email.trim().toLowerCase();
 
-    if (!isSupabaseEnabled()) {
-      return { data: null, error: { message: "Supabase is required" } };
-    }
+      if (!isSupabaseEnabled()) {
+        return { data: null, error: { message: "Supabase is required" } };
+      }
 
-    try {
-      // Look up existing user by email. user_profiles is not readable by other
-      // users, so this goes through a definer-rights RPC that returns only the
-      // id. A miss is fine — the invite is claimed on signup or first visit.
-      const { data: existingUserId } = await supabase.rpc("find_user_id_by_email", {
-        p_email: trimmed,
-      });
+      try {
+        // Look up existing user by email. user_profiles is not readable by other
+        // users, so this goes through a definer-rights RPC that returns only the
+        // id. A miss is fine — the invite is claimed on signup or first visit.
+        const { data: existingUserId } = await supabase.rpc("find_user_id_by_email", {
+          p_email: trimmed,
+        });
 
-      const { data, error: insertError } = await supabase
-        .from("space_admins")
-        .upsert(
-          {
-            space_code: spaceCode,
-            email: trimmed,
-            user_id: existingUserId ?? null,
-            role: "admin",
-            invited_by: user.id,
-            accepted: !!existingUserId,
-          },
-          { onConflict: "space_code,email" }
-        )
-        .select()
-        .single();
+        const { data, error: insertError } = await supabase
+          .from("space_admins")
+          .upsert(
+            {
+              space_code: spaceCode,
+              email: trimmed,
+              user_id: existingUserId ?? null,
+              role: "admin",
+              invited_by: user.id,
+              accepted: !!existingUserId,
+            },
+            { onConflict: "space_code,email" }
+          )
+          .select()
+          .single();
 
-      if (insertError) throw insertError;
-      setAdmins((prev) => {
-        const filtered = prev.filter((a) => a.email !== trimmed);
-        return [...filtered, data];
-      });
-      return { data, error: null };
-    } catch (err) {
-      console.error("Error assigning admin:", err);
-      return { data: null, error: err };
-    }
-  }, [spaceCode, user, admins]);
+        if (insertError) throw insertError;
+        setAdmins((prev) => {
+          const filtered = prev.filter((a) => a.email !== trimmed);
+          return [...filtered, data];
+        });
+        return { data, error: null };
+      } catch (err) {
+        console.error("Error assigning admin:", err);
+        return { data: null, error: err };
+      }
+    },
+    [spaceCode, user, admins]
+  );
 
   // Remove an admin
-  const removeAdmin = useCallback(async (adminId) => {
-    if (!spaceCode || !user) return { error: { message: "Not authorized" } };
-    if (!isSupabaseEnabled()) return { error: { message: "Supabase is required" } };
+  const removeAdmin = useCallback(
+    async (adminId) => {
+      if (!spaceCode || !user) return { error: { message: "Not authorized" } };
+      if (!isSupabaseEnabled()) return { error: { message: "Supabase is required" } };
 
-    try {
-      const { error: deleteError } = await supabase
-        .from("space_admins")
-        .delete()
-        .eq("id", adminId)
-        .eq("space_code", spaceCode);
+      try {
+        const { error: deleteError } = await supabase
+          .from("space_admins")
+          .delete()
+          .eq("id", adminId)
+          .eq("space_code", spaceCode);
 
-      if (deleteError) throw deleteError;
-      setAdmins((prev) => prev.filter((a) => a.id !== adminId));
-      return { error: null };
-    } catch (err) {
-      console.error("Error removing admin:", err);
-      return { data: null, error: err };
-    }
-  }, [spaceCode, user, admins]);
+        if (deleteError) throw deleteError;
+        setAdmins((prev) => prev.filter((a) => a.id !== adminId));
+        return { error: null };
+      } catch (err) {
+        console.error("Error removing admin:", err);
+        return { data: null, error: err };
+      }
+    },
+    [spaceCode, user, admins]
+  );
 
   return {
     admins,

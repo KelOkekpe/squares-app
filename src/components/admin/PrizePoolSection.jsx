@@ -8,9 +8,7 @@ export function PrizePoolSection({ config, setConfig }) {
       <label style={labelStyle}>Prize Pool & Payouts</label>
       <div style={{ display: "flex", gap: 10 }}>
         <div style={{ flex: 1 }}>
-          <label style={{ ...labelStyle, fontSize: 10 }}>
-            Total Prize Pot ($)
-          </label>
+          <label style={{ ...labelStyle, fontSize: 10 }}>Total Prize Pot ($)</label>
           <input
             type="number"
             min={0}
@@ -26,9 +24,7 @@ export function PrizePoolSection({ config, setConfig }) {
           />
         </div>
         <div style={{ flex: 1 }}>
-          <label style={{ ...labelStyle, fontSize: 10 }}>
-            Quarterly Payout ($)
-          </label>
+          <label style={{ ...labelStyle, fontSize: 10 }}>Quarterly Payout ($)</label>
           <input
             type="number"
             min={0}

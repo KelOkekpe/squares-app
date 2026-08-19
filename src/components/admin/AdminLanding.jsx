@@ -1,6 +1,15 @@
 import React, { useState } from "react";
 import { useAuth } from "../../hooks/useAuth";
-import { colors, radii, pageStyle, containerStyle, cardStyle, inputStyle, labelStyle, btnPrimary } from "../../styles";
+import {
+  colors,
+  radii,
+  pageStyle,
+  containerStyle,
+  cardStyle,
+  inputStyle,
+  labelStyle,
+  btnPrimary,
+} from "../../styles";
 import { BackgroundDecor } from "../layout/BackgroundDecor";
 import { PasswordInput } from "../common";
 
@@ -77,7 +86,6 @@ export function AdminLanding() {
       <BackgroundDecor />
       <div style={{ ...containerStyle, paddingTop: 80, paddingBottom: 60 }}>
         <div style={{ maxWidth: 420, margin: "0 auto", textAlign: "center" }}>
-
           {/* Logo */}
           <div style={{ marginBottom: 40 }}>
             <div
@@ -109,14 +117,16 @@ export function AdminLanding() {
             >
               SQUAREBET
             </h1>
-            <p style={{
-              color: colors.accentGold,
-              fontSize: 12,
-              fontWeight: 700,
-              letterSpacing: 2,
-              textTransform: "uppercase",
-              margin: 0,
-            }}>
+            <p
+              style={{
+                color: colors.accentGold,
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: 2,
+                textTransform: "uppercase",
+                margin: 0,
+              }}
+            >
               Admin
             </p>
             <p style={{ color: colors.textMuted, fontSize: 14, margin: "12px 0 0" }}>
@@ -154,9 +164,10 @@ export function AdminLanding() {
                     fontSize: 14,
                     transition: "all 0.2s",
                     fontFamily: "inherit",
-                    background: mode === m.key
-                      ? `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`
-                      : "transparent",
+                    background:
+                      mode === m.key
+                        ? `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`
+                        : "transparent",
                     color: mode === m.key ? colors.white : colors.textMuted,
                   }}
                 >
@@ -171,7 +182,10 @@ export function AdminLanding() {
                   <label style={labelStyle}>Name</label>
                   <input
                     value={displayName}
-                    onChange={(e) => { setDisplayName(e.target.value); setError(""); }}
+                    onChange={(e) => {
+                      setDisplayName(e.target.value);
+                      setError("");
+                    }}
                     style={inputStyle}
                     placeholder="Your display name"
                   />
@@ -182,7 +196,10 @@ export function AdminLanding() {
                 <input
                   type="email"
                   value={email}
-                  onChange={(e) => { setEmail(e.target.value); setError(""); }}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setError("");
+                  }}
                   style={inputStyle}
                   placeholder="you@example.com"
                 />
@@ -191,7 +208,10 @@ export function AdminLanding() {
                 <label style={labelStyle}>Password</label>
                 <PasswordInput
                   value={password}
-                  onChange={(e) => { setPassword(e.target.value); setError(""); }}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError("");
+                  }}
                   onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
                   style={inputStyle}
                   placeholder={mode === "register" ? "At least 6 characters" : "Your password"}
@@ -200,12 +220,26 @@ export function AdminLanding() {
             </div>
 
             {error && (
-              <p style={{ color: colors.accentRed, fontSize: 13, margin: "14px 0 0", textAlign: "left" }}>
+              <p
+                style={{
+                  color: colors.accentRed,
+                  fontSize: 13,
+                  margin: "14px 0 0",
+                  textAlign: "left",
+                }}
+              >
                 {error}
               </p>
             )}
             {success && (
-              <p style={{ color: colors.accentGreen, fontSize: 13, margin: "14px 0 0", textAlign: "left" }}>
+              <p
+                style={{
+                  color: colors.accentGreen,
+                  fontSize: 13,
+                  margin: "14px 0 0",
+                  textAlign: "left",
+                }}
+              >
                 {success}
               </p>
             )}
@@ -227,15 +261,18 @@ export function AdminLanding() {
 
             {mode === "register" && (
               <p style={{ color: colors.textDim, fontSize: 11, margin: "12px 0 0" }}>
-                Invited to admin someone else's space? Sign up with the email you were
-                invited by and it will show up automatically.
+                Invited to admin someone else's space? Sign up with the email you were invited by
+                and it will show up automatically.
               </p>
             )}
           </div>
 
           <p style={{ color: colors.textDim, fontSize: 12, margin: "24px 0 0" }}>
             Just here to play?{" "}
-            <a href="/" style={{ color: colors.accentViolet, fontWeight: 600, textDecoration: "none" }}>
+            <a
+              href="/"
+              style={{ color: colors.accentViolet, fontWeight: 600, textDecoration: "none" }}
+            >
               Join a space
             </a>
           </p>

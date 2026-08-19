@@ -9,7 +9,9 @@ import { useState, useEffect } from "react";
  */
 export function useMediaQuery(query) {
   const supported = typeof window !== "undefined" && typeof window.matchMedia === "function";
-  const [matches, setMatches] = useState(() => (supported ? window.matchMedia(query).matches : false));
+  const [matches, setMatches] = useState(() =>
+    supported ? window.matchMedia(query).matches : false
+  );
 
   useEffect(() => {
     if (!supported) return undefined;

@@ -31,12 +31,9 @@ export function EntrySubmitted({
       >
         ⏳
       </div>
-      <h2 style={{ margin: "0 0 8px", fontSize: 24, fontWeight: 800 }}>
-        Request Submitted
-      </h2>
+      <h2 style={{ margin: "0 0 8px", fontSize: 24, fontWeight: 800 }}>Request Submitted</h2>
       <p style={{ color: colors.textMuted, marginBottom: 8, fontSize: 15 }}>
-        <strong style={{ color: colors.textSecondary }}>{fullName}</strong>{" "}
-        requested{" "}
+        <strong style={{ color: colors.textSecondary }}>{fullName}</strong> requested{" "}
         <strong style={{ color: colors.accentPurple }}>
           {requestedCount} square{requestedCount !== 1 ? "s" : ""}
         </strong>
@@ -55,8 +52,8 @@ export function EntrySubmitted({
         }}
       >
         <p style={{ margin: 0, color: colors.textMuted, fontSize: 12, lineHeight: 1.6 }}>
-          Your admin will confirm your payment and assign your squares. They'll
-          appear on the board once approved — check back shortly.
+          Your admin will confirm your payment and assign your squares. They'll appear on the board
+          once approved — check back shortly.
         </p>
       </div>
 

@@ -2,7 +2,15 @@ import React, { useState } from "react";
 import { useSpacesRegistry } from "../../hooks/useSpacesRegistry";
 import { useSpaceAccess } from "../../hooks/useSpaceAccess";
 import { normalizeCode, spaceUrlPrefix } from "../../utils/routes";
-import { colors, pageStyle, containerStyle, cardStyle, inputStyle, btnPrimary, btnSecondary } from "../../styles";
+import {
+  colors,
+  pageStyle,
+  containerStyle,
+  cardStyle,
+  inputStyle,
+  btnPrimary,
+  btnSecondary,
+} from "../../styles";
 import { BackgroundDecor } from "../layout/BackgroundDecor";
 import { PasswordInput } from "../common";
 
@@ -21,11 +29,20 @@ export function PlayerLanding({ onEnterSpace }) {
 
   const handleEnter = () => {
     const code = normalizeCode(codeword);
-    if (!code) { setError("Please enter a space code"); return; }
-    if (loading) { setError("Still loading spaces — try again in a second"); return; }
+    if (!code) {
+      setError("Please enter a space code");
+      return;
+    }
+    if (loading) {
+      setError("Still loading spaces — try again in a second");
+      return;
+    }
 
     const found = spaces.find((s) => s.code === code);
-    if (!found) { setError(`No space found for "${code}"`); return; }
+    if (!found) {
+      setError(`No space found for "${code}"`);
+      return;
+    }
 
     if (found.isPrivate && !hasAccess(code)) {
       setPendingSpaceCode(code);
@@ -60,7 +77,6 @@ export function PlayerLanding({ onEnterSpace }) {
       <BackgroundDecor />
       <div style={{ ...containerStyle, paddingTop: 100, paddingBottom: 60 }}>
         <div style={{ maxWidth: 480, margin: "0 auto", textAlign: "center" }}>
-
           {/* Logo */}
           <div style={{ marginBottom: 48 }}>
             <div
@@ -99,9 +115,7 @@ export function PlayerLanding({ onEnterSpace }) {
 
           {/* Join form */}
           <div style={cardStyle}>
-            <h3 style={{ margin: "0 0 8px", fontSize: 20, fontWeight: 800 }}>
-              Join a Space
-            </h3>
+            <h3 style={{ margin: "0 0 8px", fontSize: 20, fontWeight: 800 }}>Join a Space</h3>
             <p style={{ color: colors.textMuted, fontSize: 13, marginBottom: 24 }}>
               Enter the space code shared by your admin — no account needed
             </p>
@@ -111,7 +125,10 @@ export function PlayerLanding({ onEnterSpace }) {
               </span>
               <input
                 value={codeword}
-                onChange={(e) => { setCodeword(e.target.value); setError(""); }}
+                onChange={(e) => {
+                  setCodeword(e.target.value);
+                  setError("");
+                }}
                 onKeyDown={(e) => e.key === "Enter" && handleEnter()}
                 style={{ ...inputStyle, fontWeight: 600 }}
                 placeholder="enter-space-code"
@@ -119,15 +136,32 @@ export function PlayerLanding({ onEnterSpace }) {
               />
             </div>
             {error && !pendingSpaceCode && (
-              <p style={{ color: colors.accentRed, fontSize: 13, margin: "12px 0 0", textAlign: "left" }}>
+              <p
+                style={{
+                  color: colors.accentRed,
+                  fontSize: 13,
+                  margin: "12px 0 0",
+                  textAlign: "left",
+                }}
+              >
                 {error}
               </p>
             )}
             {registryError && (
-              <p style={{ color: colors.accentRed, fontSize: 13, margin: "12px 0 0", textAlign: "left" }}>
+              <p
+                style={{
+                  color: colors.accentRed,
+                  fontSize: 13,
+                  margin: "12px 0 0",
+                  textAlign: "left",
+                }}
+              >
                 Couldn't reach the server.{" "}
                 <span
-                  onClick={() => { setError(""); refetchSpaces(); }}
+                  onClick={() => {
+                    setError("");
+                    refetchSpaces();
+                  }}
                   style={{ color: colors.accentViolet, cursor: "pointer", fontWeight: 700 }}
                 >
                   Retry
@@ -178,30 +212,37 @@ export function PlayerLanding({ onEnterSpace }) {
           onClick={(e) => e.target === e.currentTarget && closePasswordPrompt()}
         >
           <div style={{ ...cardStyle, maxWidth: 360, width: "100%" }}>
-            <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 800 }}>
-              Private Space
-            </h3>
+            <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 800 }}>Private Space</h3>
             <p style={{ color: colors.textMuted, fontSize: 13, margin: "0 0 16px" }}>
               Enter the password for <strong>#{pendingSpaceCode}</strong>
             </p>
             <PasswordInput
               value={passwordInput}
-              onChange={(e) => { setPasswordInput(e.target.value); setError(""); }}
+              onChange={(e) => {
+                setPasswordInput(e.target.value);
+                setError("");
+              }}
               onKeyDown={(e) => e.key === "Enter" && handlePasswordSubmit()}
               placeholder="Space password"
               style={{ ...inputStyle, marginBottom: 16 }}
               autoFocus
             />
             {error && (
-              <p style={{ color: colors.accentRed, fontSize: 12, margin: "0 0 12px" }}>
-                {error}
-              </p>
+              <p style={{ color: colors.accentRed, fontSize: 12, margin: "0 0 12px" }}>{error}</p>
             )}
             <div style={{ display: "flex", gap: 8 }}>
-              <button type="button" onClick={closePasswordPrompt} style={{ ...btnSecondary, flex: 1 }}>
+              <button
+                type="button"
+                onClick={closePasswordPrompt}
+                style={{ ...btnSecondary, flex: 1 }}
+              >
                 Cancel
               </button>
-              <button type="button" onClick={handlePasswordSubmit} style={{ ...btnPrimary, flex: 1 }}>
+              <button
+                type="button"
+                onClick={handlePasswordSubmit}
+                style={{ ...btnPrimary, flex: 1 }}
+              >
                 Enter
               </button>
             </div>

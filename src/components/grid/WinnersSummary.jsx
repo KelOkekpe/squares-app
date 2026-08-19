@@ -56,9 +56,7 @@ export function WinnersSummary({ headers, board, scores }) {
                   marginBottom: 6,
                 }}
               >
-                <span style={{ color: colors.accentGold, fontWeight: 800, fontSize: 14 }}>
-                  {q}
-                </span>
+                <span style={{ color: colors.accentGold, fontWeight: 800, fontSize: 14 }}>{q}</span>
                 <span style={{ color: "#888", fontSize: 12 }}>
                   {scores[q].x} - {scores[q].y}
                 </span>

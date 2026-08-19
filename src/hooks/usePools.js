@@ -5,7 +5,7 @@ import { withTimeout } from "../utils/async";
 /**
  * Hook to manage pools for a space
  * Loads pools from the pools table and provides functions to create/update/archive pools
- * 
+ *
  * @param {string} spaceCode - The space code
  * @returns {[pools, setPools, loading, error]} - Pools array, setPools function, loading state, error state
  */
@@ -31,12 +31,12 @@ export function usePools(spaceCode) {
     try {
       const { data, error: fetchError } = await withTimeout(
         supabase
-          .from('pools')
-          .select('*')
-          .eq('space_code', spaceCode)
-          .order('created_at', { ascending: true }),
+          .from("pools")
+          .select("*")
+          .eq("space_code", spaceCode)
+          .order("created_at", { ascending: true }),
         8000,
-        'pools'
+        "pools"
       );
 
       if (fetchError) throw fetchError;
@@ -52,7 +52,7 @@ export function usePools(spaceCode) {
       setPools(transformedPools);
       setError(null);
     } catch (err) {
-      console.error('Error loading pools from Supabase:', err);
+      console.error("Error loading pools from Supabase:", err);
       setError(err);
       setPools([]);
     } finally {
@@ -70,11 +70,11 @@ export function usePools(spaceCode) {
       const channel = supabase
         .channel(`pools:${spaceCode}`)
         .on(
-          'postgres_changes',
+          "postgres_changes",
           {
-            event: '*',
-            schema: 'public',
-            table: 'pools',
+            event: "*",
+            schema: "public",
+            table: "pools",
             filter: `space_code=eq.${spaceCode}`,
           },
           () => {
@@ -128,7 +128,7 @@ export function usePools(spaceCode) {
 
       try {
         const { data, error: insertError } = await supabase
-          .from('pools')
+          .from("pools")
           .insert({
             space_code: spaceCode,
             name: name.trim(),
@@ -149,7 +149,7 @@ export function usePools(spaceCode) {
         setPools((prev) => [...prev, transformedPool]);
         return transformedPool;
       } catch (err) {
-        console.error('Error creating pool in Supabase:', err);
+        console.error("Error creating pool in Supabase:", err);
         return null;
       }
     },
@@ -161,23 +161,21 @@ export function usePools(spaceCode) {
     async (poolId, updates) => {
       if (!spaceCode || !poolId) return;
 
-      const updatedPools = pools.map((p) =>
-        p.id === poolId ? { ...p, ...updates } : p
-      );
+      const updatedPools = pools.map((p) => (p.id === poolId ? { ...p, ...updates } : p));
       setPools(updatedPools);
 
       if (!isSupabaseEnabled()) return;
 
       try {
         const { error: updateError } = await supabase
-          .from('pools')
+          .from("pools")
           .update(updates)
-          .eq('id', poolId)
-          .eq('space_code', spaceCode);
+          .eq("id", poolId)
+          .eq("space_code", spaceCode);
 
         if (updateError) throw updateError;
       } catch (err) {
-        console.error('Error updating pool in Supabase:', err);
+        console.error("Error updating pool in Supabase:", err);
         // State already updated, so we're good
       }
     },

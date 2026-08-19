@@ -3,14 +3,14 @@ import { DEFAULT_POOL_ENTRY } from "../../utils";
 import { colors } from "../../styles";
 import { adminSectionStyle, adminInputStyle, labelStyle } from "../../styles";
 
-export function BoardManagementSection({ 
-  pools, 
-  setPools, 
-  createPool, 
-  updatePool, 
+export function BoardManagementSection({
+  pools,
+  setPools,
+  createPool,
+  updatePool,
   toggleArchivePool,
-  activePoolId, 
-  onSwitchPool 
+  activePoolId,
+  onSwitchPool,
 }) {
   const [newPoolName, setNewPoolName] = useState("");
   const [showArchived, setShowArchived] = useState(false);
@@ -21,7 +21,7 @@ export function BoardManagementSection({
   const handleCreate = async () => {
     const name = newPoolName.trim();
     if (!name) return;
-    
+
     if (createPool) {
       // Use database create function if available
       const newPool = await createPool(name);
@@ -44,11 +44,9 @@ export function BoardManagementSection({
       await toggleArchivePool(id);
     } else {
       // Fallback to local state update
-      setPools((prev) =>
-        prev.map((p) => (p.id === id ? { ...p, archived: !p.archived } : p))
-      );
+      setPools((prev) => prev.map((p) => (p.id === id ? { ...p, archived: !p.archived } : p)));
     }
-    
+
     // If archiving the active pool, switch to first non-archived
     const target = pools.find((p) => p.id === id);
     if (target && !target.archived && id === activePoolId) {
@@ -108,7 +106,14 @@ export function BoardManagementSection({
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               {p.id === activePoolId && (
-                <span style={{ color: colors.accentPurple, fontSize: 10, fontWeight: 800, letterSpacing: 1 }}>
+                <span
+                  style={{
+                    color: colors.accentPurple,
+                    fontSize: 10,
+                    fontWeight: 800,
+                    letterSpacing: 1,
+                  }}
+                >
                   ACTIVE
                 </span>
               )}
@@ -173,7 +178,8 @@ export function BoardManagementSection({
               marginBottom: showArchived ? 8 : 0,
             }}
           >
-            {showArchived ? "▾" : "▸"} {archivedPools.length} archived pool{archivedPools.length !== 1 ? "s" : ""}
+            {showArchived ? "▾" : "▸"} {archivedPools.length} archived pool
+            {archivedPools.length !== 1 ? "s" : ""}
           </button>
           {showArchived && (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>

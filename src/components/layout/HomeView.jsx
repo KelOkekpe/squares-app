@@ -86,9 +86,7 @@ export function HomeView({
           </div>
         )}
         {activePools.length === 1 && currentPool && (
-          <p style={{ color: colors.textDim, fontSize: 13, marginTop: 8 }}>
-            {currentPool.name}
-          </p>
+          <p style={{ color: colors.textDim, fontSize: 13, marginTop: 8 }}>{currentPool.name}</p>
         )}
 
         <div
@@ -102,15 +100,11 @@ export function HomeView({
             border: `1px solid ${colors.border}`,
           }}
         >
-          <span
-            style={{ color: colors.accentPurple, fontWeight: 700, fontSize: 14 }}
-          >
+          <span style={{ color: colors.accentPurple, fontWeight: 700, fontSize: 14 }}>
             ${config.pricePerSquare}/square
           </span>
           <span style={{ color: colors.textDimmest }}>|</span>
-          <span style={{ color: "#a0a0cc", fontSize: 14 }}>
-            {emptyCount} squares left
-          </span>
+          <span style={{ color: "#a0a0cc", fontSize: 14 }}>{emptyCount} squares left</span>
         </div>
       </div>
 
@@ -126,12 +120,13 @@ export function HomeView({
           }}
           disabled={config.submissionsDisabled || emptyCount === 0}
         >
-          {config.submissionsDisabled ? "Submissions Closed" : emptyCount === 0 ? "Pool Full" : "Join the Pool"}
+          {config.submissionsDisabled
+            ? "Submissions Closed"
+            : emptyCount === 0
+              ? "Pool Full"
+              : "Join the Pool"}
         </button>
-        <button
-          onClick={onViewBoard}
-          style={{ ...btnSecondary, width: "100%", padding: "16px" }}
-        >
+        <button onClick={onViewBoard} style={{ ...btnSecondary, width: "100%", padding: "16px" }}>
           View Board
         </button>
       </div>

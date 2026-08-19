@@ -15,14 +15,7 @@
  * missing here cannot be written at all — the row is rejected by the database.
  * Adding a new usePersistedState key means adding its type here too.
  */
-export const POOL_STATE_TYPES = [
-  "board",
-  "admin",
-  "participants",
-  "pending",
-  "scores",
-  "headers",
-];
+export const POOL_STATE_TYPES = ["board", "admin", "participants", "pending", "scores", "headers"];
 
 const META_KEY_RE = /^fb-(.+)-meta$/;
 const POOL_KEY_RE = new RegExp(

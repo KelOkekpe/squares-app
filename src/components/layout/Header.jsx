@@ -49,7 +49,9 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
     }
 
     checkAccess();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [isLoggedIn, isOwner, spaceCode, isSpaceAdmin]);
 
   return (
@@ -147,22 +149,26 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
           >
             {/* User indicator — desktop only, it costs a button's width */}
             {isLoggedIn && !isMobile && (
-              <span style={{
-                color: colors.textDim,
-                fontSize: 11,
-                marginRight: 4,
-                display: "flex",
-                alignItems: "center",
-                gap: 4,
-                whiteSpace: "nowrap",
-              }}>
-                <span style={{
-                  width: 6,
-                  height: 6,
-                  borderRadius: "50%",
-                  background: isOwner ? colors.accentGold : colors.accentGreen,
-                  display: "inline-block",
-                }} />
+              <span
+                style={{
+                  color: colors.textDim,
+                  fontSize: 11,
+                  marginRight: 4,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: isOwner ? colors.accentGold : colors.accentGreen,
+                    display: "inline-block",
+                  }}
+                />
                 {profile?.display_name?.split(" ")[0] || "User"}
               </span>
             )}

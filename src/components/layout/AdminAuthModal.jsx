@@ -2,13 +2,7 @@ import React from "react";
 import { cardStyle, inputStyle, btnPrimary, btnSecondary } from "../../styles";
 import { ADMIN_PASSWORD } from "../../utils";
 
-export function AdminAuthModal({
-  adminPass,
-  setAdminPass,
-  password,
-  onSuccess,
-  onCancel,
-}) {
+export function AdminAuthModal({ adminPass, setAdminPass, password, onSuccess, onCancel }) {
   const attempt = () => {
     if (adminPass === (password || ADMIN_PASSWORD)) {
       onSuccess();
@@ -51,10 +45,7 @@ export function AdminAuthModal({
           >
             Cancel
           </button>
-          <button
-            onClick={attempt}
-            style={{ ...btnPrimary, flex: 1, background: "#ff4444" }}
-          >
+          <button onClick={attempt} style={{ ...btnPrimary, flex: 1, background: "#ff4444" }}>
             Enter
           </button>
         </div>

@@ -1,29 +1,27 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from "@supabase/supabase-js";
 
 // These will be set via environment variables
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Validate URL format
 const isValidUrl = (url) => {
-  if (!url) return false
+  if (!url) return false;
   try {
-    const parsed = new URL(url)
-    return parsed.protocol === 'https:' || parsed.protocol === 'http:'
+    const parsed = new URL(url);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
   } catch {
-    return false
+    return false;
   }
-}
+};
 
 // Check if credentials are valid — Supabase is required; no localStorage fallback
-const hasValidCredentials = supabaseUrl && supabaseAnonKey && isValidUrl(supabaseUrl)
+const hasValidCredentials = supabaseUrl && supabaseAnonKey && isValidUrl(supabaseUrl);
 
 // Create Supabase client (null only when credentials are missing or invalid)
-export const supabase = hasValidCredentials
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null
+export const supabase = hasValidCredentials ? createClient(supabaseUrl, supabaseAnonKey) : null;
 
-export const isSupabaseEnabled = () => supabase !== null
+export const isSupabaseEnabled = () => supabase !== null;
 
 /**
  * Drop the persisted auth token.
@@ -35,15 +33,15 @@ export const isSupabaseEnabled = () => supabase !== null
  */
 export function clearAuthStorage() {
   try {
-    const keys = []
+    const keys = [];
     for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i)
-      if (k && k.startsWith('sb-') && k.includes('-auth-token')) keys.push(k)
+      const k = localStorage.key(i);
+      if (k && k.startsWith("sb-") && k.includes("-auth-token")) keys.push(k);
     }
-    keys.forEach((k) => localStorage.removeItem(k))
-    return keys.length
+    keys.forEach((k) => localStorage.removeItem(k));
+    return keys.length;
   } catch {
-    return 0
+    return 0;
   }
 }
 
@@ -53,11 +51,11 @@ export function clearAuthStorage() {
  * can hang on the same lock we're recovering from.
  */
 export function recoverFromStaleSession() {
-  const cleared = clearAuthStorage()
+  const cleared = clearAuthStorage();
   try {
-    supabase?.auth.signOut({ scope: 'local' }).catch(() => {})
+    supabase?.auth.signOut({ scope: "local" }).catch(() => {});
   } catch {
     /* ignore */
   }
-  return cleared
+  return cleared;
 }

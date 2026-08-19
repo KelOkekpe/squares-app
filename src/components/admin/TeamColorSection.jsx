@@ -56,8 +56,7 @@ function TeamPreview({ bg, color, name }) {
 }
 
 export function TeamColorSection({ config, setConfig }) {
-  const update = (field) => (val) =>
-    setConfig((c) => ({ ...c, [field]: val }));
+  const update = (field) => (val) => setConfig((c) => ({ ...c, [field]: val }));
 
   return (
     <div style={adminSectionStyle}>

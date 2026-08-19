@@ -19,20 +19,54 @@ export function PrizePotBar({ totalPot, quarterlyPayout }) {
     >
       {totalPot > 0 && (
         <div style={{ textAlign: "center" }}>
-          <div style={{ color: colors.textMuted, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 4 }}>
+          <div
+            style={{
+              color: colors.textMuted,
+              fontSize: 11,
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: 1.5,
+              marginBottom: 4,
+            }}
+          >
             Total Prize Pot
           </div>
-          <div style={{ color: colors.accentGreenBright, fontSize: 26, fontWeight: 800, fontFamily: fonts.mono, letterSpacing: -1 }}>
+          <div
+            style={{
+              color: colors.accentGreenBright,
+              fontSize: 26,
+              fontWeight: 800,
+              fontFamily: fonts.mono,
+              letterSpacing: -1,
+            }}
+          >
             ${totalPot.toLocaleString()}
           </div>
         </div>
       )}
       {quarterlyPayout > 0 && (
         <div style={{ textAlign: "center" }}>
-          <div style={{ color: colors.textMuted, fontSize: 11, fontWeight: 600, textTransform: "uppercase", letterSpacing: 1.5, marginBottom: 4 }}>
+          <div
+            style={{
+              color: colors.textMuted,
+              fontSize: 11,
+              fontWeight: 600,
+              textTransform: "uppercase",
+              letterSpacing: 1.5,
+              marginBottom: 4,
+            }}
+          >
             Quarterly Payout
           </div>
-          <div style={{ color: colors.accentYellow, fontSize: 26, fontWeight: 800, fontFamily: fonts.mono, letterSpacing: -1 }}>
+          <div
+            style={{
+              color: colors.accentYellow,
+              fontSize: 26,
+              fontWeight: 800,
+              fontFamily: fonts.mono,
+              letterSpacing: -1,
+            }}
+          >
             ${quarterlyPayout.toLocaleString()}
           </div>
         </div>

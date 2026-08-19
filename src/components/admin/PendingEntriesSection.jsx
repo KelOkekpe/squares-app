@@ -50,8 +50,8 @@ export function PendingEntriesSection({ pending, emptyCount, onApprove, onReject
         )}
       </h3>
       <p style={{ color: colors.textDim, fontSize: 12, margin: "0 0 14px" }}>
-        Check that the money actually arrived before approving. Approving assigns
-        the squares; rejecting discards the request.
+        Check that the money actually arrived before approving. Approving assigns the squares;
+        rejecting discards the request.
       </p>
 
       {pending.length === 0 ? (
@@ -84,19 +84,15 @@ export function PendingEntriesSection({ pending, emptyCount, onApprove, onReject
                     marginBottom: 4,
                   }}
                 >
-                  <strong style={{ color: colors.textPrimary, fontSize: 14 }}>
-                    {entry.name}
-                  </strong>
+                  <strong style={{ color: colors.textPrimary, fontSize: 14 }}>{entry.name}</strong>
                   <span style={{ color: colors.textDim, fontSize: 11, flexShrink: 0 }}>
                     {timeAgo(entry.requestedAt)}
                   </span>
                 </div>
 
                 <p style={{ margin: "0 0 10px", color: colors.textMuted, fontSize: 12 }}>
-                  <strong style={{ color: colors.accentGreenBright }}>
-                    ${entry.amount}
-                  </strong>{" "}
-                  · {entry.squares} square{entry.squares !== 1 ? "s" : ""} requested
+                  <strong style={{ color: colors.accentGreenBright }}>${entry.amount}</strong> ·{" "}
+                  {entry.squares} square{entry.squares !== 1 ? "s" : ""} requested
                   {shortfall > 0 && (
                     <span style={{ color: colors.accentRed }}>
                       {" "}

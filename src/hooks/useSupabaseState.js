@@ -6,17 +6,17 @@ import { withTimeout } from "../utils/async";
 /**
  * Like useState but persists to Supabase (with localStorage fallback).
  * Automatically syncs across devices and browsers for the same space/pool.
- * 
+ *
  * @param {string} key - Storage key (e.g., "fb-fam-p123-board")
  * @param {any} initialValue - Default value if nothing is stored
  * @param {object} options - { table: 'spaces', spaceCode, poolId }
  * Note: Database columns use 'space_code' and 'pool_id'
  */
 export function useSupabaseState(key, initialValue, options = {}) {
-  const { table = 'spaces', spaceCode, poolId } = options;
+  const { table = "spaces", spaceCode, poolId } = options;
   // Handle function initializers (like useState does)
   const getInitialValue = () => {
-    return typeof initialValue === 'function' ? initialValue() : initialValue;
+    return typeof initialValue === "function" ? initialValue() : initialValue;
   };
   const [state, setState] = useState(getInitialValue);
   const [loading, setLoading] = useState(true);
@@ -40,7 +40,7 @@ export function useSupabaseState(key, initialValue, options = {}) {
 
         // Try key lookup first (works for all keys once we save with key)
         const { data: dataByKey, error: keyErr } = await withTimeout(
-          supabase.from(table).select('value').eq('key', storageKey).maybeSingle(),
+          supabase.from(table).select("value").eq("key", storageKey).maybeSingle(),
           8000,
           `load ${storageKey}`
         );
@@ -54,15 +54,12 @@ export function useSupabaseState(key, initialValue, options = {}) {
           const { space, pool, type } = match;
 
           // Use structured query
-          let query = supabase
-            .from(table)
-            .select('value')
-            .eq('space_code', space);
+          let query = supabase.from(table).select("value").eq("space_code", space);
 
           if (pool) {
-            query = query.eq('pool_id', pool).eq('type', type);
+            query = query.eq("pool_id", pool).eq("type", type);
           } else {
-            query = query.eq('type', type).eq('pool_id', '');
+            query = query.eq("type", type).eq("pool_id", "");
           }
 
           // Use .maybeSingle() instead of .single() to handle missing rows gracefully
@@ -76,7 +73,7 @@ export function useSupabaseState(key, initialValue, options = {}) {
           if (error) {
             // Only throw if it's not a "not found" error
             // 406 can also mean "not found" in some Supabase versions
-            if (error.code !== 'PGRST116' && error.code !== '406') {
+            if (error.code !== "PGRST116" && error.code !== "406") {
               throw error;
             }
           }
@@ -91,8 +88,8 @@ export function useSupabaseState(key, initialValue, options = {}) {
           setLoading(false);
         }
       } catch (err) {
-        const isNotFoundError = err?.code === '406' || err?.code === 'PGRST116';
-        if (!isNotFoundError) console.error('Error loading from Supabase:', err);
+        const isNotFoundError = err?.code === "406" || err?.code === "PGRST116";
+        if (!isNotFoundError) console.error("Error loading from Supabase:", err);
         if (mounted) {
           setError(isNotFoundError ? null : err);
           setState(getInitialValue());
@@ -113,10 +110,10 @@ export function useSupabaseState(key, initialValue, options = {}) {
         const channel = supabase
           .channel(`state:${storageKey}`)
           .on(
-            'postgres_changes',
+            "postgres_changes",
             {
-              event: '*',
-              schema: 'public',
+              event: "*",
+              schema: "public",
               table: table,
               filter: pool
                 ? `space_code=eq.${space},pool_id=eq.${pool},type=eq.${type}`
@@ -168,7 +165,7 @@ export function useSupabaseState(key, initialValue, options = {}) {
           );
         } else {
           const { space, pool, type } = match;
-          const poolVal = pool || '';
+          const poolVal = pool || "";
           const row = {
             key: storageKey,
             space_code: space,
@@ -182,17 +179,14 @@ export function useSupabaseState(key, initialValue, options = {}) {
           // (some DBs may not have unique_space_pool_type)
           const { data: existing } = await supabase
             .from(table)
-            .select('id')
-            .eq('space_code', space)
-            .eq('pool_id', poolVal)
-            .eq('type', type)
+            .select("id")
+            .eq("space_code", space)
+            .eq("pool_id", poolVal)
+            .eq("type", type)
             .maybeSingle();
 
           if (existing?.id) {
-            const { error } = await supabase
-              .from(table)
-              .update(row)
-              .eq('id', existing.id);
+            const { error } = await supabase.from(table).update(row).eq("id", existing.id);
             if (error) throw error;
           } else {
             const { error } = await supabase.from(table).insert(row);
@@ -203,7 +197,7 @@ export function useSupabaseState(key, initialValue, options = {}) {
         setState(newState);
         setError(null);
       } catch (err) {
-        console.error('Error saving to Supabase:', err);
+        console.error("Error saving to Supabase:", err);
         setError(err);
       }
     },
@@ -219,7 +213,7 @@ export function useSupabaseState(key, initialValue, options = {}) {
 
   const updateState = useCallback(
     (updater) => {
-      const newState = typeof updater === 'function' ? updater(stateRef.current) : updater;
+      const newState = typeof updater === "function" ? updater(stateRef.current) : updater;
       saveState(newState);
     },
     [saveState]

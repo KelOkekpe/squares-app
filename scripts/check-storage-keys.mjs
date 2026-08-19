@@ -2,7 +2,10 @@ import { parseStorageKey, POOL_STATE_TYPES } from "../src/utils/storageKeys.js";
 import { STORAGE_KEYS, SPACE_META_KEY } from "../src/utils/constants.js";
 
 let failed = 0;
-const fail = (msg) => { console.log("FAIL  " + msg); failed++; };
+const fail = (msg) => {
+  console.log("FAIL  " + msg);
+  failed++;
+};
 const pass = (msg) => console.log("PASS  " + msg);
 
 // The invariant that broke: every key STORAGE_KEYS emits must parse, for both

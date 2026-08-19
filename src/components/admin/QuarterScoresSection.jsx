@@ -16,9 +16,7 @@ export function QuarterScoresSection({ config, scores, setScores }) {
       >
         {QUARTERS.map((q) => (
           <React.Fragment key={q}>
-            <span style={{ color: "#c8c8e8", fontSize: 13, fontWeight: 700 }}>
-              {q}
-            </span>
+            <span style={{ color: "#c8c8e8", fontSize: 13, fontWeight: 700 }}>{q}</span>
             <input
               type="number"
               min={0}

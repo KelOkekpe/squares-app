@@ -33,8 +33,7 @@ export function getInitialBoard() {
 export function getEmptySquares(board) {
   const empty = [];
   for (let r = 0; r < GRID_SIZE; r++)
-    for (let c = 0; c < GRID_SIZE; c++)
-      if (!board[r][c]) empty.push([r, c]);
+    for (let c = 0; c < GRID_SIZE; c++) if (!board[r][c]) empty.push([r, c]);
   return empty;
 }
 

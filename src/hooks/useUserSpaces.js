@@ -48,9 +48,7 @@ export function useUserSpaces() {
         8000,
         "user space privacy"
       );
-      const privMap = Object.fromEntries(
-        (registry || []).map((r) => [r.code, !!r.is_private])
-      );
+      const privMap = Object.fromEntries((registry || []).map((r) => [r.code, !!r.is_private]));
       const list = rows.map((row) => ({
         code: row.space_code,
         role: row.role,

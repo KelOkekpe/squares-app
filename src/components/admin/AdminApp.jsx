@@ -16,13 +16,15 @@ export function AdminApp({ onOpenSpace }) {
     return (
       <div style={pageStyle}>
         <BackgroundDecor />
-        <div style={{
-          ...containerStyle,
-          paddingTop: 120,
-          textAlign: "center",
-          color: colors.textMuted,
-          fontSize: 14,
-        }}>
+        <div
+          style={{
+            ...containerStyle,
+            paddingTop: 120,
+            textAlign: "center",
+            color: colors.textMuted,
+            fontSize: 14,
+          }}
+        >
           Loading…
         </div>
       </div>

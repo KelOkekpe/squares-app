@@ -41,7 +41,10 @@ export function useSpacesRegistry() {
         // once — this is what clearing site data by hand was accomplishing.
         if (!isStaleSessionError(err) || recoveredRef.current) throw err;
         recoveredRef.current = true;
-        console.warn("Registry load failed; clearing stale session and retrying:", err?.message || err);
+        console.warn(
+          "Registry load failed; clearing stale session and retrying:",
+          err?.message || err
+        );
         recoverFromStaleSession();
         result = await query();
       }

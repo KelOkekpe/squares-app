@@ -4,16 +4,32 @@ import { useUserSpaces } from "../../hooks/useUserSpaces";
 import { useSpacesRegistry } from "../../hooks/useSpacesRegistry";
 import { useCreateSpace } from "../../hooks/useCreateSpace";
 import { normalizeCode, spaceUrlPrefix } from "../../utils/routes";
-import { colors, radii, pageStyle, containerStyle, cardStyle, inputStyle, labelStyle, btnPrimary } from "../../styles";
+import {
+  colors,
+  radii,
+  pageStyle,
+  containerStyle,
+  cardStyle,
+  inputStyle,
+  labelStyle,
+  btnPrimary,
+} from "../../styles";
 import { BackgroundDecor } from "../layout/BackgroundDecor";
 import { PasswordInput } from "../common";
 
 function LockIcon() {
   return (
     <svg
-      width="14" height="14" viewBox="0 0 24 24" fill="none"
-      stroke={colors.accentGold} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
-      style={{ flexShrink: 0 }} aria-hidden
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={colors.accentGold}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      style={{ flexShrink: 0 }}
+      aria-hidden
     >
       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
       <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -27,7 +43,11 @@ function LockIcon() {
  */
 export function AdminDashboard({ onOpenSpace }) {
   const { user, profile, signOut } = useAuth();
-  const { spaces: userSpaces, loading: spacesLoading, refetch: refetchUserSpaces } = useUserSpaces();
+  const {
+    spaces: userSpaces,
+    loading: spacesLoading,
+    refetch: refetchUserSpaces,
+  } = useUserSpaces();
   const { spaces: registry } = useSpacesRegistry();
   const createSpace = useCreateSpace();
 
@@ -39,13 +59,22 @@ export function AdminDashboard({ onOpenSpace }) {
 
   const handleCreate = async () => {
     const code = normalizeCode(spaceCode);
-    if (!code) { setError("Please enter a space code"); return; }
-    if (code.length < 3) { setError("Space code must be at least 3 characters"); return; }
+    if (!code) {
+      setError("Please enter a space code");
+      return;
+    }
+    if (code.length < 3) {
+      setError("Space code must be at least 3 characters");
+      return;
+    }
     if (registry.some((s) => s.code === code) || userSpaces.some((s) => s.code === code)) {
       setError(`"${code}" is already taken`);
       return;
     }
-    if (isPrivate && !spacePassword.trim()) { setError("Please set a space password for private spaces"); return; }
+    if (isPrivate && !spacePassword.trim()) {
+      setError("Please set a space password for private spaces");
+      return;
+    }
 
     setError("");
     setCreating(true);
@@ -68,15 +97,16 @@ export function AdminDashboard({ onOpenSpace }) {
       <BackgroundDecor />
       <div style={{ ...containerStyle, paddingTop: 40, paddingBottom: 60 }}>
         <div style={{ maxWidth: 560, margin: "0 auto" }}>
-
           {/* Top bar */}
-          <div style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: 40,
-            gap: 12,
-          }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 40,
+              gap: 12,
+            }}
+          >
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
               <div
                 style={{
@@ -93,16 +123,25 @@ export function AdminDashboard({ onOpenSpace }) {
                 🏈
               </div>
               <div style={{ display: "flex", flexDirection: "column" }}>
-                <span style={{ fontWeight: 800, fontSize: 18, letterSpacing: -0.5, color: colors.white }}>
+                <span
+                  style={{
+                    fontWeight: 800,
+                    fontSize: 18,
+                    letterSpacing: -0.5,
+                    color: colors.white,
+                  }}
+                >
                   SQUAREBET
                 </span>
-                <span style={{
-                  fontSize: 10,
-                  color: colors.accentGold,
-                  letterSpacing: 1.5,
-                  textTransform: "uppercase",
-                  fontWeight: 700,
-                }}>
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: colors.accentGold,
+                    letterSpacing: 1.5,
+                    textTransform: "uppercase",
+                    fontWeight: 700,
+                  }}
+                >
                   Admin
                 </span>
               </div>
@@ -133,14 +172,16 @@ export function AdminDashboard({ onOpenSpace }) {
 
           {/* My Spaces */}
           <div style={{ marginBottom: 32 }}>
-            <p style={{
-              color: colors.textDim,
-              fontSize: 12,
-              marginBottom: 12,
-              textTransform: "uppercase",
-              letterSpacing: 1.5,
-              fontWeight: 600,
-            }}>
+            <p
+              style={{
+                color: colors.textDim,
+                fontSize: 12,
+                marginBottom: 12,
+                textTransform: "uppercase",
+                letterSpacing: 1.5,
+                fontWeight: 600,
+              }}
+            >
               My Spaces
             </p>
 
@@ -177,16 +218,17 @@ export function AdminDashboard({ onOpenSpace }) {
                     }}
                   >
                     <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-                      {s.isPrivate && <LockIcon />}
-                      #{s.code}
+                      {s.isPrivate && <LockIcon />}#{s.code}
                     </span>
-                    <span style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      textTransform: "uppercase",
-                      letterSpacing: 0.5,
-                      color: s.role === "owner" ? colors.accentGold : colors.accentViolet,
-                    }}>
+                    <span
+                      style={{
+                        fontSize: 10,
+                        fontWeight: 700,
+                        textTransform: "uppercase",
+                        letterSpacing: 0.5,
+                        color: s.role === "owner" ? colors.accentGold : colors.accentViolet,
+                      }}
+                    >
                       {s.role}
                     </span>
                   </button>
@@ -197,9 +239,7 @@ export function AdminDashboard({ onOpenSpace }) {
 
           {/* Create a space */}
           <div style={cardStyle}>
-            <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 800 }}>
-              Create a Space
-            </h3>
+            <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 800 }}>Create a Space</h3>
             <p style={{ color: colors.textMuted, fontSize: 13, marginBottom: 20 }}>
               A space holds one or more pools. Share its link and players join — no account needed.
             </p>
@@ -213,7 +253,10 @@ export function AdminDashboard({ onOpenSpace }) {
                   </span>
                   <input
                     value={spaceCode}
-                    onChange={(e) => { setSpaceCode(normalizeCode(e.target.value)); setError(""); }}
+                    onChange={(e) => {
+                      setSpaceCode(normalizeCode(e.target.value));
+                      setError("");
+                    }}
                     onKeyDown={(e) => e.key === "Enter" && !creating && handleCreate()}
                     style={{ ...inputStyle, fontWeight: 600 }}
                     placeholder="name-your-space"
@@ -278,7 +321,10 @@ export function AdminDashboard({ onOpenSpace }) {
                   <label style={labelStyle}>Space password</label>
                   <PasswordInput
                     value={spacePassword}
-                    onChange={(e) => { setSpacePassword(e.target.value); setError(""); }}
+                    onChange={(e) => {
+                      setSpacePassword(e.target.value);
+                      setError("");
+                    }}
                     style={inputStyle}
                     placeholder="Password players enter to join"
                   />
@@ -287,9 +333,7 @@ export function AdminDashboard({ onOpenSpace }) {
             </div>
 
             {error && (
-              <p style={{ color: colors.accentRed, fontSize: 13, margin: "14px 0 0" }}>
-                {error}
-              </p>
+              <p style={{ color: colors.accentRed, fontSize: 13, margin: "14px 0 0" }}>{error}</p>
             )}
 
             <button
@@ -309,10 +353,7 @@ export function AdminDashboard({ onOpenSpace }) {
           </div>
 
           <p style={{ textAlign: "center", margin: "24px 0 0" }}>
-            <a
-              href="/"
-              style={{ color: colors.textDim, fontSize: 12, textDecoration: "none" }}
-            >
+            <a href="/" style={{ color: colors.textDim, fontSize: 12, textDecoration: "none" }}>
               View the player site →
             </a>
           </p>

@@ -42,9 +42,7 @@ export function PaymentStep({
         >
           2
         </div>
-        <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>
-          Send Payment
-        </h3>
+        <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>Send Payment</h3>
       </div>
 
       {/* Where to send the money — set by the admin in the admin panel */}
@@ -71,8 +69,8 @@ export function PaymentStep({
           </p>
         ) : (
           <p style={{ margin: 0, color: colors.textMuted, fontSize: 13, lineHeight: 1.6 }}>
-            Your admin hasn't added payment details yet. Ask them where to send
-            payment before submitting.
+            Your admin hasn't added payment details yet. Ask them where to send payment before
+            submitting.
           </p>
         )}
         <p style={{ color: colors.textDim, fontSize: 11, margin: "12px 0 0" }}>
@@ -102,10 +100,7 @@ export function PaymentStep({
                 {Math.min(squaresForAmount, emptyCount) !== 1 ? "s" : ""}
               </strong>
               {squaresForAmount > emptyCount && (
-                <span style={{ color: colors.accentRed }}>
-                  {" "}
-                  (only {emptyCount} available)
-                </span>
+                <span style={{ color: colors.accentRed }}> (only {emptyCount} available)</span>
               )}
               {Number(amount) % config.pricePerSquare !== 0 && (
                 <span style={{ color: colors.accentOrange }}>
@@ -133,16 +128,13 @@ export function PaymentStep({
         }}
       >
         <p style={{ margin: 0, color: colors.textMuted, fontSize: 12, lineHeight: 1.6 }}>
-          Send the payment first, then submit. Your squares are assigned once
-          your admin confirms the money arrived — they aren't reserved in the
-          meantime.
+          Send the payment first, then submit. Your squares are assigned once your admin confirms
+          the money arrived — they aren't reserved in the meantime.
         </p>
       </div>
 
       {submitError && (
-        <p style={{ color: colors.accentRed, fontSize: 13, margin: "0 0 14px" }}>
-          {submitError}
-        </p>
+        <p style={{ color: colors.accentRed, fontSize: 13, margin: "0 0 14px" }}>{submitError}</p>
       )}
 
       <div style={{ display: "flex", gap: 10 }}>

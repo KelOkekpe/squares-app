@@ -49,7 +49,13 @@ export function useCreateSpace() {
           const adminKey = `fb-${code}-${pool.id}-admin`;
           const { error: spacesErr } = await supabase.from("spaces").insert([
             { key: metaKey, space_code: code, pool_id: "", type: "meta", value: meta },
-            { key: adminKey, space_code: code, pool_id: pool.id, type: "admin", value: { ...DEFAULT_CONFIG } },
+            {
+              key: adminKey,
+              space_code: code,
+              pool_id: pool.id,
+              type: "admin",
+              value: { ...DEFAULT_CONFIG },
+            },
           ]);
           if (spacesErr) {
             console.error("Could not initialize space data (spaces table):", spacesErr.message);

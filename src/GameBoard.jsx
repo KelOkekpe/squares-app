@@ -1,13 +1,33 @@
 import React, { useState, useCallback, useEffect } from "react";
 import {
-  STORAGE_KEYS, SPACE_META_KEY, DEFAULT_CONFIG,
-  generateHeaders, getInitialBoard, getEmptySquares, placeParticipant, calculateSquares,
+  STORAGE_KEYS,
+  SPACE_META_KEY,
+  DEFAULT_CONFIG,
+  generateHeaders,
+  getInitialBoard,
+  getEmptySquares,
+  placeParticipant,
+  calculateSquares,
 } from "./utils";
-import { usePersistedState, usePools, useAuth, useSpacesRegistry, useSpaceAccess, useUserSpaces } from "./hooks";
+import {
+  usePersistedState,
+  usePools,
+  useAuth,
+  useSpacesRegistry,
+  useSpaceAccess,
+  useUserSpaces,
+} from "./hooks";
 import { supabase, isSupabaseEnabled } from "./lib/supabase";
 import { pageStyle, containerStyle } from "./styles";
 import { colors, cardStyle, inputStyle, btnPrimary, btnSecondary } from "./styles";
-import { Header, Footer, BackgroundDecor, HomeView, JoinView, BoardView } from "./components/layout";
+import {
+  Header,
+  Footer,
+  BackgroundDecor,
+  HomeView,
+  JoinView,
+  BoardView,
+} from "./components/layout";
 import { AdminPanel } from "./components/admin";
 import { PasswordInput } from "./components/common";
 
@@ -21,10 +41,7 @@ export function GameBoard({ spaceCode, onExit }) {
   const isOwnerOrAdmin = userSpaces.some((s) => s.code === spaceCode);
   const checkingAccess = registryLoading || userSpacesLoading;
   const needsPassword =
-    !checkingAccess &&
-    space?.isPrivate &&
-    !hasAccess(spaceCode) &&
-    !isOwnerOrAdmin;
+    !checkingAccess && space?.isPrivate && !hasAccess(spaceCode) && !isOwnerOrAdmin;
 
   const [gatePassword, setGatePassword] = useState("");
   const [gateError, setGateError] = useState("");
@@ -81,23 +98,26 @@ export function GameBoard({ spaceCode, onExit }) {
     }
   }, [pools, activePools, spaceMeta.activePoolId, setSpaceMeta]);
 
-  const setPools = useCallback((updater) => {
-    const newPools = typeof updater === "function" ? updater(pools) : updater;
-    // Update each pool in database
-    newPools.forEach((pool) => {
-      const existing = pools.find((p) => p.id === pool.id);
-      if (!existing) {
-        // New pool - create it
-        createPoolInDb(pool.name);
-      } else if (existing.name !== pool.name || existing.archived !== pool.archived) {
-        // Pool changed - update it
-        updatePoolInDb(pool.id, {
-          name: pool.name,
-          archived: pool.archived || false,
-        });
-      }
-    });
-  }, [pools, createPoolInDb, updatePoolInDb]);
+  const setPools = useCallback(
+    (updater) => {
+      const newPools = typeof updater === "function" ? updater(pools) : updater;
+      // Update each pool in database
+      newPools.forEach((pool) => {
+        const existing = pools.find((p) => p.id === pool.id);
+        if (!existing) {
+          // New pool - create it
+          createPoolInDb(pool.name);
+        } else if (existing.name !== pool.name || existing.archived !== pool.archived) {
+          // Pool changed - update it
+          updatePoolInDb(pool.id, {
+            name: pool.name,
+            archived: pool.archived || false,
+          });
+        }
+      });
+    },
+    [pools, createPoolInDb, updatePoolInDb]
+  );
 
   const switchPool = (id) => {
     setSpaceMeta((prev) => ({ ...prev, activePoolId: id }));
@@ -110,10 +130,7 @@ export function GameBoard({ spaceCode, onExit }) {
   const [board, setBoard] = usePersistedState(keys.board, () => getInitialBoard());
   const [config, setConfig] = usePersistedState(keys.admin, DEFAULT_CONFIG);
   const [scores, setScores] = usePersistedState(keys.scores, {});
-  const [participants, setParticipants] = usePersistedState(
-    keys.participants,
-    []
-  );
+  const [participants, setParticipants] = usePersistedState(keys.participants, []);
   // Entry requests awaiting admin payment confirmation
   const [pending, setPending] = usePersistedState(keys.pending, []);
 
@@ -131,10 +148,7 @@ export function GameBoard({ spaceCode, onExit }) {
 
   // ── derived ───────────────────────────────────────────
   const fullName = `${firstName} ${lastName}`.trim();
-  const squaresForAmount = calculateSquares(
-    Number(amount),
-    config.pricePerSquare
-  );
+  const squaresForAmount = calculateSquares(Number(amount), config.pricePerSquare);
   const emptyCount = getEmptySquares(board).length;
 
   // ── handlers ──────────────────────────────────────────
@@ -179,11 +193,7 @@ export function GameBoard({ spaceCode, onExit }) {
     (id) => {
       const entry = pending.find((p) => p.id === id);
       if (!entry) return;
-      const { board: newBoard, placed } = placeParticipant(
-        board,
-        entry.name,
-        entry.squares
-      );
+      const { board: newBoard, placed } = placeParticipant(board, entry.name, entry.squares);
       setBoard(newBoard);
       setParticipants((p) => [
         ...p,
@@ -213,9 +223,7 @@ export function GameBoard({ spaceCode, onExit }) {
       const entry = participants[index];
       if (!entry) return;
 
-      const hasOtherEntries = participants.some(
-        (p, i) => i !== index && p.name === entry.name
-      );
+      const hasOtherEntries = participants.some((p, i) => i !== index && p.name === entry.name);
 
       setBoard((current) => {
         const next = current.map((row) => [...row]);
@@ -241,13 +249,15 @@ export function GameBoard({ spaceCode, onExit }) {
     return (
       <div style={pageStyle}>
         <BackgroundDecor />
-        <div style={{
-          ...containerStyle,
-          paddingTop: 120,
-          textAlign: "center",
-          color: colors.textMuted,
-          fontSize: 14,
-        }}>
+        <div
+          style={{
+            ...containerStyle,
+            paddingTop: 120,
+            textAlign: "center",
+            color: colors.textMuted,
+            fontSize: 14,
+          }}
+        >
           <p style={{ margin: 0 }}>Checking access…</p>
           {accessSlow && (
             <p style={{ margin: "16px 0 0", fontSize: 13 }}>
@@ -272,8 +282,8 @@ export function GameBoard({ spaceCode, onExit }) {
         <div style={{ ...containerStyle, paddingTop: 120, textAlign: "center" }}>
           <h2 style={{ margin: "0 0 12px", fontSize: 24 }}>Space not found</h2>
           <p style={{ color: colors.textMuted, fontSize: 15, margin: "0 0 24px" }}>
-            No space exists at <strong>#{spaceCode}</strong>. Check the code with whoever
-            shared it with you.
+            No space exists at <strong>#{spaceCode}</strong>. Check the code with whoever shared it
+            with you.
           </p>
           <button type="button" onClick={onExit} style={btnPrimary}>
             Back
@@ -300,9 +310,7 @@ export function GameBoard({ spaceCode, onExit }) {
           }}
         >
           <div style={{ ...cardStyle, maxWidth: 360, width: "100%" }}>
-            <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 800 }}>
-              Private Space
-            </h3>
+            <h3 style={{ margin: "0 0 8px", fontSize: 18, fontWeight: 800 }}>Private Space</h3>
             <p style={{ color: colors.textMuted, fontSize: 13, margin: "0 0 16px" }}>
               Enter the password for <strong>#{spaceCode}</strong>
             </p>

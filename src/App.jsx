@@ -14,7 +14,8 @@ function SupabaseRequired() {
       <div style={{ ...containerStyle, paddingTop: 120, textAlign: "center" }}>
         <h2 style={{ margin: "0 0 12px", fontSize: 24 }}>Supabase Required</h2>
         <p style={{ color: "#8a8ab0", fontSize: 15 }}>
-          Please set <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> in your environment.
+          Please set <code>VITE_SUPABASE_URL</code> and <code>VITE_SUPABASE_ANON_KEY</code> in your
+          environment.
         </p>
       </div>
     </div>
@@ -26,8 +27,8 @@ export default function App() {
   const { isLoggedIn } = useAuth();
   // Latched on mount: supabase-js clears the token fragment as soon as it reads
   // it, which would otherwise bounce us out of the callback mid-sign-in.
-  const [handlingAuth, setHandlingAuth] = useState(() =>
-    typeof window !== "undefined" && isAuthCallbackHash(window.location.hash)
+  const [handlingAuth, setHandlingAuth] = useState(
+    () => typeof window !== "undefined" && isAuthCallbackHash(window.location.hash)
   );
 
   const finishAuth = useCallback(() => {

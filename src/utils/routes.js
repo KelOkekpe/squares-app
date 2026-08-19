@@ -16,7 +16,10 @@ export const ADMIN_PATH = "/admin";
 
 /** Lowercase, strip anything that isn't a-z, 0-9 or a dash. */
 export function normalizeCode(raw) {
-  return String(raw || "").trim().toLowerCase().replace(/[^a-z0-9-]/g, "");
+  return String(raw || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, "");
 }
 
 /**

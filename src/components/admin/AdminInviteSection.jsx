@@ -1,6 +1,13 @@
 import React, { useState } from "react";
 import { useSpaceAdmins } from "../../hooks/useSpaceAdmins";
-import { colors, radii, adminInputStyle, adminSectionStyle, btnPrimary, btnSecondary } from "../../styles";
+import {
+  colors,
+  radii,
+  adminInputStyle,
+  adminSectionStyle,
+  btnPrimary,
+  btnSecondary,
+} from "../../styles";
 
 export function AdminInviteSection({ spaceCode, isOwner }) {
   const { admins, loading, inviteAdmin, removeAdmin } = useSpaceAdmins(spaceCode);
@@ -54,7 +61,8 @@ export function AdminInviteSection({ spaceCode, isOwner }) {
         Assign Space Admins
       </h3>
       <p style={{ color: colors.textDim, fontSize: 12, margin: "0 0 12px" }}>
-        Add existing users by email. Registered users get immediate access; others will get access when they sign up.
+        Add existing users by email. Registered users get immediate access; others will get access
+        when they sign up.
       </p>
 
       {/* Assign form */}
@@ -85,14 +93,10 @@ export function AdminInviteSection({ spaceCode, isOwner }) {
       </div>
 
       {error && (
-        <p style={{ color: colors.accentRed, fontSize: 12, margin: "0 0 12px" }}>
-          {error}
-        </p>
+        <p style={{ color: colors.accentRed, fontSize: 12, margin: "0 0 12px" }}>{error}</p>
       )}
       {success && (
-        <p style={{ color: colors.accentGreen, fontSize: 12, margin: "0 0 12px" }}>
-          {success}
-        </p>
+        <p style={{ color: colors.accentGreen, fontSize: 12, margin: "0 0 12px" }}>{success}</p>
       )}
 
       {/* Admin list */}

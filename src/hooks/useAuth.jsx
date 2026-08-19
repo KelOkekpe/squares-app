@@ -1,5 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { supabase, isSupabaseEnabled, clearAuthStorage, recoverFromStaleSession } from "../lib/supabase";
+import {
+  supabase,
+  isSupabaseEnabled,
+  clearAuthStorage,
+  recoverFromStaleSession,
+} from "../lib/supabase";
 import { withTimeout } from "../utils/async";
 
 const AuthContext = createContext(null);
@@ -60,7 +65,10 @@ export function AuthProvider({ children }) {
       })
       .catch((err) => {
         if (cancelled) return;
-        console.warn("Could not restore session — clearing stale credentials:", err?.message || err);
+        console.warn(
+          "Could not restore session — clearing stale credentials:",
+          err?.message || err
+        );
         recoverFromStaleSession();
         setUser(null);
         setProfile(null);
@@ -68,17 +76,17 @@ export function AuthProvider({ children }) {
       });
 
     // Listen for changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        const authUser = session?.user ?? null;
-        setUser(authUser);
-        if (authUser) {
-          await loadProfile(authUser);
-        } else {
-          setProfile(null);
-        }
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      const authUser = session?.user ?? null;
+      setUser(authUser);
+      if (authUser) {
+        await loadProfile(authUser);
+      } else {
+        setProfile(null);
       }
-    );
+    });
 
     return () => {
       cancelled = true;
@@ -132,24 +140,27 @@ export function AuthProvider({ children }) {
   }, []);
 
   // ── Sign in with email/password ──
-  const signInWithEmail = useCallback(async (email, password) => {
-    if (!isSupabaseEnabled()) {
-      return { user: null, error: { message: "Supabase is required" } };
-    }
+  const signInWithEmail = useCallback(
+    async (email, password) => {
+      if (!isSupabaseEnabled()) {
+        return { user: null, error: { message: "Supabase is required" } };
+      }
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
 
-    if (error) return { user: null, error };
+      if (error) return { user: null, error };
 
-    if (data.user) {
-      loadProfile(data.user).catch((err) => console.warn("Profile load failed:", err));
-    }
+      if (data.user) {
+        loadProfile(data.user).catch((err) => console.warn("Profile load failed:", err));
+      }
 
-    return { user: data.user, error: null };
-  }, [loadProfile]);
+      return { user: data.user, error: null };
+    },
+    [loadProfile]
+  );
 
   // ── Sign out ──
   // Clear local state and Supabase auth storage immediately so the UI updates
@@ -171,20 +182,20 @@ export function AuthProvider({ children }) {
   }, []);
 
   // ── Update profile ──
-  const updateProfile = useCallback(async (updates) => {
-    if (!user) return { error: { message: "Not logged in" } };
-    if (!isSupabaseEnabled()) return { error: { message: "Supabase is required" } };
+  const updateProfile = useCallback(
+    async (updates) => {
+      if (!user) return { error: { message: "Not logged in" } };
+      if (!isSupabaseEnabled()) return { error: { message: "Supabase is required" } };
 
-    const { error } = await supabase
-      .from("user_profiles")
-      .update(updates)
-      .eq("id", user.id);
+      const { error } = await supabase.from("user_profiles").update(updates).eq("id", user.id);
 
-    if (!error) {
-      setProfile((prev) => ({ ...prev, ...updates }));
-    }
-    return { error };
-  }, [user, profile]);
+      if (!error) {
+        setProfile((prev) => ({ ...prev, ...updates }));
+      }
+      return { error };
+    },
+    [user, profile]
+  );
 
   // ── Role checks ── (fallback to user_metadata for signup where profile may lag)
   const roleFromProfile = profile?.role;
@@ -194,41 +205,50 @@ export function AuthProvider({ children }) {
   const isLoggedIn = !!user;
 
   // Check if user is admin/owner of a specific space
-  const getSpaceRole = useCallback(async (spaceCode) => {
-    if (!user || !isSupabaseEnabled()) return null;
+  const getSpaceRole = useCallback(
+    async (spaceCode) => {
+      if (!user || !isSupabaseEnabled()) return null;
 
-    try {
-      const { data, error } = await supabase
-        .from("space_admins")
-        .select("role, accepted")
-        .eq("space_code", spaceCode)
-        .eq("user_id", user.id)
-        .maybeSingle();
+      try {
+        const { data, error } = await supabase
+          .from("space_admins")
+          .select("role, accepted")
+          .eq("space_code", spaceCode)
+          .eq("user_id", user.id)
+          .maybeSingle();
 
-      if (error) throw error;
-      if (data && data.accepted) return data.role; // 'owner' or 'admin'
+        if (error) throw error;
+        if (data && data.accepted) return data.role; // 'owner' or 'admin'
 
-      // No linked row - try claiming a pending invite (e.g. invited before profile existed)
-      const { data: claimedRole } = await supabase.rpc("accept_space_invite", {
-        p_space_code: spaceCode,
-      });
-      if (claimedRole) return claimedRole;
+        // No linked row - try claiming a pending invite (e.g. invited before profile existed)
+        const { data: claimedRole } = await supabase.rpc("accept_space_invite", {
+          p_space_code: spaceCode,
+        });
+        if (claimedRole) return claimedRole;
 
-      return null;
-    } catch {
-      return null;
-    }
-  }, [user]);
+        return null;
+      } catch {
+        return null;
+      }
+    },
+    [user]
+  );
 
-  const isSpaceAdmin = useCallback(async (spaceCode) => {
-    const role = await getSpaceRole(spaceCode);
-    return role === "owner" || role === "admin";
-  }, [getSpaceRole]);
+  const isSpaceAdmin = useCallback(
+    async (spaceCode) => {
+      const role = await getSpaceRole(spaceCode);
+      return role === "owner" || role === "admin";
+    },
+    [getSpaceRole]
+  );
 
-  const isSpaceOwner = useCallback(async (spaceCode) => {
-    const role = await getSpaceRole(spaceCode);
-    return role === "owner";
-  }, [getSpaceRole]);
+  const isSpaceOwner = useCallback(
+    async (spaceCode) => {
+      const role = await getSpaceRole(spaceCode);
+      return role === "owner";
+    },
+    [getSpaceRole]
+  );
 
   const value = {
     user,
@@ -246,11 +266,7 @@ export function AuthProvider({ children }) {
     loadProfile,
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
 export function useAuth() {

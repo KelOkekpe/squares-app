@@ -3,14 +3,7 @@ import { btnPrimary } from "../../styles";
 import { SquaresGrid } from "../grid/SquaresGrid";
 import { WinnersSummary } from "../grid/WinnersSummary";
 
-export function BoardView({
-  board,
-  headers,
-  config,
-  scores,
-  emptyCount,
-  onJoin,
-}) {
+export function BoardView({ board, headers, config, scores, emptyCount, onJoin }) {
   return (
     <div>
       <div
@@ -51,12 +44,7 @@ export function BoardView({
         </button>
       </div>
 
-      <SquaresGrid
-        board={board}
-        headers={headers}
-        config={config}
-        scores={scores}
-      />
+      <SquaresGrid board={board} headers={headers} config={config} scores={scores} />
 
       <WinnersSummary headers={headers} board={board} scores={scores} />
     </div>

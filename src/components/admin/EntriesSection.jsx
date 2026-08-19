@@ -41,14 +41,12 @@ export function EntriesSection({ participants, onRemove }) {
         )}
       </h3>
       <p style={{ color: colors.textDim, fontSize: 12, margin: "0 0 14px" }}>
-        Removing an entry frees that person's squares on the board and drops
-        them from Recent Entries.
+        Removing an entry frees that person's squares on the board and drops them from Recent
+        Entries.
       </p>
 
       {participants.length === 0 ? (
-        <p style={{ color: colors.textMuted, fontSize: 13, margin: 0 }}>
-          No entries yet.
-        </p>
+        <p style={{ color: colors.textMuted, fontSize: 13, margin: 0 }}>No entries yet.</p>
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {participants.map((entry, index) => {
