@@ -1,6 +1,7 @@
 import React from "react";
 import { btnPrimary, btnSecondary } from "../../styles";
 import { colors, radii } from "../../styles";
+import { isPoolActive, poolStatus } from "../../utils";
 
 export function HomeView({
   config,
@@ -9,10 +10,12 @@ export function HomeView({
   pools,
   activePoolId,
   onSwitchPool,
+  completedPools = [],
+  onOpenPastBoards,
   onJoin,
   onViewBoard,
 }) {
-  const activePools = pools.filter((p) => !p.archived);
+  const activePools = pools.filter(isPoolActive);
   const currentPool = pools.find((p) => p.id === activePoolId);
 
   return (
@@ -87,6 +90,40 @@ export function HomeView({
         )}
         {activePools.length === 1 && currentPool && (
           <p style={{ color: colors.textDim, fontSize: 13, marginTop: 8 }}>{currentPool.name}</p>
+        )}
+
+        {currentPool && (
+          <p
+            style={{
+              color: colors[poolStatus(currentPool).tone] || colors.textDim,
+              fontSize: 12,
+              marginTop: 6,
+              fontWeight: 600,
+            }}
+          >
+            {poolStatus(currentPool).label}
+          </p>
+        )}
+
+        {completedPools.length > 0 && (
+          <div style={{ marginTop: 10 }}>
+            <button
+              type="button"
+              onClick={onOpenPastBoards}
+              style={{
+                background: "none",
+                border: "none",
+                color: colors.accentViolet,
+                cursor: "pointer",
+                fontSize: 13,
+                fontWeight: 600,
+                fontFamily: "inherit",
+                padding: 4,
+              }}
+            >
+              Past boards ({completedPools.length}) →
+            </button>
+          </div>
         )}
 
         <div

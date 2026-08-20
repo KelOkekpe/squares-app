@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { DEFAULT_POOL_ENTRY } from "../../utils";
+import { MAX_ACTIVE_POOLS, addDaysISO, todayISO, isPoolActive, poolStatus } from "../../utils";
 import { colors } from "../../styles";
 import { adminSectionStyle, adminInputStyle, labelStyle } from "../../styles";
 
@@ -13,29 +13,52 @@ export function BoardManagementSection({
   onSwitchPool,
 }) {
   const [newPoolName, setNewPoolName] = useState("");
+  const [newPoolExpiry, setNewPoolExpiry] = useState(() => addDaysISO(30));
   const [showArchived, setShowArchived] = useState(false);
+  const [createError, setCreateError] = useState("");
+  const [creating, setCreating] = useState(false);
 
-  const activePools = pools.filter((p) => !p.archived);
-  const archivedPools = pools.filter((p) => p.archived);
+  // Active means neither archived nor past its end date — expired boards free
+  // up a slot without anyone having to archive them.
+  const activePools = pools.filter(isPoolActive);
+  const completedPools = pools.filter((p) => !isPoolActive(p));
+  const atLimit = activePools.length >= MAX_ACTIVE_POOLS;
 
   const handleCreate = async () => {
     const name = newPoolName.trim();
-    if (!name) return;
-
-    if (createPool) {
-      // Use database create function if available
-      const newPool = await createPool(name);
-      if (newPool) {
-        setNewPoolName("");
-        onSwitchPool(newPool.id);
-      }
-    } else {
-      // Fallback to local state update
-      const entry = DEFAULT_POOL_ENTRY(name);
-      setPools((prev) => [...prev, entry]);
-      setNewPoolName("");
-      onSwitchPool(entry.id);
+    setCreateError("");
+    if (!name) {
+      setCreateError("Give the board a name");
+      return;
     }
+    if (!newPoolExpiry) {
+      setCreateError("Pick an end date");
+      return;
+    }
+    if (newPoolExpiry < todayISO()) {
+      setCreateError("The end date can't be in the past");
+      return;
+    }
+    if (atLimit) {
+      setCreateError(
+        `This space already has ${MAX_ACTIVE_POOLS} active boards. Archive one or let it expire first.`
+      );
+      return;
+    }
+
+    setCreating(true);
+    // The cap and the required date are enforced by a database trigger, so its
+    // message is shown verbatim rather than second-guessed here.
+    const { pool, error } = await createPool(name, newPoolExpiry);
+    setCreating(false);
+
+    if (error || !pool) {
+      setCreateError(error || "Could not create the board");
+      return;
+    }
+    setNewPoolName("");
+    setNewPoolExpiry(addDaysISO(30));
+    onSwitchPool(pool.id);
   };
 
   const toggleArchive = async (id) => {
@@ -57,36 +80,88 @@ export function BoardManagementSection({
 
   return (
     <div style={adminSectionStyle}>
-      <label style={labelStyle}>Pool Management</label>
-
-      {/* Create new pool */}
-      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
-        <input
-          value={newPoolName}
-          onChange={(e) => setNewPoolName(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleCreate()}
-          style={{ ...adminInputStyle, flex: 1 }}
-          placeholder="e.g. Week 5, Super Bowl..."
-        />
-        <button
-          onClick={handleCreate}
-          disabled={!newPoolName.trim()}
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "baseline",
+          gap: 8,
+        }}
+      >
+        <label style={labelStyle}>Pool Management</label>
+        <span
           style={{
-            background: newPoolName.trim()
-              ? `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`
-              : colors.surface5,
-            color: newPoolName.trim() ? colors.white : colors.textDim,
-            border: "none",
-            padding: "10px 20px",
-            borderRadius: 8,
-            cursor: newPoolName.trim() ? "pointer" : "default",
+            fontSize: 11,
             fontWeight: 700,
-            fontSize: 13,
-            whiteSpace: "nowrap",
+            color: atLimit ? colors.accentRed : colors.textDim,
           }}
         >
-          + New Pool
-        </button>
+          {activePools.length}/{MAX_ACTIVE_POOLS} active
+        </span>
+      </div>
+
+      {/* Create new pool */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+        <input
+          value={newPoolName}
+          onChange={(e) => {
+            setNewPoolName(e.target.value);
+            setCreateError("");
+          }}
+          onKeyDown={(e) => e.key === "Enter" && !creating && handleCreate()}
+          style={adminInputStyle}
+          placeholder="e.g. Week 5, Super Bowl..."
+        />
+
+        <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
+          <div style={{ flex: 1 }}>
+            <label style={{ ...labelStyle, fontSize: 10, marginBottom: 4 }}>
+              Ends on (required)
+            </label>
+            {/* Native date input — gets the platform picker for free, and
+                honours the color-scheme we set for light/dark */}
+            <input
+              type="date"
+              value={newPoolExpiry}
+              min={todayISO()}
+              onChange={(e) => {
+                setNewPoolExpiry(e.target.value);
+                setCreateError("");
+              }}
+              style={adminInputStyle}
+            />
+          </div>
+          <button
+            onClick={handleCreate}
+            disabled={!newPoolName.trim() || !newPoolExpiry || creating || atLimit}
+            style={{
+              background:
+                newPoolName.trim() && newPoolExpiry && !atLimit
+                  ? `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`
+                  : colors.surface5,
+              color:
+                newPoolName.trim() && newPoolExpiry && !atLimit ? colors.white : colors.textDim,
+              border: "none",
+              padding: "10px 20px",
+              borderRadius: 8,
+              cursor: atLimit || creating ? "not-allowed" : "pointer",
+              fontWeight: 700,
+              fontSize: 13,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {creating ? "Creating…" : "+ New Pool"}
+          </button>
+        </div>
+
+        <p style={{ color: colors.textDim, fontSize: 11, margin: 0 }}>
+          After this date the board stops taking entries and moves to Past Boards. It stays
+          viewable.
+        </p>
+
+        {createError && (
+          <p style={{ color: colors.accentRed, fontSize: 12, margin: 0 }}>{createError}</p>
+        )}
       </div>
 
       {/* Active pools */}
@@ -162,8 +237,8 @@ export function BoardManagementSection({
         ))}
       </div>
 
-      {/* Archived pools */}
-      {archivedPools.length > 0 && (
+      {/* Completed pools — archived or past their end date */}
+      {completedPools.length > 0 && (
         <div style={{ marginTop: 12 }}>
           <button
             onClick={() => setShowArchived(!showArchived)}
@@ -178,12 +253,12 @@ export function BoardManagementSection({
               marginBottom: showArchived ? 8 : 0,
             }}
           >
-            {showArchived ? "▾" : "▸"} {archivedPools.length} archived pool
-            {archivedPools.length !== 1 ? "s" : ""}
+            {showArchived ? "▾" : "▸"} {completedPools.length} completed board
+            {completedPools.length !== 1 ? "s" : ""}
           </button>
           {showArchived && (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-              {archivedPools.map((p) => (
+              {completedPools.map((p) => (
                 <div
                   key={p.id}
                   style={{

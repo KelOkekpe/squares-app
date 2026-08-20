@@ -5,3 +5,4 @@ export { AdminAuthModal } from "./AdminAuthModal";
 export { HomeView } from "./HomeView";
 export { JoinView } from "./JoinView";
 export { BoardView } from "./BoardView";
+export { PastBoardsModal } from "./PastBoardsModal";

@@ -46,6 +46,7 @@ export function usePools(spaceCode) {
         id: row.id,
         name: row.name,
         archived: row.archived || false,
+        expiresAt: row.expires_at || null,
         createdAt: new Date(row.created_at).getTime(),
       }));
 
@@ -111,31 +112,29 @@ export function usePools(spaceCode) {
   );
 
   // Create a new pool
+  // The 16-board cap and the required expiry are enforced by a trigger, so the
+  // database's message is surfaced verbatim rather than guessed at here.
   const createPool = useCallback(
-    async (name) => {
-      if (!spaceCode || !name) return null;
-
-      const newPool = {
-        id: `p${Date.now()}`,
-        name: name.trim(),
-        archived: false,
-        createdAt: Date.now(),
-      };
-
-      if (!isSupabaseEnabled()) {
-        return null;
-      }
+    async (name, expiresAt) => {
+      if (!spaceCode || !name) return { pool: null, error: "Name is required" };
+      if (!expiresAt) return { pool: null, error: "An end date is required" };
+      if (!isSupabaseEnabled()) return { pool: null, error: "Supabase is required" };
 
       try {
-        const { data, error: insertError } = await supabase
-          .from("pools")
-          .insert({
-            space_code: spaceCode,
-            name: name.trim(),
-            archived: false,
-          })
-          .select()
-          .single();
+        const { data, error: insertError } = await withTimeout(
+          supabase
+            .from("pools")
+            .insert({
+              space_code: spaceCode,
+              name: name.trim(),
+              archived: false,
+              expires_at: expiresAt,
+            })
+            .select()
+            .single(),
+          8000,
+          "create pool"
+        );
 
         if (insertError) throw insertError;
 
@@ -143,17 +142,18 @@ export function usePools(spaceCode) {
           id: data.id,
           name: data.name,
           archived: data.archived || false,
+          expiresAt: data.expires_at || null,
           createdAt: new Date(data.created_at).getTime(),
         };
 
         setPools((prev) => [...prev, transformedPool]);
-        return transformedPool;
+        return { pool: transformedPool, error: null };
       } catch (err) {
         console.error("Error creating pool in Supabase:", err);
-        return null;
+        return { pool: null, error: err?.message || "Could not create the board" };
       }
     },
-    [spaceCode, pools]
+    [spaceCode]
   );
 
   // Update a pool (archive/unarchive, rename)

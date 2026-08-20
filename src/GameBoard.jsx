@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useEffect } from "react";
 import {
+  splitPools,
+  isPoolCompleted,
   STORAGE_KEYS,
   SPACE_META_KEY,
   DEFAULT_CONFIG,
@@ -85,18 +87,23 @@ export function GameBoard({ spaceCode, onExit }) {
 
   // Use pools from database
   const pools = dbPools;
-  const activePools = pools.filter((p) => !p.archived);
-  const activePoolId =
-    spaceMeta.activePoolId && pools.find((p) => p.id === spaceMeta.activePoolId)
-      ? spaceMeta.activePoolId
-      : activePools[0]?.id || pools[0]?.id;
+  const { active: activePools, completed: completedPools } = splitPools(pools);
 
-  // Ensure activePoolId is saved when pools change
-  useEffect(() => {
-    if (pools.length > 0 && !spaceMeta.activePoolId) {
-      setSpaceMeta((prev) => ({ ...prev, activePoolId: activePools[0]?.id || pools[0]?.id }));
-    }
-  }, [pools, activePools, spaceMeta.activePoolId, setSpaceMeta]);
+  // Which board you're looking at is per-viewer, not shared state. It used to
+  // be written to `spaces`, which players have no write access to — so their
+  // clicks silently failed. The space default still lives in spaceMeta and is
+  // set from the admin panel; this only seeds the initial view.
+  const [viewingPoolId, setViewingPoolId] = useState(null);
+
+  const defaultPoolId = pools.find((p) => p.id === spaceMeta.activePoolId)?.id;
+  const activePoolId =
+    (viewingPoolId && pools.find((p) => p.id === viewingPoolId)?.id) ||
+    defaultPoolId ||
+    activePools[0]?.id ||
+    pools[0]?.id;
+
+  const currentPool = pools.find((p) => p.id === activePoolId) || null;
+  const viewingCompleted = isPoolCompleted(currentPool);
 
   const setPools = useCallback(
     (updater) => {
@@ -105,8 +112,8 @@ export function GameBoard({ spaceCode, onExit }) {
       newPools.forEach((pool) => {
         const existing = pools.find((p) => p.id === pool.id);
         if (!existing) {
-          // New pool - create it
-          createPoolInDb(pool.name);
+          // Creation goes through createPool, which requires an expiry date
+          console.warn("setPools cannot create boards — use createPool with an expiry");
         } else if (existing.name !== pool.name || existing.archived !== pool.archived) {
           // Pool changed - update it
           updatePoolInDb(pool.id, {
@@ -119,9 +126,11 @@ export function GameBoard({ spaceCode, onExit }) {
     [pools, createPoolInDb, updatePoolInDb]
   );
 
-  const switchPool = (id) => {
-    setSpaceMeta((prev) => ({ ...prev, activePoolId: id }));
-  };
+  // Local — works for anonymous players, who cannot write to `spaces`
+  const switchPool = (id) => setViewingPoolId(id);
+
+  // Admin-only: the board this space opens on for everyone
+  const setDefaultPool = (id) => setSpaceMeta((prev) => ({ ...prev, activePoolId: id }));
 
   // ── pool-level persistent state (scoped by poolId) ──
   const keys = STORAGE_KEYS(spaceCode, activePoolId);
@@ -145,11 +154,14 @@ export function GameBoard({ spaceCode, onExit }) {
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [adminAuth, setAdminAuth] = useState(false);
+  const [showPastBoards, setShowPastBoards] = useState(false);
 
   // ── derived ───────────────────────────────────────────
   const fullName = `${firstName} ${lastName}`.trim();
   const squaresForAmount = calculateSquares(Number(amount), config.pricePerSquare);
   const emptyCount = getEmptySquares(board).length;
+  // A completed board is closed to entries for the same reason a disabled one is
+  const effectiveConfig = viewingCompleted ? { ...config, submissionsDisabled: true } : config;
 
   // ── handlers ──────────────────────────────────────────
   const resetJoinFlow = () => {
@@ -407,12 +419,14 @@ export function GameBoard({ spaceCode, onExit }) {
       <main style={{ ...containerStyle, paddingTop: 40, paddingBottom: 60 }}>
         {view === "home" && (
           <HomeView
-            config={config}
+            config={effectiveConfig}
             emptyCount={emptyCount}
             participants={participants}
             pools={pools}
             activePoolId={activePoolId}
             onSwitchPool={switchPool}
+            completedPools={completedPools}
+            onOpenPastBoards={() => setShowPastBoards(true)}
             onJoin={() => setView("join")}
             onViewBoard={() => setView("board")}
           />
@@ -427,7 +441,7 @@ export function GameBoard({ spaceCode, onExit }) {
             nameSubmitted={nameSubmitted}
             setNameSubmitted={setNameSubmitted}
             fullName={fullName}
-            config={config}
+            config={effectiveConfig}
             emptyCount={emptyCount}
             amount={amount}
             setAmount={setAmount}
@@ -453,13 +467,25 @@ export function GameBoard({ spaceCode, onExit }) {
           <BoardView
             board={board}
             headers={headers}
-            config={config}
+            config={effectiveConfig}
             scores={scores}
             emptyCount={emptyCount}
             onJoin={() => setView("join")}
           />
         )}
       </main>
+
+      {showPastBoards && (
+        <PastBoardsModal
+          pools={completedPools}
+          activePoolId={activePoolId}
+          onSelect={(id) => {
+            switchPool(id);
+            setView("home");
+          }}
+          onClose={() => setShowPastBoards(false)}
+        />
+      )}
 
       <Footer
         pricePerSquare={config.pricePerSquare}

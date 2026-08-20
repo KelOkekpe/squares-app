@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { supabase } from "../lib/supabase";
-import { DEFAULT_CONFIG } from "../utils";
+import { DEFAULT_CONFIG, addDaysISO } from "../utils";
 import { useAuth } from "./useAuth";
 import { useSpacesRegistry } from "./useSpacesRegistry";
 
@@ -38,7 +38,14 @@ export function useCreateSpace() {
       try {
         const { data: pool, error: poolErr } = await supabase
           .from("pools")
-          .insert({ space_code: code, name: "Pool 1", archived: false })
+          .insert({
+            space_code: code,
+            name: "Pool 1",
+            archived: false,
+            // Boards require an end date; the first one gets a 90-day default
+            // the owner can change in the admin panel.
+            expires_at: addDaysISO(90),
+          })
           .select("id")
           .single();
         if (poolErr || !pool) {
