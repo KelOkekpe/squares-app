@@ -16,7 +16,8 @@
     "check:theme": "node scripts/check-theme.mjs",
     "check:pools": "node scripts/check-pools.mjs",
     "check:imports": "node scripts/check-imports.mjs",
-    "check:notify": "node scripts/check-notify.mjs"
+    "check:notify": "node scripts/check-notify.mjs",
+    "check:hooks": "node scripts/check-hooks.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.5",

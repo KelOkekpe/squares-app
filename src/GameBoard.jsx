@@ -130,6 +130,35 @@ export function GameBoard({ spaceCode, onExit }) {
     [pools, createPoolInDb, updatePoolInDb]
   );
 
+  // Local — works for anonymous players, who cannot write to `spaces`
+  const switchPool = (id) => setViewingPoolId(id);
+
+  // Admin-only: the board this space opens on for everyone
+  const setDefaultPool = (id) => setSpaceMeta((prev) => ({ ...prev, activePoolId: id }));
+
+  // ── pool-level persistent state (scoped by poolId) ──
+  const keys = STORAGE_KEYS(spaceCode, activePoolId);
+  // Use function initializers to prevent regeneration on every render
+  const [headers, setHeaders] = usePersistedState(keys.headers, () => generateHeaders());
+  const [board, setBoard] = usePersistedState(keys.board, () => getInitialBoard());
+  const [config, setConfig] = usePersistedState(keys.admin, DEFAULT_CONFIG);
+  const [scores, setScores] = usePersistedState(keys.scores, {});
+  const [participants, setParticipants] = usePersistedState(keys.participants, []);
+  // Entry requests awaiting admin payment confirmation
+  const [pending, setPending] = usePersistedState(keys.pending, []);
+
+  // ── ephemeral UI state ────────────────────────────────
+  const [view, setView] = useState("home");
+  const [firstName, setFirstName] = useState("");
+  const [middleInitial, setMiddleInitial] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [payoutMethod, setPayoutMethod] = useState("");
+  const [payoutHandles, setPayoutHandles] = useState({});
+  // Set on approval so the admin can send the player their coordinates
+  const [approvalNotice, setApprovalNotice] = useState(null);
+
   // Reset a board to its starting state. Config is deliberately preserved —
   // price, teams and payment instructions survive; the game does not.
   //
@@ -168,35 +197,6 @@ export function GameBoard({ spaceCode, onExit }) {
     },
     [activePoolId, setConfig, poolAdmin]
   );
-
-  // Local — works for anonymous players, who cannot write to `spaces`
-  const switchPool = (id) => setViewingPoolId(id);
-
-  // Admin-only: the board this space opens on for everyone
-  const setDefaultPool = (id) => setSpaceMeta((prev) => ({ ...prev, activePoolId: id }));
-
-  // ── pool-level persistent state (scoped by poolId) ──
-  const keys = STORAGE_KEYS(spaceCode, activePoolId);
-  // Use function initializers to prevent regeneration on every render
-  const [headers, setHeaders] = usePersistedState(keys.headers, () => generateHeaders());
-  const [board, setBoard] = usePersistedState(keys.board, () => getInitialBoard());
-  const [config, setConfig] = usePersistedState(keys.admin, DEFAULT_CONFIG);
-  const [scores, setScores] = usePersistedState(keys.scores, {});
-  const [participants, setParticipants] = usePersistedState(keys.participants, []);
-  // Entry requests awaiting admin payment confirmation
-  const [pending, setPending] = usePersistedState(keys.pending, []);
-
-  // ── ephemeral UI state ────────────────────────────────
-  const [view, setView] = useState("home");
-  const [firstName, setFirstName] = useState("");
-  const [middleInitial, setMiddleInitial] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [payoutMethod, setPayoutMethod] = useState("");
-  const [payoutHandles, setPayoutHandles] = useState({});
-  // Set on approval so the admin can send the player their coordinates
-  const [approvalNotice, setApprovalNotice] = useState(null);
   const [nameSubmitted, setNameSubmitted] = useState(false);
   const [amount, setAmount] = useState("");
   const [requestSubmitted, setRequestSubmitted] = useState(false);
