@@ -18,6 +18,7 @@ import {
   useSpacesRegistry,
   useSpaceAccess,
   useUserSpaces,
+  usePoolAdmin,
 } from "./hooks";
 import { supabase, isSupabaseEnabled } from "./lib/supabase";
 import { cellsToCoordinates, buildApprovalMessage } from "./utils/notify";
@@ -81,6 +82,7 @@ export function GameBoard({ spaceCode, onExit }) {
     toggleArchivePool,
     loading: poolsLoading,
   } = usePools(spaceCode);
+  const poolAdmin = usePoolAdmin(spaceCode);
 
   // ── space-level meta (active pool only) ────────
   const [spaceMeta, setSpaceMeta] = usePersistedState(SPACE_META_KEY(spaceCode), {
@@ -128,6 +130,45 @@ export function GameBoard({ spaceCode, onExit }) {
     [pools, createPoolInDb, updatePoolInDb]
   );
 
+  // Reset a board to its starting state. Config is deliberately preserved —
+  // price, teams and payment instructions survive; the game does not.
+  //
+  // The previous version cleared the board, scores and participants but left
+  // the pending queue intact and never reshuffled the numbers, so a "reset"
+  // board could immediately regain entries and kept the old coordinates.
+  const resetPool = useCallback(
+    async (poolId) => {
+      const targetId = poolId || activePoolId;
+      const freshBoard = getInitialBoard();
+      const freshHeaders = generateHeaders();
+
+      if (targetId === activePoolId) {
+        // Go through the loaded state so the UI updates immediately
+        setBoard(freshBoard);
+        setHeaders(freshHeaders);
+        setParticipants([]);
+        setPending([]);
+        setScores({});
+        setApprovalNotice(null);
+        return { ok: true };
+      }
+      return poolAdmin.resetRemotePool(targetId, { board: freshBoard, headers: freshHeaders });
+    },
+    [activePoolId, setBoard, setHeaders, setParticipants, setPending, setScores, poolAdmin]
+  );
+
+  const toggleSubmissions = useCallback(
+    async (poolId, disabled) => {
+      if (poolId === activePoolId) {
+        setConfig((c) => ({ ...c, submissionsDisabled: !!disabled }));
+        poolAdmin.refetchConfigs();
+        return { ok: true };
+      }
+      return poolAdmin.setSubmissionsDisabled(poolId, disabled);
+    },
+    [activePoolId, setConfig, poolAdmin]
+  );
+
   // Local — works for anonymous players, who cannot write to `spaces`
   const switchPool = (id) => setViewingPoolId(id);
 
@@ -137,7 +178,7 @@ export function GameBoard({ spaceCode, onExit }) {
   // ── pool-level persistent state (scoped by poolId) ──
   const keys = STORAGE_KEYS(spaceCode, activePoolId);
   // Use function initializers to prevent regeneration on every render
-  const [headers] = usePersistedState(keys.headers, () => generateHeaders());
+  const [headers, setHeaders] = usePersistedState(keys.headers, () => generateHeaders());
   const [board, setBoard] = usePersistedState(keys.board, () => getInitialBoard());
   const [config, setConfig] = usePersistedState(keys.admin, DEFAULT_CONFIG);
   const [scores, setScores] = usePersistedState(keys.scores, {});
@@ -483,6 +524,10 @@ export function GameBoard({ spaceCode, onExit }) {
           onRejectEntry={rejectEntry}
           approvalNotice={approvalNotice}
           onDismissNotice={() => setApprovalNotice(null)}
+          onResetPool={resetPool}
+          onToggleSubmissions={toggleSubmissions}
+          poolConfigs={poolAdmin.configs}
+          poolBusyId={poolAdmin.busyPoolId}
           participants={participants}
           setParticipants={setParticipants}
           onRemoveEntry={removeEntry}

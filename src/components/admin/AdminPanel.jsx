@@ -35,6 +35,10 @@ export function AdminPanel({
   onRejectEntry,
   approvalNotice,
   onDismissNotice,
+  onResetPool,
+  onToggleSubmissions,
+  poolConfigs,
+  poolBusyId,
   participants = [],
   setParticipants,
   onRemoveEntry,
@@ -231,6 +235,10 @@ export function AdminPanel({
             toggleArchivePool={toggleArchivePool}
             activePoolId={activePoolId}
             onSwitchPool={onSwitchPool}
+            onResetPool={onResetPool}
+            onToggleSubmissions={onToggleSubmissions}
+            poolConfigs={poolConfigs}
+            poolBusyId={poolBusyId}
           />
 
           {/* Assign Admins (space owners only) */}
@@ -290,7 +298,7 @@ export function AdminPanel({
             </div>
           </div>
 
-          {/* Reset board */}
+          {/* Reset board — the current one; per-pool resets live in Pool Management */}
           <div style={adminSectionStyle}>
             {!confirmReset ? (
               <button
@@ -307,17 +315,16 @@ export function AdminPanel({
                   width: "100%",
                 }}
               >
-                Reset Entire Board
+                Reset This Board
               </button>
             ) : (
               <div style={{ display: "flex", gap: 8 }}>
                 <button
-                  onClick={() => {
-                    setBoard(getInitialBoard());
-                    setScores({});
-                    // Entries live separately from the board — clearing only the
-                    // board left every name behind in Recent Entries.
-                    setParticipants?.([]);
+                  onClick={async () => {
+                    // Single source of truth with the per-pool Reset buttons:
+                    // clears squares, entries, the pending queue and scores,
+                    // and reshuffles the numbers. Config is preserved.
+                    await onResetPool?.();
                     setConfirmReset(false);
                   }}
                   style={{

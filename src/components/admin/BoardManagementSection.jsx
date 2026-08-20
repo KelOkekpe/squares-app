@@ -11,11 +11,31 @@ export function BoardManagementSection({
   toggleArchivePool,
   activePoolId,
   onSwitchPool,
+  onResetPool,
+  onToggleSubmissions,
+  poolConfigs = {},
+  poolBusyId,
 }) {
   const [newPoolName, setNewPoolName] = useState("");
   const [newPoolExpiry, setNewPoolExpiry] = useState(() => addDaysISO(30));
   const [showArchived, setShowArchived] = useState(false);
   const [createError, setCreateError] = useState("");
+  const [confirmReset, setConfirmReset] = useState(null);
+
+  const isClosed = (poolId) => !!poolConfigs[poolId]?.submissionsDisabled;
+
+  const rowBtn = (tone, disabled) => ({
+    background: colors.surface5,
+    border: "none",
+    color: tone,
+    padding: "5px 12px",
+    borderRadius: 6,
+    cursor: disabled ? "not-allowed" : "pointer",
+    fontSize: 11,
+    fontWeight: 700,
+    fontFamily: "inherit",
+    opacity: disabled ? 0.5 : 1,
+  });
   const [creating, setCreating] = useState(false);
 
   // Active means neither archived nor past its end date — expired boards free
@@ -173,6 +193,8 @@ export function BoardManagementSection({
               display: "flex",
               justifyContent: "space-between",
               alignItems: "center",
+              flexWrap: "wrap",
+              gap: 8,
               padding: "10px 14px",
               background: p.id === activePoolId ? "#6c5ce715" : colors.surface2,
               borderRadius: 8,
@@ -199,40 +221,75 @@ export function BoardManagementSection({
                 {new Date(p.createdAt).toLocaleDateString()}
               </span>
             </div>
-            <div style={{ display: "flex", gap: 6 }}>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
               {p.id !== activePoolId && (
-                <button
-                  onClick={() => onSwitchPool(p.id)}
-                  style={{
-                    background: colors.surface5,
-                    border: "none",
-                    color: colors.accentPurple,
-                    padding: "5px 12px",
-                    borderRadius: 6,
-                    cursor: "pointer",
-                    fontSize: 11,
-                    fontWeight: 700,
-                  }}
-                >
+                <button onClick={() => onSwitchPool(p.id)} style={rowBtn(colors.accentPurple)}>
                   Switch
                 </button>
               )}
+
+              {/* Submissions and reset act on this row's board, not just the
+                  one currently being viewed */}
               <button
-                onClick={() => toggleArchive(p.id)}
-                style={{
-                  background: "#ff444410",
-                  border: "none",
-                  color: "#ff8888",
-                  padding: "5px 12px",
-                  borderRadius: 6,
-                  cursor: "pointer",
-                  fontSize: 11,
-                  fontWeight: 600,
-                }}
+                onClick={() => onToggleSubmissions?.(p.id, !isClosed(p.id))}
+                disabled={poolBusyId === p.id}
+                style={rowBtn(
+                  isClosed(p.id) ? colors.accentGreenBright : colors.accentOrange,
+                  poolBusyId === p.id
+                )}
+                title={
+                  isClosed(p.id)
+                    ? "Let players submit entries again"
+                    : "Stop accepting new entries on this board"
+                }
               >
+                {isClosed(p.id) ? "Open" : "Close"}
+              </button>
+
+              <button
+                onClick={() => setConfirmReset(p.id)}
+                disabled={poolBusyId === p.id}
+                style={rowBtn(colors.accentRed, poolBusyId === p.id)}
+                title="Clear this board and reshuffle its numbers"
+              >
+                Reset
+              </button>
+
+              <button onClick={() => toggleArchive(p.id)} style={rowBtn(colors.textDim)}>
                 Archive
               </button>
             </div>
+            {confirmReset === p.id && (
+              <div
+                style={{
+                  flexBasis: "100%",
+                  marginTop: 10,
+                  paddingTop: 10,
+                  borderTop: `1px solid ${colors.border}`,
+                  display: "flex",
+                  gap: 8,
+                  alignItems: "center",
+                  flexWrap: "wrap",
+                }}
+              >
+                <span style={{ color: colors.accentRed, fontSize: 11, flex: 1, minWidth: 180 }}>
+                  Clears every square, entry, pending request and score on <strong>{p.name}</strong>
+                  , and reshuffles its numbers. Price, teams and payment details are kept.
+                </span>
+                <button
+                  onClick={async () => {
+                    await onResetPool?.(p.id);
+                    setConfirmReset(null);
+                  }}
+                  style={rowBtn(colors.accentRed)}
+                >
+                  Yes, reset
+                </button>
+                <button onClick={() => setConfirmReset(null)} style={rowBtn(colors.textDim)}>
+                  Cancel
+                </button>
+              </div>
+            )}
           </div>
         ))}
       </div>

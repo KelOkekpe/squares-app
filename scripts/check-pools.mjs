@@ -1,6 +1,7 @@
 // Board lifecycle: the JS view of "active" must match the SQL trigger's, or the
 // UI will offer a board slot the database then refuses.
 import { readFileSync } from "node:fs";
+import { POOL_STATE_TYPES } from "../src/utils/storageKeys.js";
 import {
   isPoolActive,
   isPoolCompleted,
@@ -76,6 +77,37 @@ check("SQL requires an expiry on insert", /TG_OP = 'INSERT' AND NEW\.expires_at 
 check("addDaysISO(30) is a valid ISO date", /^\d{4}-\d{2}-\d{2}$/.test(addDaysISO(30)));
 check("addDaysISO(30) is later than today", addDaysISO(30) > today);
 check("addDaysISO(-1) is earlier than today", addDaysISO(-1) < today);
+
+// Reset must clear every per-pool state type except the config. The original
+// bug was that it cleared board/scores/participants but left the pending queue
+// and never reshuffled the numbers, so a "reset" board could regain entries and
+// kept its old coordinates.
+const gameBoard = readFileSync(new URL("../src/GameBoard.jsx", import.meta.url), "utf8");
+const resetBody = gameBoard.slice(
+  gameBoard.indexOf("const resetPool = useCallback"),
+  gameBoard.indexOf("const toggleSubmissions")
+);
+check("reset() exists", resetBody.length > 0);
+for (const [type, setter] of [
+  ["board", "setBoard(freshBoard)"],
+  ["headers", "setHeaders(freshHeaders)"],
+  ["participants", "setParticipants([])"],
+  ["pending", "setPending([])"],
+  ["scores", "setScores({})"],
+]) {
+  check(`reset clears ${type}`, resetBody.includes(setter));
+}
+check(
+  "reset preserves the admin config (price, teams, payment details)",
+  !resetBody.includes("setConfig(")
+);
+// Anything new in POOL_STATE_TYPES should be considered here too
+const covered = ["board", "headers", "participants", "pending", "scores", "admin"];
+const uncovered = POOL_STATE_TYPES.filter((t) => !covered.includes(t));
+check(
+  `no per-pool state type is unaccounted for by reset${uncovered.length ? ` (${uncovered})` : ""}`,
+  uncovered.length === 0
+);
 
 console.log(failed === 0 ? "\nAll pool-lifecycle cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);
