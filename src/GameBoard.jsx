@@ -22,6 +22,7 @@ import {
 } from "./hooks";
 import { supabase, isSupabaseEnabled } from "./lib/supabase";
 import { cellsToCoordinates, buildApprovalMessage } from "./utils/notify";
+import { playerFacingError } from "./utils/errors";
 import { pageStyle, containerStyle } from "./styles";
 import { colors, cardStyle, inputStyle, btnPrimary, btnSecondary } from "./styles";
 import {
@@ -259,7 +260,7 @@ export function GameBoard({ spaceCode, onExit }) {
     setSubmitting(false);
 
     if (error) {
-      setSubmitError(error.message || "Could not submit your request. Try again.");
+      setSubmitError(playerFacingError(error, "Could not submit your request. Try again."));
       return;
     }
     setRequestedCount(requested);
