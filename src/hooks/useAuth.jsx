@@ -162,6 +162,42 @@ export function AuthProvider({ children }) {
     [loadProfile]
   );
 
+  // ── Sign in with Google ──
+  // Only offered on /admin — players never sign in. Supabase returns the
+  // session in the URL fragment, which parseLocation() already recognises as
+  // an auth callback rather than a space code.
+  const signInWithGoogle = useCallback(async () => {
+    if (!isSupabaseEnabled()) {
+      return { error: { message: "Supabase is required" } };
+    }
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/admin` },
+    });
+    return { error };
+  }, []);
+
+  // Google sends no role, so handle_new_user() defaults an OAuth signup to
+  // 'player'. This promotes a genuinely new signup to 'owner' server-side;
+  // it deliberately leaves invited admins (who already have a membership row)
+  // and superadmins alone. See migration_google_oauth.sql.
+  const claimOwnerRole = useCallback(async () => {
+    if (!isSupabaseEnabled()) return null;
+    try {
+      const { data, error } = await withTimeout(
+        supabase.rpc("claim_owner_role"),
+        8000,
+        "claim owner role"
+      );
+      if (error) throw error;
+      if (data) setProfile((prev) => (prev ? { ...prev, role: data } : prev));
+      return data;
+    } catch (err) {
+      console.warn("Could not settle account role:", err?.message || err);
+      return null;
+    }
+  }, []);
+
   // ── Sign out ──
   // Clear local state and Supabase auth storage immediately so the UI updates
   // right away. When the server is down or restarted, supabase.auth.signOut()
@@ -262,6 +298,8 @@ export function AuthProvider({ children }) {
     isClosed,
     signUpWithEmail,
     signInWithEmail,
+    signInWithGoogle,
+    claimOwnerRole,
     signOut,
     updateProfile,
     getSpaceRole,

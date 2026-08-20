@@ -12,7 +12,8 @@ import { BackgroundDecor } from "../layout/BackgroundDecor";
  * fragment may already be gone.
  */
 export function AuthCallback({ onDone }) {
-  const { isLoggedIn, loading } = useAuth();
+  const { isLoggedIn, loading, claimOwnerRole } = useAuth();
+  const [settled, setSettled] = useState(false);
   const [error] = useState(() => authErrorFromHash(window.location.hash));
   const [timedOut, setTimedOut] = useState(false);
 
@@ -23,9 +24,13 @@ export function AuthCallback({ onDone }) {
   }, [error]);
 
   useEffect(() => {
-    if (error || loading || !isLoggedIn) return;
-    onDone();
-  }, [error, loading, isLoggedIn, onDone]);
+    if (error || loading || !isLoggedIn || settled) return;
+    setSettled(true);
+    // A Google signup arrives as 'player' because Google sends no role.
+    // Settle it before handing off, so the dashboard renders with the right
+    // affordances rather than correcting itself a moment later.
+    claimOwnerRole().finally(onDone);
+  }, [error, loading, isLoggedIn, settled, claimOwnerRole, onDone]);
 
   const failed = error || timedOut;
 

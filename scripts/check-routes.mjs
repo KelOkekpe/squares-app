@@ -47,5 +47,26 @@ check(
 );
 check("/ unaffected", parseLocation("/", "").name === "player");
 
+// Google via Supabase returns the same implicit-flow fragment, plus provider_token.
+// It must resolve to the auth route with no redirectTo — a rewrite here would
+// discard the tokens before supabase-js reads them.
+const googleHash =
+  "#access_token=ya29.abc&expires_in=3600&provider_token=ya29.goog&refresh_token=r1&token_type=bearer";
+const googleDenied = "#error=access_denied&error_description=The+user+denied+the+request";
+
+for (const [label, h] of [
+  ["google success", googleHash],
+  ["google denied", googleDenied],
+]) {
+  const r = parseLocation("/admin", h);
+  check(`${label} → auth route`, r.name === "auth");
+  check(`${label} → no redirect (tokens preserved)`, r.redirectTo === undefined);
+  check(`${label} detected as auth fragment`, isAuthCallbackHash(h) === true);
+}
+check(
+  "google denial surfaces its message",
+  authErrorFromHash(googleDenied) === "The user denied the request"
+);
+
 console.log(failed === 0 ? "\nAll auth-callback cases pass." : `\n${failed} failed.`);
 process.exit(failed === 0 ? 0 : 1);

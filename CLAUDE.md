@@ -50,6 +50,8 @@ Players never sign up or sign in. They have **no write access** to `spaces` — 
 
 Entries are gated by admin confirmation: a submission lands in a pending queue and only reaches the board when an admin approves it. The trust boundary is a human, not the database.
 
+Google sign-in is offered on `/admin` only. Google sends no role, so `handle_new_user()` defaults an OAuth signup to `player`; `claim_owner_role()` promotes a genuinely new signup to `owner` server-side, and deliberately skips invited admins (who already have a `space_admins` row) and superadmins. It is an RPC rather than a client-side profile update because `user_profiles` is self-updatable.
+
 Superadmins reach every space via `is_superadmin()`, folded into `is_space_admin()`/`is_space_owner()`. The console at `/superadmin` calls `superadmin_*` RPCs that each re-check the role server-side — the client-side `isSuperadmin` flag is UI only, never the security boundary. Closing an account sets `user_profiles.closed_at`; it does not delete the auth row, because that needs the `service_role` key which cannot ship in a client bundle. "View as" is read-only for the same reason — it never mints a session. The first superadmin must be promoted by hand in the SQL Editor.
 
 ## Styling: inline objects only
