@@ -20,6 +20,7 @@ import {
   useUserSpaces,
 } from "./hooks";
 import { supabase, isSupabaseEnabled } from "./lib/supabase";
+import { cellsToCoordinates, buildApprovalMessage } from "./utils/notify";
 import { pageStyle, containerStyle } from "./styles";
 import { colors, cardStyle, inputStyle, btnPrimary, btnSecondary } from "./styles";
 import {
@@ -147,7 +148,14 @@ export function GameBoard({ spaceCode, onExit }) {
   // ── ephemeral UI state ────────────────────────────────
   const [view, setView] = useState("home");
   const [firstName, setFirstName] = useState("");
+  const [middleInitial, setMiddleInitial] = useState("");
   const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [payoutMethod, setPayoutMethod] = useState("");
+  const [payoutHandles, setPayoutHandles] = useState({});
+  // Set on approval so the admin can send the player their coordinates
+  const [approvalNotice, setApprovalNotice] = useState(null);
   const [nameSubmitted, setNameSubmitted] = useState(false);
   const [amount, setAmount] = useState("");
   const [requestSubmitted, setRequestSubmitted] = useState(false);
@@ -158,7 +166,9 @@ export function GameBoard({ spaceCode, onExit }) {
   const [showPastBoards, setShowPastBoards] = useState(false);
 
   // ── derived ───────────────────────────────────────────
-  const fullName = `${firstName} ${lastName}`.trim();
+  const fullName = [firstName.trim(), middleInitial ? `${middleInitial}.` : "", lastName.trim()]
+    .filter(Boolean)
+    .join(" ");
   const squaresForAmount = calculateSquares(Number(amount), config.pricePerSquare);
   const emptyCount = getEmptySquares(board).length;
   // A completed board is closed to entries for the same reason a disabled one is
@@ -167,7 +177,12 @@ export function GameBoard({ spaceCode, onExit }) {
   // ── handlers ──────────────────────────────────────────
   const resetJoinFlow = () => {
     setFirstName("");
+    setMiddleInitial("");
     setLastName("");
+    setEmail("");
+    setPhone("");
+    setPayoutMethod("");
+    setPayoutHandles({});
     setNameSubmitted(false);
     setAmount("");
     setRequestSubmitted(false);
@@ -190,6 +205,15 @@ export function GameBoard({ spaceCode, onExit }) {
       p_name: fullName,
       p_amount: Number(amount),
       p_squares: requested,
+      p_contact: {
+        firstName: firstName.trim(),
+        middleInitial,
+        lastName: lastName.trim(),
+        email: email.trim(),
+        phone: phone.trim(),
+        payoutMethod,
+        payoutHandles,
+      },
     });
     setSubmitting(false);
 
@@ -199,19 +223,54 @@ export function GameBoard({ spaceCode, onExit }) {
     }
     setRequestedCount(requested);
     setRequestSubmitted(true);
-  }, [amount, squaresForAmount, emptyCount, fullName, spaceCode, activePoolId]);
+  }, [
+    amount,
+    squaresForAmount,
+    emptyCount,
+    fullName,
+    spaceCode,
+    activePoolId,
+    firstName,
+    middleInitial,
+    lastName,
+    email,
+    phone,
+    payoutMethod,
+    payoutHandles,
+  ]);
 
   // Admin confirmed the money arrived — assign squares and record the entry.
   const approveEntry = useCallback(
     (id) => {
       const entry = pending.find((p) => p.id === id);
       if (!entry) return;
-      const { board: newBoard, placed } = placeParticipant(board, entry.name, entry.squares);
+      const { board: newBoard, placed, cells } = placeParticipant(board, entry.name, entry.squares);
       setBoard(newBoard);
+
+      // The grid stores only names, so this is the one moment the assigned
+      // squares are knowable — capture them for the player's notification.
+      if (entry.email) {
+        const coords = cellsToCoordinates(cells, headers);
+        setApprovalNotice({
+          entry,
+          coords,
+          message: buildApprovalMessage({
+            entry,
+            coords,
+            config,
+            poolName: pools.find((pl) => pl.id === activePoolId)?.name,
+            spaceCode,
+          }),
+        });
+      }
       setParticipants((p) => [
         ...p,
         {
           name: entry.name,
+          email: entry.email || null,
+          phone: entry.phone || null,
+          payoutMethod: entry.payoutMethod || null,
+          payoutHandles: entry.payoutHandles || null,
           amount: entry.amount,
           squares: placed,
           time: Date.now(),
@@ -219,7 +278,18 @@ export function GameBoard({ spaceCode, onExit }) {
       ]);
       setPending((list) => list.filter((p) => p.id !== id));
     },
-    [pending, board, setBoard, setParticipants, setPending]
+    [
+      pending,
+      board,
+      headers,
+      config,
+      pools,
+      activePoolId,
+      spaceCode,
+      setBoard,
+      setParticipants,
+      setPending,
+    ]
   );
 
   const rejectEntry = useCallback(
@@ -411,6 +481,8 @@ export function GameBoard({ spaceCode, onExit }) {
           emptyCount={emptyCount}
           onApproveEntry={approveEntry}
           onRejectEntry={rejectEntry}
+          approvalNotice={approvalNotice}
+          onDismissNotice={() => setApprovalNotice(null)}
           participants={participants}
           setParticipants={setParticipants}
           onRemoveEntry={removeEntry}
@@ -441,6 +513,16 @@ export function GameBoard({ spaceCode, onExit }) {
             setLastName={setLastName}
             nameSubmitted={nameSubmitted}
             setNameSubmitted={setNameSubmitted}
+            middleInitial={middleInitial}
+            setMiddleInitial={setMiddleInitial}
+            email={email}
+            setEmail={setEmail}
+            phone={phone}
+            setPhone={setPhone}
+            payoutMethod={payoutMethod}
+            setPayoutMethod={setPayoutMethod}
+            payoutHandles={payoutHandles}
+            setPayoutHandles={setPayoutHandles}
             fullName={fullName}
             config={effectiveConfig}
             emptyCount={emptyCount}

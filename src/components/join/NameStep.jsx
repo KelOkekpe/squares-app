@@ -1,28 +1,51 @@
 import React from "react";
-import { inputStyle, labelStyle, btnPrimary } from "../../styles";
+import { inputStyle, labelStyle, btnPrimary, radii } from "../../styles";
 import { colors } from "../../styles";
 
+const PAYOUT_METHODS = [
+  { key: "zelle", label: "Zelle", placeholder: "email or phone on file" },
+  { key: "venmo", label: "Venmo", placeholder: "@your-handle" },
+  { key: "cashapp", label: "Cash App", placeholder: "$yourcashtag" },
+];
+
+export const isValidEmail = (v) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(v || "").trim());
+export const isValidPhone = (v) => String(v || "").replace(/\D/g, "").length >= 7;
+
+/**
+ * Step 1 of joining: who you are and how to reach you.
+ *
+ * Email and phone are required — an approved entry is money owed, and a name
+ * alone gives an admin no way to reach a winner or tell two players with the
+ * same name apart. Payout details are optional and only matter if you win.
+ */
 export function NameStep({
   firstName,
   setFirstName,
+  middleInitial,
+  setMiddleInitial,
   lastName,
   setLastName,
+  email,
+  setEmail,
+  phone,
+  setPhone,
+  payoutMethod,
+  setPayoutMethod,
+  payoutHandles,
+  setPayoutHandles,
   nameSubmitted,
   setNameSubmitted,
   fullName,
 }) {
-  const isValid = firstName.trim() && lastName.trim();
+  const emailOk = isValidEmail(email);
+  const phoneOk = isValidPhone(phone);
+  const isValid = firstName.trim() && lastName.trim() && emailOk && phoneOk;
+
+  const setHandle = (key, value) => setPayoutHandles({ ...payoutHandles, [key]: value });
 
   return (
     <div style={{ marginBottom: nameSubmitted ? 32 : 0 }}>
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 12,
-          marginBottom: 20,
-        }}
-      >
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
         <div
           style={{
             width: 32,
@@ -40,13 +63,13 @@ export function NameStep({
         >
           {nameSubmitted ? "✓" : "1"}
         </div>
-        <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>Enter Your Name</h3>
+        <h3 style={{ margin: 0, fontSize: 17, fontWeight: 700 }}>Your Details</h3>
       </div>
 
       {!nameSubmitted ? (
         <>
-          <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-            <div style={{ flex: 1 }}>
+          <div style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+            <div style={{ flex: 3 }}>
               <label style={labelStyle}>First Name *</label>
               <input
                 value={firstName}
@@ -55,7 +78,24 @@ export function NameStep({
                 placeholder="John"
               />
             </div>
-            <div style={{ flex: 1 }}>
+            <div style={{ flex: 1, minWidth: 62 }}>
+              <label style={labelStyle}>M.I.</label>
+              <input
+                value={middleInitial}
+                onChange={(e) =>
+                  setMiddleInitial(
+                    e.target.value
+                      .replace(/[^A-Za-z]/g, "")
+                      .slice(0, 1)
+                      .toUpperCase()
+                  )
+                }
+                style={{ ...inputStyle, textAlign: "center" }}
+                placeholder="Q"
+                maxLength={1}
+              />
+            </div>
+            <div style={{ flex: 3 }}>
               <label style={labelStyle}>Last Name *</label>
               <input
                 value={lastName}
@@ -65,6 +105,95 @@ export function NameStep({
               />
             </div>
           </div>
+
+          <div style={{ marginBottom: 14 }}>
+            <label style={labelStyle}>Email *</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              style={inputStyle}
+              placeholder="you@example.com"
+            />
+            {email && !emailOk && (
+              <p style={{ color: colors.accentRed, fontSize: 11, margin: "4px 0 0" }}>
+                That doesn't look like a valid email
+              </p>
+            )}
+          </div>
+
+          <div style={{ marginBottom: 14 }}>
+            <label style={labelStyle}>Phone *</label>
+            <input
+              type="tel"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              style={inputStyle}
+              placeholder="(555) 123-4567"
+            />
+            {phone && !phoneOk && (
+              <p style={{ color: colors.accentRed, fontSize: 11, margin: "4px 0 0" }}>
+                That doesn't look like a valid phone number
+              </p>
+            )}
+          </div>
+
+          <p style={{ color: colors.textDim, fontSize: 11, margin: "0 0 18px" }}>
+            Your admin uses these to confirm your payment and reach you if you win.
+          </p>
+
+          {/* Optional — only relevant if they win */}
+          <div
+            style={{
+              border: `1px solid ${colors.border}`,
+              borderRadius: radii.lg,
+              padding: 14,
+              marginBottom: 18,
+              background: colors.surface2,
+            }}
+          >
+            <label style={{ ...labelStyle, marginBottom: 2 }}>How you'd like to be paid</label>
+            <p style={{ color: colors.textDim, fontSize: 11, margin: "0 0 12px" }}>
+              Optional. Fill in whichever you use, then pick your preferred one.
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+              {PAYOUT_METHODS.map((m) => {
+                const selected = payoutMethod === m.key;
+                return (
+                  <div key={m.key} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <button
+                      type="button"
+                      onClick={() => setPayoutMethod(selected ? "" : m.key)}
+                      title={selected ? "Preferred" : "Set as preferred"}
+                      style={{
+                        width: 74,
+                        flexShrink: 0,
+                        padding: "8px 0",
+                        borderRadius: radii.md,
+                        border: `1px solid ${selected ? colors.accentPurple : colors.border}`,
+                        background: selected ? colors.accentPurple : "transparent",
+                        color: selected ? colors.white : colors.textMuted,
+                        cursor: "pointer",
+                        fontSize: 11,
+                        fontWeight: 700,
+                        fontFamily: "inherit",
+                      }}
+                    >
+                      {m.label}
+                    </button>
+                    <input
+                      value={payoutHandles?.[m.key] || ""}
+                      onChange={(e) => setHandle(m.key, e.target.value)}
+                      style={{ ...inputStyle, padding: "9px 12px", fontSize: 13 }}
+                      placeholder={m.placeholder}
+                    />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
           <button
             onClick={() => {
               if (isValid) setNameSubmitted(true);
@@ -82,18 +211,21 @@ export function NameStep({
             justifyContent: "space-between",
             alignItems: "center",
             padding: "10px 16px",
-            background: "#22aa4415",
+            background: colors.surface2,
             borderRadius: 10,
-            border: "1px solid #22aa4430",
+            border: `1px solid ${colors.border}`,
           }}
         >
-          <span style={{ color: "#88ddaa", fontWeight: 600 }}>{fullName}</span>
+          <div style={{ minWidth: 0 }}>
+            <div style={{ color: colors.accentGreenBright, fontWeight: 600 }}>{fullName}</div>
+            <div style={{ color: colors.textDim, fontSize: 11, marginTop: 2 }}>{email}</div>
+          </div>
           <button
             onClick={() => setNameSubmitted(false)}
             style={{
               background: "none",
               border: "none",
-              color: "#666",
+              color: colors.textMuted,
               cursor: "pointer",
               fontSize: 12,
             }}

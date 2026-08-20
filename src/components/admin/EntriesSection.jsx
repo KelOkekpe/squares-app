@@ -85,7 +85,19 @@ export function EntriesSection({ participants, onRemove }) {
                     <div style={{ color: colors.textDim, fontSize: 11, marginTop: 2 }}>
                       {entry.squares} square{entry.squares !== 1 ? "s" : ""}
                       {entry.amount ? ` · $${entry.amount}` : ""}
+                      {entry.payoutMethod ? ` · ${entry.payoutMethod}` : ""}
                     </div>
+                    {entry.email && (
+                      <div style={{ color: colors.textDim, fontSize: 11, marginTop: 2 }}>
+                        <a
+                          href={`mailto:${entry.email}`}
+                          style={{ color: colors.accentViolet, textDecoration: "none" }}
+                        >
+                          {entry.email}
+                        </a>
+                        {entry.phone ? ` · ${entry.phone}` : ""}
+                      </div>
+                    )}
                   </div>
 
                   {!isConfirming && (

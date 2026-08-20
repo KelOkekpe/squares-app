@@ -7,8 +7,18 @@ import { EntrySubmitted } from "../join/EntrySubmitted";
 export function JoinView({
   firstName,
   setFirstName,
+  middleInitial,
+  setMiddleInitial,
   lastName,
   setLastName,
+  email,
+  setEmail,
+  phone,
+  setPhone,
+  payoutMethod,
+  setPayoutMethod,
+  payoutHandles,
+  setPayoutHandles,
   nameSubmitted,
   setNameSubmitted,
   fullName,
@@ -49,8 +59,18 @@ export function JoinView({
           <NameStep
             firstName={firstName}
             setFirstName={setFirstName}
+            middleInitial={middleInitial}
+            setMiddleInitial={setMiddleInitial}
             lastName={lastName}
             setLastName={setLastName}
+            email={email}
+            setEmail={setEmail}
+            phone={phone}
+            setPhone={setPhone}
+            payoutMethod={payoutMethod}
+            setPayoutMethod={setPayoutMethod}
+            payoutHandles={payoutHandles}
+            setPayoutHandles={setPayoutHandles}
             nameSubmitted={nameSubmitted}
             setNameSubmitted={setNameSubmitted}
             fullName={fullName}

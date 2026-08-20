@@ -11,3 +11,4 @@ export { TeamColorSection } from "./TeamColorSection";
 export { PrizePoolSection } from "./PrizePoolSection";
 export { QuarterScoresSection } from "./QuarterScoresSection";
 export { OverrideCellSection } from "./OverrideCellSection";
+export { ApprovalNotice } from "./ApprovalNotice";

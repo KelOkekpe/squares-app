@@ -90,6 +90,40 @@ export function PendingEntriesSection({ pending, emptyCount, onApprove, onReject
                   </span>
                 </div>
 
+                {(entry.email || entry.phone) && (
+                  <p style={{ margin: "0 0 6px", color: colors.textMuted, fontSize: 11 }}>
+                    {entry.email && (
+                      <a
+                        href={`mailto:${entry.email}`}
+                        style={{ color: colors.accentViolet, textDecoration: "none" }}
+                      >
+                        {entry.email}
+                      </a>
+                    )}
+                    {entry.email && entry.phone ? " · " : ""}
+                    {entry.phone && (
+                      <a
+                        href={`tel:${entry.phone}`}
+                        style={{ color: colors.textMuted, textDecoration: "none" }}
+                      >
+                        {entry.phone}
+                      </a>
+                    )}
+                  </p>
+                )}
+
+                {entry.payoutMethod && (
+                  <p style={{ margin: "0 0 6px", color: colors.textDim, fontSize: 11 }}>
+                    Pays out via{" "}
+                    <strong style={{ color: colors.accentGreenBright }}>
+                      {entry.payoutMethod}
+                    </strong>
+                    {entry.payoutHandles?.[entry.payoutMethod]
+                      ? ` — ${entry.payoutHandles[entry.payoutMethod]}`
+                      : ""}
+                  </p>
+                )}
+
                 <p style={{ margin: "0 0 10px", color: colors.textMuted, fontSize: 12 }}>
                   <strong style={{ color: colors.accentGreenBright }}>${entry.amount}</strong> ·{" "}
                   {entry.squares} square{entry.squares !== 1 ? "s" : ""} requested

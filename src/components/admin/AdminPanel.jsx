@@ -9,6 +9,7 @@ import { OverrideCellSection } from "./OverrideCellSection";
 import { BoardManagementSection } from "./BoardManagementSection";
 import { AdminInviteSection } from "./AdminInviteSection";
 import { PendingEntriesSection } from "./PendingEntriesSection";
+import { ApprovalNotice } from "./ApprovalNotice";
 import { EntriesSection } from "./EntriesSection";
 
 export function AdminPanel({
@@ -32,6 +33,8 @@ export function AdminPanel({
   emptyCount = 0,
   onApproveEntry,
   onRejectEntry,
+  approvalNotice,
+  onDismissNotice,
   participants = [],
   setParticipants,
   onRemoveEntry,
@@ -113,6 +116,10 @@ export function AdminPanel({
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          {/* Surfaced immediately after approval — the only moment the
+              assigned squares are knowable */}
+          <ApprovalNotice notice={approvalNotice} onDismiss={onDismissNotice} />
+
           {/* Entry requests awaiting payment confirmation */}
           <PendingEntriesSection
             pending={pending}

@@ -48,6 +48,10 @@ Which board you're *viewing* is local per-viewer state in `GameBoard`. It must n
 
 Players never sign up or sign in. They have **no write access** to `spaces` — entry submission goes through the `submit_entry_request()` RPC, and private-space unlock through `unlock_space()`. Don't add a client-side table write on a player code path; RLS will reject it. Admin writes require space membership.
 
+Entry submissions require an email and phone. `submit_entry_request` validates both and uses the email as a rate-limit key — 5/hour per address, 120/hour per space, tracked in `entry_request_log` (which stores an md5, not the address). Payout details and middle initial are optional.
+
+`placeParticipant` returns the cells it filled, because the grid stores only names — approval is the one moment a player's actual squares are knowable. `src/utils/notify.js` turns those into grid coordinates and an approval message.
+
 Entries are gated by admin confirmation: a submission lands in a pending queue and only reaches the board when an admin approves it. The trust boundary is a human, not the database.
 
 Google sign-in is offered on `/admin` only. Google sends no role, so `handle_new_user()` defaults an OAuth signup to `player`; `claim_owner_role()` promotes a genuinely new signup to `owner` server-side, and deliberately skips invited admins (who already have a `space_admins` row) and superadmins. It is an RPC rather than a client-side profile update because `user_profiles` is self-updatable.

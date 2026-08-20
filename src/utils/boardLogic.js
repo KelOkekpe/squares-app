@@ -1,4 +1,4 @@
-import { GRID_SIZE } from "./constants";
+import { GRID_SIZE } from "./constants.js";
 
 /**
  * Fisher-Yates shuffle — returns a new shuffled copy of the array.
@@ -45,11 +45,15 @@ export function placeParticipant(board, name, count) {
   const newBoard = board.map((r) => [...r]);
   const empty = shuffleArray(getEmptySquares(newBoard));
   const toPlace = Math.min(count, empty.length);
+  const cells = [];
   for (let i = 0; i < toPlace; i++) {
     const [r, c] = empty[i];
     newBoard[r][c] = name;
+    cells.push([r, c]);
   }
-  return { board: newBoard, placed: toPlace };
+  // `cells` lets the caller report which squares a player actually got —
+  // the grid stores only names, so this is the one moment it's knowable.
+  return { board: newBoard, placed: toPlace, cells };
 }
 
 /**
