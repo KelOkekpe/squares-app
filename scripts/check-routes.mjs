@@ -36,6 +36,15 @@ for (const h of ["#scriberfam", "#my-league", "#/scriberfam"]) {
   check(`"${h}" not an auth fragment`, isAuthCallbackHash(h) === false);
 }
 check("/admin unaffected", parseLocation("/admin", "").name === "admin");
+check("/superadmin routes to superadmin", parseLocation("/superadmin", "").name === "superadmin");
+check(
+  "/superadmin ignores a lingering fragment",
+  parseLocation("/superadmin", "#stale").name === "superadmin"
+);
+check(
+  "#superadmin is still a space, not the console",
+  parseLocation("/", "#superadmin").name === "space"
+);
 check("/ unaffected", parseLocation("/", "").name === "player");
 
 console.log(failed === 0 ? "\nAll auth-callback cases pass." : `\n${failed} failed.`);

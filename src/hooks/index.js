@@ -7,3 +7,5 @@ export { useSpacesRegistry } from "./useSpacesRegistry";
 export { useSpaceAccess } from "./useSpaceAccess";
 export { useCreateSpace } from "./useCreateSpace";
 export { useRoute } from "./useRoute";
+export { useSuperAdmin } from "./useSuperAdmin";
+export { useMediaQuery, useIsMobile } from "./useMediaQuery";

@@ -202,6 +202,8 @@ export function AuthProvider({ children }) {
   const roleFromMetadata = user?.user_metadata?.role;
   const effectiveRole = roleFromProfile || roleFromMetadata;
   const isOwner = effectiveRole === "owner";
+  const isSuperadmin = roleFromProfile === "superadmin"; // profile only — never trust user_metadata for this
+  const isClosed = !!profile?.closed_at;
   const isLoggedIn = !!user;
 
   // Check if user is admin/owner of a specific space
@@ -256,6 +258,8 @@ export function AuthProvider({ children }) {
     loading,
     isLoggedIn,
     isOwner,
+    isSuperadmin,
+    isClosed,
     signUpWithEmail,
     signInWithEmail,
     signOut,

@@ -6,6 +6,7 @@
  *
  *   /            → player landing (join a space)
  *   /admin       → admin site (sign in / sign up, then dashboard)
+ *   /superadmin  → superadmin console (superadmin role only)
  *   /#<code>     → a space
  *
  * Two older link shapes still resolve, and are rewritten to /#<code> on
@@ -13,6 +14,7 @@
  */
 
 export const ADMIN_PATH = "/admin";
+export const SUPERADMIN_PATH = "/superadmin";
 
 /** Lowercase, strip anything that isn't a-z, 0-9 or a dash. */
 export function normalizeCode(raw) {
@@ -88,6 +90,7 @@ export function parseLocation(pathname, hash) {
   const segment = normalizeCode(String(pathname || "").split("/")[1] || "");
 
   // Sites are matched on the path first; a lingering fragment is ignored.
+  if (segment === "superadmin") return { name: "superadmin" };
   if (segment === "admin") return { name: "admin" };
 
   // Spaces live in the fragment. Accepts both "#code" and the legacy "#/code".

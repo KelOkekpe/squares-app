@@ -11,9 +11,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Routing: paths are sites, fragments are spaces
 
 ```
-/           player landing
-/admin      admin site (sign in / sign up → dashboard)
-/#<code>    a space
+/            player landing
+/admin       admin site (sign in / sign up → dashboard)
+/superadmin  superadmin console (superadmin role only)
+/#<code>     a space
 ```
 
 Spaces live in the URL fragment so their codes can never shadow a site path.
@@ -39,6 +40,8 @@ All game state is JSON blobs in the `spaces` table, keyed `fb-{spaceCode}-{poolI
 Players never sign up or sign in. They have **no write access** to `spaces` — entry submission goes through the `submit_entry_request()` RPC, and private-space unlock through `unlock_space()`. Don't add a client-side table write on a player code path; RLS will reject it. Admin writes require space membership.
 
 Entries are gated by admin confirmation: a submission lands in a pending queue and only reaches the board when an admin approves it. The trust boundary is a human, not the database.
+
+Superadmins reach every space via `is_superadmin()`, folded into `is_space_admin()`/`is_space_owner()`. The console at `/superadmin` calls `superadmin_*` RPCs that each re-check the role server-side — the client-side `isSuperadmin` flag is UI only, never the security boundary. Closing an account sets `user_profiles.closed_at`; it does not delete the auth row, because that needs the `service_role` key which cannot ship in a client bundle. "View as" is read-only for the same reason — it never mints a session. The first superadmin must be promoted by hand in the SQL Editor.
 
 ## Styling: inline objects only
 

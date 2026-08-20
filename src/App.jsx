@@ -5,6 +5,7 @@ import { isSupabaseEnabled } from "./lib/supabase";
 import { spacePath, ADMIN_PATH, isAuthCallbackHash } from "./utils/routes";
 import { PlayerLanding } from "./components/landing";
 import { AdminApp, AuthCallback } from "./components/admin";
+import { SuperAdminApp } from "./components/superadmin";
 import { GameBoard } from "./GameBoard";
 import { pageStyle, containerStyle } from "./styles";
 
@@ -45,6 +46,10 @@ export default function App() {
   const enterSpace = (code) => navigate(spacePath(code));
   // Leaving a space returns you to whichever site you came from.
   const exitSpace = () => navigate(isLoggedIn ? ADMIN_PATH : "/");
+
+  if (route.name === "superadmin") {
+    return <SuperAdminApp />;
+  }
 
   if (route.name === "admin") {
     return <AdminApp onOpenSpace={enterSpace} />;
