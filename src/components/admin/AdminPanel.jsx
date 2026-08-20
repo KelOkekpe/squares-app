@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { getInitialBoard, spaceUrl } from "../../utils";
+import { spaceUrl } from "../../utils";
 import { colors, adminSectionStyle, adminInputStyle, labelStyle } from "../../styles";
 import { useAuth } from "../../hooks/useAuth";
 import { TeamColorSection } from "./TeamColorSection";
@@ -43,7 +43,6 @@ export function AdminPanel({
   setParticipants,
   onRemoveEntry,
 }) {
-  const [confirmReset, setConfirmReset] = useState(false);
   const [canManageAdmins, setCanManageAdmins] = useState(false);
   const { isSpaceOwner } = useAuth();
 
@@ -296,69 +295,6 @@ export function AdminPanel({
                 {config.submissionsDisabled ? "Enable" : "Disable"}
               </button>
             </div>
-          </div>
-
-          {/* Reset board — the current one; per-pool resets live in Pool Management */}
-          <div style={adminSectionStyle}>
-            {!confirmReset ? (
-              <button
-                onClick={() => setConfirmReset(true)}
-                style={{
-                  background: "#ff222220",
-                  color: colors.accentRedMuted,
-                  border: "1px solid #ff222240",
-                  padding: "12px 24px",
-                  borderRadius: 8,
-                  cursor: "pointer",
-                  fontWeight: 700,
-                  fontSize: 13,
-                  width: "100%",
-                }}
-              >
-                Reset This Board
-              </button>
-            ) : (
-              <div style={{ display: "flex", gap: 8 }}>
-                <button
-                  onClick={async () => {
-                    // Single source of truth with the per-pool Reset buttons:
-                    // clears squares, entries, the pending queue and scores,
-                    // and reshuffles the numbers. Config is preserved.
-                    await onResetPool?.();
-                    setConfirmReset(false);
-                  }}
-                  style={{
-                    flex: 1,
-                    background: colors.accentRedDeep,
-                    color: colors.white,
-                    border: "none",
-                    padding: "12px",
-                    borderRadius: 8,
-                    cursor: "pointer",
-                    fontWeight: 700,
-                    fontSize: 13,
-                  }}
-                >
-                  Confirm Reset
-                </button>
-                <button
-                  onClick={() => setConfirmReset(false)}
-                  style={{
-                    flex: 1,
-                    background: colors.surface5,
-                    color: "#aaa",
-                    border: `1px solid ${colors.borderSubtle}`,
-                    padding: "12px",
-                    borderRadius: 8,
-                    cursor: "pointer",
-                    fontWeight: 700,
-                    fontSize: 13,
-                  }}
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
           </div>
         </div>
       </div>
