@@ -45,7 +45,7 @@ export function PrizePoolSection({ config, setConfig }) {
           style={{
             marginTop: 12,
             padding: "10px 16px",
-            background: "#ffffff06",
+            background: colors.surface3,
             borderRadius: 8,
             border: `1px solid ${colors.border}`,
             display: "flex",

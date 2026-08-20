@@ -121,7 +121,7 @@ export function PaymentStep({
       <div
         style={{
           padding: "12px 16px",
-          background: "#ffffff06",
+          background: colors.surface3,
           border: `1px solid ${colors.border}`,
           borderRadius: 10,
           marginBottom: 16,

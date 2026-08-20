@@ -17,6 +17,7 @@ import { UsersSection } from "./UsersSection";
 import { SpacesSection } from "./SpacesSection";
 import { AuditSection } from "./AuditSection";
 import { ViewAsBanner } from "./ViewAsBanner";
+import { ThemeToggle } from "../common";
 
 const TABS = [
   { key: "overview", label: "Overview" },
@@ -106,7 +107,8 @@ export function SuperAdminApp() {
             {profile?.email} · every action here is logged
           </p>
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+          <ThemeToggle />
           <button
             type="button"
             onClick={() => sa.refresh(search)}
@@ -145,7 +147,7 @@ export function SuperAdminApp() {
                   key={s.code}
                   href={`/#${s.code}`}
                   style={{
-                    background: "#ffffff08",
+                    background: colors.surface4,
                     border: `1px solid ${colors.border}`,
                     borderRadius: radii.pill,
                     padding: "5px 14px",
@@ -168,7 +170,7 @@ export function SuperAdminApp() {
         style={{
           display: "flex",
           gap: 4,
-          background: "#ffffff06",
+          background: colors.surface3,
           borderRadius: radii.pill,
           border: `1px solid ${colors.border}`,
           padding: 4,

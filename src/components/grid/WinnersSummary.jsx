@@ -11,7 +11,7 @@ export function WinnersSummary({ headers, board, scores }) {
       style={{
         marginTop: 28,
         padding: 24,
-        background: "#ffffff04",
+        background: colors.surface2,
         borderRadius: 16,
         border: `1px solid ${colors.border}`,
       }}
@@ -63,7 +63,7 @@ export function WinnersSummary({ headers, board, scores }) {
               </div>
               <span
                 style={{
-                  color: winner ? colors.white : colors.textDim,
+                  color: winner ? colors.headline : colors.textDim,
                   fontWeight: 700,
                   fontSize: 15,
                 }}

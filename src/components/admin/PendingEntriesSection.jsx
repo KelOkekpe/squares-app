@@ -69,7 +69,7 @@ export function PendingEntriesSection({ pending, emptyCount, onApprove, onReject
               <div
                 key={entry.id}
                 style={{
-                  background: "#ffffff06",
+                  background: colors.surface3,
                   border: `1px solid ${colors.border}`,
                   borderRadius: radii.lg,
                   padding: "12px 14px",

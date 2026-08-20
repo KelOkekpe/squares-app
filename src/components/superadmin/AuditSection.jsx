@@ -33,7 +33,7 @@ export function AuditSection({ audit }) {
             gap: 10,
             alignItems: "baseline",
             padding: "8px 12px",
-            background: "#ffffff04",
+            background: colors.surface2,
             border: `1px solid ${colors.border}`,
             borderRadius: radii.md,
             fontSize: 12,

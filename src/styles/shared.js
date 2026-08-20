@@ -30,7 +30,7 @@ export const btnPrimary = {
   fontSize: 15,
   letterSpacing: 0.5,
   transition: "all 0.2s",
-  boxShadow: shadows.glow(colors.accentPurple),
+  boxShadow: shadows.glowPrimary,
 };
 
 export const btnSecondary = {

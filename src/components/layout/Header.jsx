@@ -3,6 +3,7 @@ import { containerStyle, btnSecondary } from "../../styles";
 import { colors, radii } from "../../styles";
 import { useAuth } from "../../hooks/useAuth";
 import { useIsMobile } from "../../hooks/useMediaQuery";
+import { ThemeToggle } from "../common";
 
 export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }) {
   const { isLoggedIn, isOwner, profile, isSpaceAdmin, signOut } = useAuth();
@@ -110,7 +111,7 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
                     fontWeight: 800,
                     fontSize: 18,
                     letterSpacing: -0.5,
-                    color: colors.white,
+                    color: colors.headline,
                   }}
                 >
                   GRID
@@ -179,7 +180,7 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
               onClick={onBoard ? onHome : onViewBoard}
               style={{
                 ...navButton,
-                background: onBoard ? "#ffffff10" : "transparent",
+                background: onBoard ? colors.surface5 : "transparent",
               }}
             >
               {onBoard ? "Home" : isMobile ? "Board" : "View Board"}
@@ -198,6 +199,8 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
                 Admin
               </button>
             )}
+
+            <ThemeToggle size={isMobile ? 28 : 34} />
 
             {/* Players are never signed in — only admins see a sign-out */}
             {isLoggedIn && (

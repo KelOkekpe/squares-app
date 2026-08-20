@@ -1,4 +1,5 @@
 import React from "react";
+import { decor } from "../../styles";
 
 export function BackgroundDecor() {
   return (
@@ -11,7 +12,7 @@ export function BackgroundDecor() {
           width: 600,
           height: 600,
           borderRadius: "50%",
-          background: "radial-gradient(circle, #6c5ce710 0%, transparent 70%)",
+          background: decor.one,
           pointerEvents: "none",
         }}
       />
@@ -23,7 +24,7 @@ export function BackgroundDecor() {
           width: 500,
           height: 500,
           borderRadius: "50%",
-          background: "radial-gradient(circle, #a855f708 0%, transparent 70%)",
+          background: decor.two,
           pointerEvents: "none",
         }}
       />

@@ -12,6 +12,7 @@ import {
 } from "../../styles";
 import { BackgroundDecor } from "../layout/BackgroundDecor";
 import { PasswordInput } from "../common";
+import { ThemeToggle } from "../common";
 
 /**
  * Admin site entry point (/admin). Sign in or sign up with email + password.
@@ -86,6 +87,10 @@ export function AdminLanding() {
       <BackgroundDecor />
       <div style={{ ...containerStyle, paddingTop: 80, paddingBottom: 60 }}>
         <div style={{ maxWidth: 420, margin: "0 auto", textAlign: "center" }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+            <ThemeToggle />
+          </div>
+
           {/* Logo */}
           <div style={{ marginBottom: 40 }}>
             <div
@@ -110,7 +115,7 @@ export function AdminLanding() {
                 lineHeight: 1.1,
                 margin: "0 0 10px",
                 letterSpacing: -1.5,
-                background: `linear-gradient(135deg, ${colors.white} 30%, ${colors.accentViolet})`,
+                background: `linear-gradient(135deg, ${colors.headline} 30%, ${colors.accentViolet})`,
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
               }}
@@ -139,7 +144,7 @@ export function AdminLanding() {
             <div
               style={{
                 display: "flex",
-                background: "#ffffff06",
+                background: colors.surface3,
                 borderRadius: radii.pill,
                 border: `1px solid ${colors.border}`,
                 padding: 4,

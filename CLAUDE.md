@@ -45,7 +45,11 @@ Superadmins reach every space via `is_superadmin()`, folded into `is_space_admin
 
 ## Styling: inline objects only
 
-There are no CSS files. Every style is an inline object, and inline styles beat stylesheet rules — **CSS media queries cannot reach them**. For responsive behavior use `useIsMobile()` from `src/hooks/useMediaQuery.js` and branch the style object. Design tokens live in `src/styles/theme.js`; shared style objects in `src/styles/shared.js`.
+There are no CSS files. Every style is an inline object, and inline styles beat stylesheet rules — **CSS media queries cannot reach them**. For responsive behavior use `useIsMobile()` from `src/hooks/useMediaQuery.js` and branch the style object. Shared style objects live in `src/styles/shared.js`.
+
+**Theming:** every token in `src/styles/theme.js` resolves to a CSS custom property (`var(--accent-purple)`), and the actual palettes for both themes live in a `<style>` block in `index.html` — that's the source of truth for colour values, inlined so the theme resolves before first paint. Toggling `data-theme` on `<html>` re-themes the app; components never need to know which theme is active.
+
+Two consequences: you **cannot concatenate an alpha suffix** onto a token (`` `${colors.accentGold}30` `` produces invalid CSS now) — add a token to `index.html` instead; and a new token must be defined in **both** palettes or it silently renders as transparent. `npm run check:theme` enforces both. Use `colors.white` only for text on accent-filled buttons; use `colors.headline` for text that must invert.
 
 Note `pageStyle` sets `overflow: hidden`, so anything that overflows horizontally is clipped rather than scrollable.
 

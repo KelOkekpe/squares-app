@@ -9,3 +9,4 @@ export { useCreateSpace } from "./useCreateSpace";
 export { useRoute } from "./useRoute";
 export { useSuperAdmin } from "./useSuperAdmin";
 export { useMediaQuery, useIsMobile } from "./useMediaQuery";
+export { useTheme } from "./useTheme";

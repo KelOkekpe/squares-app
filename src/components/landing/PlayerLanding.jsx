@@ -13,6 +13,7 @@ import {
 } from "../../styles";
 import { BackgroundDecor } from "../layout/BackgroundDecor";
 import { PasswordInput } from "../common";
+import { ThemeToggle } from "../common";
 
 /**
  * Player landing page. Players never sign up or sign in — they enter a space
@@ -77,6 +78,10 @@ export function PlayerLanding({ onEnterSpace }) {
       <BackgroundDecor />
       <div style={{ ...containerStyle, paddingTop: 100, paddingBottom: 60 }}>
         <div style={{ maxWidth: 480, margin: "0 auto", textAlign: "center" }}>
+          <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+            <ThemeToggle />
+          </div>
+
           {/* Logo */}
           <div style={{ marginBottom: 48 }}>
             <div
@@ -101,7 +106,7 @@ export function PlayerLanding({ onEnterSpace }) {
                 lineHeight: 1.1,
                 margin: "0 0 12px",
                 letterSpacing: -2,
-                background: `linear-gradient(135deg, ${colors.white} 30%, ${colors.accentViolet})`,
+                background: `linear-gradient(135deg, ${colors.headline} 30%, ${colors.accentViolet})`,
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
               }}

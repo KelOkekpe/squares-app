@@ -5,7 +5,7 @@ function Tile({ label, value, hint, tone }) {
   return (
     <div
       style={{
-        background: "#ffffff06",
+        background: colors.surface3,
         border: `1px solid ${tone ? tone + "40" : colors.border}`,
         borderRadius: radii.lg,
         padding: "14px 16px",

@@ -12,7 +12,8 @@
     "check:routes": "node scripts/check-routes.mjs",
     "check:async": "node scripts/check-async.mjs",
     "format": "prettier --write \"src/**/*.{js,jsx}\" \"scripts/*.mjs\"",
-    "format:check": "prettier --check \"src/**/*.{js,jsx}\" \"scripts/*.mjs\""
+    "format:check": "prettier --check \"src/**/*.{js,jsx}\" \"scripts/*.mjs\"",
+    "check:theme": "node scripts/check-theme.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.5",

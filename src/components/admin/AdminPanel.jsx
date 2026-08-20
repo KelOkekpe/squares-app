@@ -95,7 +95,7 @@ export function AdminPanel({
           <button
             onClick={onClose}
             style={{
-              background: "#ffffff10",
+              background: colors.surface5,
               border: "none",
               color: "#888",
               width: 36,
@@ -331,7 +331,7 @@ export function AdminPanel({
                   onClick={() => setConfirmReset(false)}
                   style={{
                     flex: 1,
-                    background: "#ffffff10",
+                    background: colors.surface5,
                     color: "#aaa",
                     border: `1px solid ${colors.borderSubtle}`,
                     padding: "12px",

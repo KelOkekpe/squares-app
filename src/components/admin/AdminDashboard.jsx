@@ -16,6 +16,7 @@ import {
 } from "../../styles";
 import { BackgroundDecor } from "../layout/BackgroundDecor";
 import { PasswordInput } from "../common";
+import { ThemeToggle } from "../common";
 
 function LockIcon() {
   return (
@@ -148,6 +149,7 @@ export function AdminDashboard({ onOpenSpace }) {
             </div>
 
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+              <ThemeToggle />
               <span style={{ color: colors.textMuted, fontSize: 13 }}>
                 {profile?.display_name || profile?.email || user?.email}
               </span>
@@ -205,7 +207,7 @@ export function AdminDashboard({ onOpenSpace }) {
                       alignItems: "center",
                       justifyContent: "space-between",
                       gap: 12,
-                      background: "#ffffff06",
+                      background: colors.surface3,
                       border: `1px solid ${colors.border}`,
                       borderRadius: radii.lg,
                       padding: "14px 18px",
@@ -295,7 +297,7 @@ export function AdminDashboard({ onOpenSpace }) {
                     borderRadius: 14,
                     border: "none",
                     cursor: "pointer",
-                    background: isPrivate ? colors.accentPurple : "#ffffff15",
+                    background: isPrivate ? colors.accentPurple : colors.surface7,
                     transition: "all 0.2s",
                     position: "relative",
                     flexShrink: 0,

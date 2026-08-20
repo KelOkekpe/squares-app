@@ -116,7 +116,7 @@ export function AdminInviteSection({ spaceCode, isOwner }) {
                 justifyContent: "space-between",
                 alignItems: "center",
                 padding: "10px 14px",
-                background: "#ffffff04",
+                background: colors.surface2,
                 borderRadius: radii.md,
                 border: `1px solid ${colors.border}`,
               }}

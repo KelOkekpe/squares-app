@@ -20,7 +20,7 @@ export function UsersSection({ users, onClose, onReopen, onSetRole, onViewAs }) 
           <div
             key={u.id}
             style={{
-              background: closed ? "#ff6b6b0a" : "#ffffff06",
+              background: closed ? "#ff6b6b0a" : colors.surface3,
               border: `1px solid ${closed ? "#ff6b6b30" : colors.border}`,
               borderRadius: radii.lg,
               padding: "12px 14px",

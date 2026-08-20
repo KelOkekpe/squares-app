@@ -28,7 +28,7 @@ export function EntriesSection({ participants, onRemove }) {
         {participants.length > 0 && (
           <span
             style={{
-              background: "#ffffff12",
+              background: colors.surface6,
               color: colors.textMuted,
               borderRadius: radii.pill,
               padding: "1px 9px",
@@ -55,7 +55,7 @@ export function EntriesSection({ participants, onRemove }) {
               <div
                 key={`${entry.name}-${entry.time}-${index}`}
                 style={{
-                  background: "#ffffff06",
+                  background: colors.surface3,
                   border: `1px solid ${colors.border}`,
                   borderRadius: radii.lg,
                   padding: "10px 14px",

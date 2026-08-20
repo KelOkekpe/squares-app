@@ -1,54 +1,71 @@
 /**
  * Central design tokens.
- * Every colour, shadow, radius, and font referenced across the app
- * lives here so the theme can be changed in one place.
+ *
+ * Every value resolves to a CSS custom property rather than a literal, so the
+ * whole app re-themes when `data-theme` flips on <html>. The palettes live in
+ * index.html — that's the single source of truth for actual colour values, and
+ * it's inlined there so the theme resolves before first paint.
+ *
+ * Consequence worth knowing: these are strings like "var(--accent-purple)", so
+ * you can no longer concatenate an alpha suffix onto them (`${colors.x}30` used
+ * to work and now produces invalid CSS). Add a token in index.html instead.
  */
 
 export const colors = {
   /* backgrounds */
-  pageBg: "#0a0a1a",
-  pageBgMid: "#0d0d24",
-  pageBgEnd: "#10102a",
-  surfacePrimary: "#12122e",
-  surfaceDeep: "#0e0e22",
-  surfaceFilled: "#14142e",
-  surfaceInput: "#0e0e24",
-  surfaceSection: "#0c0c20",
+  pageBg: "var(--page-bg)",
+  pageBgMid: "var(--page-bg-mid)",
+  pageBgEnd: "var(--page-bg-end)",
+  surfacePrimary: "var(--surface-primary)",
+  surfaceDeep: "var(--surface-deep)",
+  surfaceFilled: "var(--surface-filled)",
+  surfaceInput: "var(--surface-input)",
+  surfaceSection: "var(--surface-section)",
 
   /* text */
-  textPrimary: "#e0e0ff",
-  textSecondary: "#c8c8e8",
-  textMuted: "#8a8ab0",
-  textDim: "#555",
-  textDimmer: "#444",
-  textDimmest: "#333",
+  headline: "var(--text-headline)",
+  textPrimary: "var(--text-primary)",
+  textSecondary: "var(--text-secondary)",
+  textMuted: "var(--text-muted)",
+  textDim: "var(--text-dim)",
+  textDimmer: "var(--text-dimmer)",
+  textDimmest: "var(--text-dimmest)",
 
   /* accents */
-  accentPurple: "#6c5ce7",
-  accentViolet: "#a855f7",
-  accentGreen: "#22aa44",
-  accentGreenBright: "#4ade80",
-  accentGreenLight: "#44cc66",
-  accentRed: "#ff6b6b",
-  accentRedDark: "#dd3333",
-  accentRedDeep: "#ff2222",
-  accentRedMuted: "#ff4444",
-  accentGold: "#ffd700",
-  accentYellow: "#facc15",
-  accentOrange: "#ffaa44",
-  accentPink: "#e8b4f8",
+  accentPurple: "var(--accent-purple)",
+  accentViolet: "var(--accent-violet)",
+  accentGreen: "var(--accent-green)",
+  accentGreenBright: "var(--accent-green-bright)",
+  accentGreenLight: "var(--accent-green-light)",
+  accentRed: "var(--accent-red)",
+  accentRedDark: "var(--accent-red-dark)",
+  accentRedDeep: "var(--accent-red-deep)",
+  accentRedMuted: "var(--accent-red-muted)",
+  accentGold: "var(--accent-gold)",
+  accentYellow: "var(--accent-yellow)",
+  accentOrange: "var(--accent-orange)",
+  accentPink: "var(--accent-pink)",
 
   /* borders */
-  border: "#ffffff08",
-  borderLight: "#ffffff10",
-  borderInput: "#ffffff12",
-  borderSubtle: "#ffffff15",
+  border: "var(--border)",
+  borderLight: "var(--border-light)",
+  borderInput: "var(--border-input)",
+  borderSubtle: "var(--border-subtle)",
+
+  /* tinted surfaces — white-on-dark, dark-on-light */
+  surface1: "var(--surface-1)",
+  surface2: "var(--surface-2)",
+  surface3: "var(--surface-3)",
+  surface4: "var(--surface-4)",
+  surface5: "var(--surface-5)",
+  surface6: "var(--surface-6)",
+  surface7: "var(--surface-7)",
 
   /* misc */
-  white: "#fff",
-  overlay: "rgba(0,0,0,0.85)",
-  overlayLight: "rgba(0,0,0,0.8)",
-  overlaySubtle: "rgba(0,0,0,0.3)",
+  white: "#fff", // literal on purpose: text on accent-filled buttons, both themes
+  overlay: "var(--overlay)",
+  overlayLight: "var(--overlay-light)",
+  overlaySubtle: "var(--overlay-subtle)",
 };
 
 export const fonts = {
@@ -67,8 +84,15 @@ export const radii = {
 };
 
 export const shadows = {
-  card: "0 8px 40px rgba(0,0,0,0.3)",
-  modal: "0 40px 80px rgba(0,0,0,0.5)",
+  card: "var(--shadow-card)",
+  modal: "var(--shadow-modal)",
+  winner: "var(--shadow-winner)",
+  glowPrimary: "var(--glow-primary)",
+  /* Only valid for literal hex input — never pass a colors.* token */
   glow: (color) => `0 4px 20px ${color}40`,
-  winner: `0 0 20px ${colors.accentGold}30`,
+};
+
+export const decor = {
+  one: "var(--decor-1)",
+  two: "var(--decor-2)",
 };

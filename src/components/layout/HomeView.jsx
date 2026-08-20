@@ -25,7 +25,7 @@ export function HomeView({
             lineHeight: 1.1,
             margin: "0 0 16px",
             letterSpacing: -2,
-            background: `linear-gradient(135deg, ${colors.white} 30%, ${colors.accentViolet})`,
+            background: `linear-gradient(135deg, ${colors.headline} 30%, ${colors.accentViolet})`,
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
           }}
@@ -51,7 +51,7 @@ export function HomeView({
             <div
               style={{
                 display: "inline-flex",
-                background: "#ffffff06",
+                background: colors.surface3,
                 borderRadius: radii.pill,
                 border: `1px solid ${colors.border}`,
                 padding: 3,
@@ -95,7 +95,7 @@ export function HomeView({
             gap: 24,
             marginTop: 16,
             padding: "12px 28px",
-            background: "#ffffff06",
+            background: colors.surface3,
             borderRadius: 100,
             border: `1px solid ${colors.border}`,
           }}
@@ -158,7 +158,7 @@ export function HomeView({
                     justifyContent: "space-between",
                     alignItems: "center",
                     padding: "10px 16px",
-                    background: "#ffffff04",
+                    background: colors.surface2,
                     borderRadius: 10,
                     border: "1px solid #ffffff06",
                   }}

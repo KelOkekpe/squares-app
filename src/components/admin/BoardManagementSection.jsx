@@ -74,7 +74,7 @@ export function BoardManagementSection({
           style={{
             background: newPoolName.trim()
               ? `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`
-              : "#ffffff10",
+              : colors.surface5,
             color: newPoolName.trim() ? colors.white : colors.textDim,
             border: "none",
             padding: "10px 20px",
@@ -99,7 +99,7 @@ export function BoardManagementSection({
               justifyContent: "space-between",
               alignItems: "center",
               padding: "10px 14px",
-              background: p.id === activePoolId ? "#6c5ce715" : "#ffffff04",
+              background: p.id === activePoolId ? "#6c5ce715" : colors.surface2,
               borderRadius: 8,
               border: `1px solid ${p.id === activePoolId ? "#6c5ce730" : colors.border}`,
             }}
@@ -129,7 +129,7 @@ export function BoardManagementSection({
                 <button
                   onClick={() => onSwitchPool(p.id)}
                   style={{
-                    background: "#ffffff10",
+                    background: colors.surface5,
                     border: "none",
                     color: colors.accentPurple,
                     padding: "5px 12px",
@@ -191,7 +191,7 @@ export function BoardManagementSection({
                     justifyContent: "space-between",
                     alignItems: "center",
                     padding: "8px 14px",
-                    background: "#ffffff02",
+                    background: colors.surface1,
                     borderRadius: 8,
                     border: `1px solid ${colors.border}`,
                     opacity: 0.6,

@@ -12,7 +12,7 @@ export function PrizePotBar({ totalPot, quarterlyPayout }) {
         gap: 40,
         marginTop: 20,
         padding: "16px 28px",
-        background: "#ffffff04",
+        background: colors.surface2,
         borderRadius: 14,
         border: `1px solid ${colors.border}`,
       }}

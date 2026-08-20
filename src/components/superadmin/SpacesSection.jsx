@@ -32,7 +32,7 @@ export function SpacesSection({ spaces, users, onResetPassword, onTransfer, onDe
           <div
             key={s.code}
             style={{
-              background: ownerless ? "#ff6b6b0a" : "#ffffff06",
+              background: ownerless ? "#ff6b6b0a" : colors.surface3,
               border: `1px solid ${ownerless ? "#ff6b6b30" : colors.border}`,
               borderRadius: radii.lg,
               padding: "12px 14px",
