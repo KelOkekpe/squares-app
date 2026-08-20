@@ -529,6 +529,7 @@ export function GameBoard({ spaceCode, onExit }) {
           onToggleSubmissions={toggleSubmissions}
           poolConfigs={poolAdmin.configs}
           poolBusyId={poolAdmin.busyPoolId}
+          pendingCounts={poolAdmin.pendingCounts}
           participants={participants}
           setParticipants={setParticipants}
           onRemoveEntry={removeEntry}

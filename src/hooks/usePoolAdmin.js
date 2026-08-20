@@ -13,6 +13,10 @@ export function usePoolAdmin(spaceCode) {
   // poolId → that pool's admin config blob, so each row can show its own
   // submissions state without loading five separate hooks
   const [configs, setConfigs] = useState({});
+  // poolId → pending count, so the board picker can show where entries are
+  // waiting. Without it an admin looking at the wrong board sees an empty
+  // queue and concludes entries are being lost.
+  const [pendingCounts, setPendingCounts] = useState({});
   const [busyPoolId, setBusyPoolId] = useState(null);
   const [error, setError] = useState("");
 
@@ -22,14 +26,27 @@ export function usePoolAdmin(spaceCode) {
       const { data, error: err } = await withTimeout(
         supabase
           .from("spaces")
-          .select("pool_id, value")
+          .select("pool_id, type, value")
           .eq("space_code", spaceCode)
-          .eq("type", "admin"),
+          .in("type", ["admin", "pending"]),
         8000,
         "pool configs"
       );
       if (err) throw err;
-      setConfigs(Object.fromEntries((data || []).map((r) => [r.pool_id, r.value || {}])));
+
+      const rows = data || [];
+      setConfigs(
+        Object.fromEntries(
+          rows.filter((r) => r.type === "admin").map((r) => [r.pool_id, r.value || {}])
+        )
+      );
+      setPendingCounts(
+        Object.fromEntries(
+          rows
+            .filter((r) => r.type === "pending")
+            .map((r) => [r.pool_id, Array.isArray(r.value) ? r.value.length : 0])
+        )
+      );
     } catch (err) {
       console.warn("Could not load pool configs:", err?.message || err);
     }
@@ -110,6 +127,7 @@ export function usePoolAdmin(spaceCode) {
 
   return {
     configs,
+    pendingCounts,
     busyPoolId,
     error,
     setError,
