@@ -49,7 +49,7 @@ export function PaymentStep({
       <div
         style={{
           padding: 20,
-          background: "#0a0a1e",
+          background: colors.surfaceDeep,
           borderRadius: 16,
           border: `1px solid ${colors.border}`,
           marginBottom: 20,

@@ -29,6 +29,7 @@ import {
   HomeView,
   JoinView,
   BoardView,
+  PastBoardsModal,
 } from "./components/layout";
 import { AdminPanel } from "./components/admin";
 import { PasswordInput } from "./components/common";

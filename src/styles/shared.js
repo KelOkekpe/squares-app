@@ -86,7 +86,7 @@ export const labelStyle = {
 /* ── Admin-specific ─────────────────────────────────────── */
 
 export const adminInputStyle = {
-  background: "#1a1a3a",
+  background: colors.surfaceAdminInput,
   border: `1px solid ${colors.borderSubtle}`,
   color: colors.textPrimary,
   padding: "10px 14px",

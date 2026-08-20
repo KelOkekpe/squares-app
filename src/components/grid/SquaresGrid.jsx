@@ -3,10 +3,12 @@ import { GRID_SIZE, QUARTERS, getWinnerCell } from "../../utils";
 import { darken } from "../../utils";
 import { colors, fonts } from "../../styles";
 import { useIsMobile } from "../../hooks/useMediaQuery";
+import { useTheme } from "../../hooks/useTheme";
 import { PrizePotBar } from "./PrizePotBar";
 
 export function SquaresGrid({ board, headers, config, scores }) {
   const isMobile = useIsMobile();
+  const { isLight } = useTheme();
   // On a phone the desktop sizing forces both horizontal and a lot of vertical
   // scrolling. Shrinking the axis gutters and cell height fits 10 columns in a
   // ~360px viewport, so the whole board is visible at once.
@@ -14,6 +16,14 @@ export function SquaresGrid({ board, headers, config, scores }) {
   const cellHeight = isMobile ? 30 : 52;
   const cellGap = isMobile ? 1 : 2;
   const gridMinWidth = isMobile ? 0 : 700;
+  // In light mode the darkened team colour reads as a heavy black band across a
+  // pale board, so the number gutters go white and the team colour moves to the
+  // digits instead.
+  const axisCell = (teamBg, teamColor) =>
+    isLight
+      ? { background: colors.surfacePrimary, color: teamBg, border: `1px solid ${colors.border}` }
+      : { background: darken(teamBg, 0.5), color: teamColor };
+
   const nameSize = (name) =>
     isMobile
       ? name.length > 12
@@ -142,11 +152,10 @@ export function SquaresGrid({ board, headers, config, scores }) {
             style={{
               gridRow: 2,
               gridColumn: i + 3,
-              background: darken(teamXBg, 0.5),
+              ...axisCell(teamXBg, teamXColor),
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: teamXColor,
               fontWeight: 800,
               fontSize: isMobile ? 11 : 16,
               fontFamily: fonts.mono,
@@ -186,11 +195,10 @@ export function SquaresGrid({ board, headers, config, scores }) {
               style={{
                 gridRow: r + 3,
                 gridColumn: 2,
-                background: darken(teamYBg, 0.5),
+                ...axisCell(teamYBg, teamYColor),
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                color: teamYColor,
                 fontWeight: 800,
                 fontSize: isMobile ? 11 : 16,
                 fontFamily: fonts.mono,

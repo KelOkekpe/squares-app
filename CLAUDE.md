@@ -6,7 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `npm run dev` (or `start`) — Vite dev server on port 3000
 - `npm run build`
-- `npm run check:keys` / `check:routes` / `check:async` — plain node scripts in `scripts/`. There is no test framework; these are the only automated checks. Run all three after touching routing, storage keys, or the async guards.
+- `npm run check:imports` / `check:keys` / `check:routes` / `check:async` / `check:theme` / `check:pools` — plain node scripts in `scripts/`. There is no test framework; these are the only automated checks. Run them all before committing.
+- `check:imports` matters most: Vite doesn't resolve identifiers, so a component used without being imported builds clean and throws `X is not defined` at runtime. That has shipped twice.
 
 ## Routing: paths are sites, fragments are spaces
 

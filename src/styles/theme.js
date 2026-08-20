@@ -20,6 +20,7 @@ export const colors = {
   surfaceDeep: "var(--surface-deep)",
   surfaceFilled: "var(--surface-filled)",
   surfaceInput: "var(--surface-input)",
+  surfaceAdminInput: "var(--surface-admin-input)",
   surfaceSection: "var(--surface-section)",
 
   /* text */
