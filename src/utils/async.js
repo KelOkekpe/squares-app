@@ -30,15 +30,25 @@ export function withTimeout(promise, ms = DEFAULT_TIMEOUT_MS, label = "request")
   return Promise.race([Promise.resolve(promise), timeout]).finally(() => clearTimeout(timer));
 }
 
-/** True for the failures that a stale stored session tends to produce. */
+/**
+ * True for the failures that a stale stored session tends to produce.
+ *
+ * Aborts belong here: when the session recovery path clears credentials, it
+ * signs out, and supabase-js aborts every request already in flight. Those
+ * surface as AbortError — a different shape from a refresh-token failure, but
+ * the same underlying cause, and they're recoverable by simply trying again
+ * once the bad session is gone.
+ */
 export function isStaleSessionError(err) {
   if (!err) return false;
   if (err.isTimeout) return true;
-  const text = `${err.message || ""} ${err.code || ""}`.toLowerCase();
+  if (err.name === "AbortError") return true;
+  const text = `${err.message || ""} ${err.code || ""} ${err.name || ""}`.toLowerCase();
   return (
     text.includes("refresh token") ||
     text.includes("jwt expired") ||
     text.includes("invalid claim") ||
-    text.includes("pgrst301")
+    text.includes("pgrst301") ||
+    text.includes("abort")
   );
 }

@@ -1,6 +1,6 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase, isSupabaseEnabled } from "../lib/supabase";
-import { withTimeout } from "../utils/async";
+import { withTimeout, isStaleSessionError } from "../utils/async";
 import { useAuth } from "./useAuth";
 
 /**
@@ -10,6 +10,7 @@ import { useAuth } from "./useAuth";
 export function useUserSpaces() {
   const { user, isLoggedIn } = useAuth();
   const [dbSpaces, setDbSpaces] = useState([]);
+  const retriedRef = useRef(false);
   const [loading, setLoading] = useState(false);
 
   const loadSpaces = useCallback(async () => {
@@ -25,16 +26,31 @@ export function useUserSpaces() {
     }
     setLoading(true);
     try {
-      const { data, error } = await withTimeout(
-        supabase
-          .from("space_admins")
-          .select("space_code, role, accepted")
-          .eq("user_id", user.id)
-          .eq("accepted", true),
-        8000,
-        "user spaces"
-      );
+      const query = () =>
+        withTimeout(
+          supabase
+            .from("space_admins")
+            .select("space_code, role, accepted")
+            .eq("user_id", user.id)
+            .eq("accepted", true),
+          8000,
+          "user spaces"
+        );
 
+      let result;
+      try {
+        result = await query();
+      } catch (err) {
+        // A recovering session aborts in-flight requests exactly once. Without
+        // this the dashboard renders "No spaces yet" over a database that still
+        // has every space — which reads as data loss.
+        if (!isStaleSessionError(err) || retriedRef.current) throw err;
+        retriedRef.current = true;
+        await new Promise((r) => setTimeout(r, 400));
+        result = await query();
+      }
+
+      const { data, error } = result;
       if (error) throw error;
       const rows = data || [];
       if (rows.length === 0) {
