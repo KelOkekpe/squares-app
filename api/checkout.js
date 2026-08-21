@@ -67,6 +67,24 @@ export default async function handler(req, res) {
     return res.status(200).json({ url: session.url });
   } catch (err) {
     console.error("checkout error:", err);
-    return res.status(500).json({ error: "Could not start checkout" });
+
+    // Only an authenticated space admin reaches this point, and a swallowed
+    // "Could not start checkout" makes a misconfigured deploy indistinguishable
+    // from a Stripe outage. Surface the two causes that are actually
+    // actionable; neither leaks a secret.
+    if (/Missing required environment variable/.test(err?.message || "")) {
+      return res.status(500).json({
+        error: `Payments are not configured on the server — ${err.message}`,
+        code: "not_configured",
+      });
+    }
+    if (err?.type && String(err.type).startsWith("Stripe")) {
+      // Stripe redacts the key in its own messages
+      return res.status(500).json({
+        error: `Stripe rejected the request: ${err.message}`,
+        code: err.code || err.type,
+      });
+    }
+    return res.status(500).json({ error: "Could not start checkout", code: "unknown" });
   }
 }
