@@ -4,30 +4,41 @@ import { useIsMobile } from "../../hooks/useMediaQuery";
 import { normalizeCode, spaceUrlPrefix } from "../../utils";
 import { BackgroundDecor } from "../layout/BackgroundDecor";
 import { ThemeToggle } from "../common";
+import { HeroBoard } from "./HeroBoard";
 
 /* ── small building blocks ─────────────────────────────── */
 
-function Section({ children, style }) {
+function Section({ children, style, id }) {
   return (
-    <section style={{ ...containerStyle, paddingTop: 56, paddingBottom: 56, ...style }}>
+    <section id={id} style={{ ...containerStyle, paddingTop: 56, paddingBottom: 56, ...style }}>
       {children}
     </section>
   );
 }
 
-function Eyebrow({ children }) {
+function Eyebrow({ children, tone }) {
   return (
     <p
       style={{
-        color: colors.accentViolet,
-        fontSize: 12,
-        fontWeight: 800,
-        letterSpacing: 2,
-        textTransform: "uppercase",
-        margin: "0 0 12px",
+        display: "inline-flex",
+        alignItems: "center",
+        gap: 8,
+        margin: "0 0 14px",
       }}
     >
-      {children}
+      <span
+        style={{
+          background: tone || colors.accentViolet,
+          color: colors.white,
+          borderRadius: radii.pill,
+          padding: "3px 11px",
+          fontSize: 11,
+          fontWeight: 900,
+          letterSpacing: 0.6,
+        }}
+      >
+        {children}
+      </span>
     </p>
   );
 }
@@ -109,110 +120,252 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
       <BackgroundDecor />
 
       {/* nav */}
-      <div
+      <nav
         style={{
           ...containerStyle,
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          paddingTop: 20,
-          gap: 10,
+          paddingTop: 18,
+          paddingBottom: 18,
+          gap: 12,
+          position: "relative",
+          zIndex: 2,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div
-            style={{
-              width: 34,
-              height: 34,
-              borderRadius: 9,
-              background: `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`,
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              fontSize: 17,
-            }}
-          >
-            🏈
+        <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 16 : 34 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
+            <div
+              style={{
+                width: 30,
+                height: 30,
+                borderRadius: 8,
+                background: `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 15,
+              }}
+            >
+              🏈
+            </div>
+            <span
+              style={{
+                fontWeight: 900,
+                fontSize: 17,
+                letterSpacing: -0.3,
+                color: colors.headline,
+              }}
+            >
+              SQUARE<span style={{ color: colors.accentViolet }}>POOL</span>
+            </span>
           </div>
-          <span style={{ fontWeight: 800, fontSize: 17, color: colors.headline }}>
-            SQUARE<span style={{ color: colors.accentViolet }}>POOL</span>
-          </span>
+
+          {!isMobile && (
+            <div style={{ display: "flex", gap: 22 }}>
+              {[
+                { label: "How it works", href: "#how" },
+                { label: "Features", href: "#features" },
+                { label: "Pricing", href: "#pricing" },
+              ].map((l) => (
+                <a
+                  key={l.href}
+                  href={l.href}
+                  style={{
+                    color: colors.textMuted,
+                    fontSize: 14,
+                    fontWeight: 600,
+                    textDecoration: "none",
+                  }}
+                >
+                  {l.label}
+                </a>
+              ))}
+            </div>
+          )}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+
+        <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 8 : 16 }}>
+          {!isMobile && (
+            <div style={{ textAlign: "right", lineHeight: 1.3 }}>
+              <div style={{ color: colors.textMuted, fontSize: 12 }}>
+                Squares without the clipboard
+              </div>
+              <div style={{ color: colors.textPrimary, fontSize: 12, fontWeight: 800 }}>
+                First board free
+              </div>
+            </div>
+          )}
           <ThemeToggle size={32} />
           <a
             href="/admin"
-            style={{ ...btnSecondary, padding: "8px 16px", fontSize: 13, textDecoration: "none" }}
-          >
-            Sign in
-          </a>
-        </div>
-      </div>
-
-      {/* hero */}
-      <Section style={{ paddingTop: isMobile ? 40 : 64, paddingBottom: 40, textAlign: "center" }}>
-        <h1
-          style={{
-            fontSize: isMobile ? 38 : 60,
-            fontWeight: 900,
-            lineHeight: 1.05,
-            letterSpacing: isMobile ? -1.5 : -2.5,
-            margin: "0 auto 18px",
-            maxWidth: 780,
-            color: colors.headline,
-          }}
-        >
-          Football squares,{" "}
-          <span
             style={{
               background: `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`,
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
+              color: colors.white,
+              borderRadius: radii.pill,
+              padding: isMobile ? "9px 16px" : "11px 24px",
+              fontSize: 14,
+              fontWeight: 800,
+              textDecoration: "none",
+              whiteSpace: "nowrap",
+              boxShadow: "var(--glow-primary)",
             }}
           >
-            without the clipboard
-          </span>
-        </h1>
-        <p
-          style={{
-            color: colors.textMuted,
-            fontSize: isMobile ? 16 : 19,
-            lineHeight: 1.6,
-            margin: "0 auto 30px",
-            maxWidth: 600,
-          }}
-        >
-          Set up a board in a minute, share one link, and let it run itself. Scores arrive on their
-          own, winners are worked out for you, and nobody has to squint at a photo of a paper grid.
-        </p>
-
-        <div
-          style={{
-            display: "flex",
-            gap: 10,
-            justifyContent: "center",
-            flexWrap: "wrap",
-            marginBottom: 14,
-          }}
-        >
-          <a href="/admin" style={{ ...btnPrimary, padding: "14px 30px", textDecoration: "none" }}>
-            Start free — first board's on us
+            Get started
           </a>
-          <button
-            type="button"
-            onClick={onOpenJoin}
-            style={{ ...btnSecondary, padding: "14px 26px" }}
-          >
-            I have a code
-          </button>
+          {!isMobile && (
+            <a
+              href="/admin"
+              style={{
+                color: colors.textMuted,
+                fontSize: 14,
+                textDecoration: "underline",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Sign in
+            </a>
+          )}
         </div>
-        <p style={{ color: colors.textDim, fontSize: 13, margin: 0 }}>
-          Free to sign up · no card to start · players never make an account
-        </p>
-      </Section>
+      </nav>
+
+      {/* hero — copy left, the product itself right, glow bleeding from behind */}
+      <div style={{ position: "relative", overflow: "hidden" }}>
+        <div
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: "-30%",
+            left: "-15%",
+            width: isMobile ? "140%" : "75%",
+            height: "160%",
+            background: `radial-gradient(ellipse at 30% 40%, ${colors.accentPurple}33 0%, transparent 62%)`,
+            pointerEvents: "none",
+          }}
+        />
+
+        <section
+          style={{
+            ...containerStyle,
+            position: "relative",
+            paddingTop: isMobile ? 34 : 60,
+            paddingBottom: isMobile ? 60 : 96,
+            display: "grid",
+            gridTemplateColumns: isMobile ? "1fr" : "1.05fr 1fr",
+            gap: isMobile ? 56 : 40,
+            alignItems: "center",
+          }}
+        >
+          <div>
+            <p
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 7,
+                color: colors.textSecondary,
+                fontSize: 13,
+                fontWeight: 700,
+                margin: "0 0 16px",
+              }}
+            >
+              <span
+                style={{
+                  width: 7,
+                  height: 7,
+                  borderRadius: "50%",
+                  background: colors.accentGreenBright,
+                  boxShadow: `0 0 10px ${colors.accentGreenBright}`,
+                }}
+              />
+              Live scores, automatic winners
+            </p>
+
+            <h1
+              style={{
+                fontSize: isMobile ? 42 : 68,
+                fontWeight: 900,
+                lineHeight: 0.98,
+                letterSpacing: isMobile ? -2 : -3.2,
+                margin: "0 0 22px",
+                color: colors.headline,
+              }}
+            >
+              Run the pool.
+              <br />
+              Skip the
+              <br />
+              <span
+                style={{
+                  background: `linear-gradient(120deg, ${colors.accentViolet}, ${colors.accentPurple})`,
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                }}
+              >
+                paperwork.
+              </span>
+            </h1>
+
+            <p
+              style={{
+                color: colors.textMuted,
+                fontSize: isMobile ? 16 : 18,
+                lineHeight: 1.65,
+                margin: "0 0 30px",
+                maxWidth: 440,
+              }}
+            >
+              Build a board in a minute and share one link. Players join without an account, scores
+              arrive on their own, and every quarter pays out without you doing the maths.
+            </p>
+
+            <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+              <a
+                href="/admin"
+                style={{
+                  background: `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`,
+                  color: colors.white,
+                  borderRadius: radii.pill,
+                  padding: "15px 32px",
+                  fontSize: 15,
+                  fontWeight: 800,
+                  textDecoration: "none",
+                  boxShadow: "var(--glow-primary)",
+                }}
+              >
+                Create a free board
+              </a>
+              <button
+                type="button"
+                onClick={onOpenJoin}
+                style={{
+                  background: "transparent",
+                  border: `1px solid ${colors.borderSubtle}`,
+                  color: colors.textSecondary,
+                  borderRadius: radii.pill,
+                  padding: "15px 26px",
+                  fontSize: 15,
+                  fontWeight: 700,
+                  cursor: "pointer",
+                  fontFamily: "inherit",
+                }}
+              >
+                I have a code
+              </button>
+            </div>
+
+            <p style={{ color: colors.textDim, fontSize: 13, margin: "18px 0 0" }}>
+              Free to sign up · first board free · no card required
+            </p>
+          </div>
+
+          <div style={{ display: "flex", justifyContent: "center" }}>
+            <HeroBoard scale={isMobile ? 0.82 : 1} />
+          </div>
+        </section>
+      </div>
 
       {/* quick join */}
-      <Section style={{ paddingTop: 0, paddingBottom: 48 }}>
+      <Section style={{ paddingTop: 0, paddingBottom: 56 }}>
         <div
           style={{
             maxWidth: 480,
@@ -269,14 +422,15 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
       </Section>
 
       {/* the pitch */}
-      <Section style={{ paddingTop: 20 }}>
+      <Section id="features" style={{ paddingTop: 20 }}>
         <div style={{ textAlign: "center", marginBottom: 30 }}>
-          <Eyebrow>Why organisers switch</Eyebrow>
+          <Eyebrow>Features</Eyebrow>
           <h2
             style={{
-              fontSize: isMobile ? 26 : 34,
+              fontSize: isMobile ? 30 : 42,
               fontWeight: 900,
-              letterSpacing: -1,
+              letterSpacing: isMobile ? -1.2 : -1.8,
+              lineHeight: 1.05,
               margin: 0,
               color: colors.headline,
             }}
@@ -315,7 +469,7 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
       </Section>
 
       {/* how it works */}
-      <Section>
+      <Section id="how">
         <div
           style={{
             background: colors.surface2,
@@ -325,12 +479,13 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
           }}
         >
           <div style={{ marginBottom: 24 }}>
-            <Eyebrow>How it works</Eyebrow>
+            <Eyebrow tone={colors.accentGreenBright}>How it works</Eyebrow>
             <h2
               style={{
-                fontSize: isMobile ? 24 : 30,
+                fontSize: isMobile ? 26 : 36,
                 fontWeight: 900,
-                letterSpacing: -0.8,
+                letterSpacing: -1.4,
+                lineHeight: 1.05,
                 margin: 0,
                 color: colors.headline,
               }}
@@ -356,14 +511,15 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
       </Section>
 
       {/* pricing */}
-      <Section>
+      <Section id="pricing">
         <div style={{ textAlign: "center", maxWidth: 620, margin: "0 auto" }}>
-          <Eyebrow>Pricing</Eyebrow>
+          <Eyebrow tone={colors.accentGold}>Pricing</Eyebrow>
           <h2
             style={{
-              fontSize: isMobile ? 26 : 34,
+              fontSize: isMobile ? 30 : 42,
               fontWeight: 900,
-              letterSpacing: -1,
+              letterSpacing: isMobile ? -1.2 : -1.8,
+              lineHeight: 1.05,
               margin: "0 0 14px",
               color: colors.headline,
             }}
