@@ -136,8 +136,8 @@ export function BoardManagementSection({
           placeholder="e.g. Week 5, Super Bowl..."
         />
 
-        <div style={{ display: "flex", gap: 8, alignItems: "flex-end" }}>
-          <div style={{ flex: 1 }}>
+        <div style={{ display: "flex", gap: 8, alignItems: "flex-end", flexWrap: "wrap" }}>
+          <div style={{ flex: "1 1 150px", minWidth: 0 }}>
             <label style={{ ...labelStyle, fontSize: 10, marginBottom: 4 }}>
               Ends on (required)
             </label>
@@ -171,6 +171,7 @@ export function BoardManagementSection({
               fontWeight: 700,
               fontSize: 13,
               whiteSpace: "nowrap",
+              flexShrink: 0,
             }}
           >
             {creating ? "Creating…" : "+ New Pool"}

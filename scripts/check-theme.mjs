@@ -63,5 +63,19 @@ const code = (src + theme).replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm,
   ? pass("pre-paint script sets data-theme from sqrbet-theme")
   : fail("pre-paint theme script missing or renamed");
 
+// A style with width:100% and padding but no border-box renders wider than its
+// container and overlaps whatever sits beside it. adminInputStyle shipped that
+// way and broke every field in the admin console.
+const shared = readFileSync(new URL("../src/styles/shared.js", import.meta.url), "utf8");
+for (const m of shared.matchAll(/export const (\w+) = \{([\s\S]*?)\n\};/g)) {
+  const [, name, body] = m;
+  const fullWidth = /width:\s*"100%"/.test(body);
+  const padded = /padding:/.test(body);
+  if (!fullWidth || !padded) continue;
+  /boxSizing:\s*"border-box"/.test(body)
+    ? pass(`${name} sets box-sizing (width:100% + padding)`)
+    : fail(`${name} has width:100% and padding but no box-sizing — it will overflow its container`);
+}
+
 console.log(failed === 0 ? "\nAll theme cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

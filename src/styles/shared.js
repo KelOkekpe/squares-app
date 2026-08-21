@@ -95,6 +95,9 @@ export const adminInputStyle = {
   outline: "none",
   width: "100%",
   fontFamily: "inherit",
+  // Without this, width:100% plus 14px padding and a border renders ~30px
+  // wider than the container and overlaps whatever sits beside it.
+  boxSizing: "border-box",
 };
 
 export const adminSectionStyle = {
