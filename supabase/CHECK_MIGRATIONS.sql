@@ -28,7 +28,11 @@ WITH checks(step, migration, artifact, present) AS (
       to_regclass('public.entry_request_log') IS NOT NULL),
     (9, 'migration_billing.sql', 'pools.paid',
       EXISTS (SELECT 1 FROM information_schema.columns
-               WHERE table_name='pools' AND column_name='paid'))
+               WHERE table_name='pools' AND column_name='paid')),
+    (10, 'migration_payment_ref.sql', 'submit_entry_request stores paymentRef',
+      EXISTS (SELECT 1 FROM pg_proc
+               WHERE proname='submit_entry_request'
+                 AND prosrc LIKE '%paymentRef%'))
 )
 SELECT
   step,

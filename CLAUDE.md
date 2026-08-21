@@ -45,7 +45,9 @@ Boards are sold individually at a flat fee — never a share of the pot, which w
 
 `api/` holds the only server-side code: `checkout.js` creates a Stripe session, `stripe-webhook.js` marks the board paid. `api/_lib/*` is `_`-prefixed so Vercel doesn't route it. Secrets (`SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`) must **never** carry a `VITE_` prefix — Vite inlines those into the client bundle, and the service-role key bypasses every RLS policy. `npm run check:api` enforces that plus signature verification, server-side pricing, and replay-safety.
 
-`submit_entry_request` is redefined in `migration_billing.sql` — **that file holds the live version**, not `migration_entry_contact.sql`.
+Players pay the organiser through **prefilled deep links** into Venmo, Cash App or PayPal (`src/utils/paymentLinks.js`). The link opens their app with recipient, amount and a reference note filled in; the payment happens there, between two people. **Never route entry fees through this platform** — doing so would make it the rail carrying wagers into a game of chance, which changes both the legal posture and Stripe's classification. `npm run check:payments` asserts every generated link leaves this domain.
+
+`submit_entry_request` has been redefined three times. **`migration_payment_ref.sql` holds the live version**; the copies in `migration_entry_contact.sql` and `migration_billing.sql` are historical. Worth consolidating into one canonical file.
 
 ## Supabase
 

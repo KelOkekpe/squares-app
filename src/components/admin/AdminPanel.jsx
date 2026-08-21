@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { spaceUrl } from "../../utils";
+import { spaceUrl, PAYMENT_PROVIDERS } from "../../utils";
 import { colors, radii, adminSectionStyle, adminInputStyle, labelStyle } from "../../styles";
 import { useAuth } from "../../hooks/useAuth";
 import { TeamColorSection } from "./TeamColorSection";
@@ -336,12 +336,53 @@ export function AdminPanel({
               {/* Where players should send payment */}
               <div style={adminSectionStyle}>
                 <label style={labelStyle}>Payment instructions</label>
-                <p style={{ color: colors.textDim, fontSize: 12, margin: "0 0 8px" }}>
-                  Shown to players on the payment step — e.g. your Venmo handle or Cash App
-                  $cashtag.
+                <p style={{ color: colors.textDim, fontSize: 12, margin: "0 0 10px" }}>
+                  Players get a tappable link that opens your payment app with the amount and a
+                  reference already filled in. Payments go directly to you — this app never handles
+                  them.
                 </p>
+
+                {/* Structured handles build the deep links. Leave any blank to
+                    hide that option from players. */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+                  {PAYMENT_PROVIDERS.map((provider) => (
+                    <div
+                      key={provider.key}
+                      style={{ display: "flex", gap: 8, alignItems: "center" }}
+                    >
+                      <span
+                        style={{
+                          width: 74,
+                          flexShrink: 0,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: colors.textMuted,
+                        }}
+                      >
+                        {provider.label}
+                      </span>
+                      <input
+                        value={config.paymentHandles?.[provider.key] || ""}
+                        onChange={(e) =>
+                          setConfig((c) => ({
+                            ...c,
+                            paymentHandles: {
+                              ...(c.paymentHandles || {}),
+                              [provider.key]: e.target.value,
+                            },
+                          }))
+                        }
+                        style={adminInputStyle}
+                        placeholder={provider.placeholder}
+                        title={provider.hint}
+                      />
+                    </div>
+                  ))}
+                </div>
+
+                <label style={{ ...labelStyle, fontSize: 10 }}>Extra instructions (optional)</label>
                 <textarea
-                  rows={3}
+                  rows={2}
                   value={config.paymentInstructions || ""}
                   onChange={(e) =>
                     setConfig((c) => ({ ...c, paymentInstructions: e.target.value }))

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { adminSectionStyle, btnPrimary, btnSecondary, radii } from "../../styles";
-import { colors } from "../../styles";
+import { colors, fonts } from "../../styles";
 
 function timeAgo(ts) {
   if (!ts) return "";
@@ -84,7 +84,23 @@ export function PendingEntriesSection({ pending, emptyCount, onApprove, onReject
                     marginBottom: 4,
                   }}
                 >
-                  <strong style={{ color: colors.textPrimary, fontSize: 14 }}>{entry.name}</strong>
+                  <strong style={{ color: colors.textPrimary, fontSize: 14 }}>
+                    {entry.name}
+                    {entry.paymentRef && (
+                      <span
+                        style={{
+                          marginLeft: 8,
+                          fontFamily: fonts.mono,
+                          fontSize: 11,
+                          fontWeight: 700,
+                          color: colors.accentViolet,
+                        }}
+                        title="Reference this player put in their payment note"
+                      >
+                        {entry.paymentRef}
+                      </span>
+                    )}
+                  </strong>
                   <span style={{ color: colors.textDim, fontSize: 11, flexShrink: 0 }}>
                     {timeAgo(entry.requestedAt)}
                   </span>

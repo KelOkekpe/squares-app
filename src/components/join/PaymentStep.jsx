@@ -1,5 +1,6 @@
 import React from "react";
-import { inputStyle, labelStyle, btnPrimary, btnSecondary } from "../../styles";
+import { inputStyle, labelStyle, btnPrimary, btnSecondary, radii } from "../../styles";
+import { buildPaymentLink, configuredProviders } from "../../utils";
 import { colors } from "../../styles";
 
 export function PaymentStep({
@@ -10,10 +11,14 @@ export function PaymentStep({
   squaresForAmount,
   submitting,
   submitError,
+  paymentRef: ref,
+  paymentNote: note,
   onConfirm,
   onViewBoard,
 }) {
   const canSubmit = squaresForAmount >= 1 && !config.submissionsDisabled && !submitting;
+  const providers = configuredProviders(config.paymentHandles);
+  const amountLabel = Number(amount) > 0 ? ` $${Number(amount).toFixed(2)}` : "";
 
   return (
     <div>
@@ -55,6 +60,86 @@ export function PaymentStep({
           marginBottom: 20,
         }}
       >
+        {/* Tapping one of these opens the organiser's payment app with the
+            amount and reference filled in. The payment happens there, between
+            the player and the organiser — never through this app. */}
+        {providers.length > 0 && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+            {providers.map((provider) => {
+              const handle = config.paymentHandles?.[provider.key];
+              const href = buildPaymentLink(provider.key, handle, amount, note);
+
+              if (!href) {
+                // Zelle has no shared link format — show the handle to copy
+                return (
+                  <div
+                    key={provider.key}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      gap: 10,
+                      padding: "10px 14px",
+                      background: colors.surface3,
+                      border: `1px solid ${colors.border}`,
+                      borderRadius: radii.lg,
+                    }}
+                  >
+                    <span style={{ fontSize: 12, color: colors.textMuted }}>
+                      <strong style={{ color: colors.textSecondary }}>{provider.label}</strong>{" "}
+                      {handle}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => navigator.clipboard?.writeText(handle)}
+                      style={{ ...btnSecondary, padding: "5px 12px", fontSize: 11 }}
+                    >
+                      Copy
+                    </button>
+                  </div>
+                );
+              }
+
+              return (
+                <a
+                  key={provider.key}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 10,
+                    padding: "12px 16px",
+                    background: colors.surface3,
+                    border: `1px solid ${colors.borderSubtle}`,
+                    borderRadius: radii.lg,
+                    color: colors.textPrimary,
+                    textDecoration: "none",
+                    fontWeight: 700,
+                    fontSize: 14,
+                  }}
+                >
+                  <span>
+                    Pay{amountLabel} with {provider.label}
+                  </span>
+                  <span style={{ color: colors.accentViolet, fontSize: 12 }}>Open →</span>
+                </a>
+              );
+            })}
+
+            {ref && (
+              <p style={{ color: colors.textDim, fontSize: 11, margin: "2px 0 0" }}>
+                Reference <strong style={{ color: colors.textMuted }}>{ref}</strong> is added to the
+                note so your admin can match your payment.
+                {providers.some((p) => !p.supportsNote) &&
+                  " Cash App and PayPal can't carry a note — add it yourself if you use those."}
+              </p>
+            )}
+          </div>
+        )}
+
         {config.paymentInstructions ? (
           <p
             style={{

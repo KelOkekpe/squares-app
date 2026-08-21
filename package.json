@@ -18,7 +18,8 @@
     "check:imports": "node scripts/check-imports.mjs",
     "check:notify": "node scripts/check-notify.mjs",
     "check:hooks": "node scripts/check-hooks.mjs",
-    "check:api": "node scripts/check-api.mjs"
+    "check:api": "node scripts/check-api.mjs",
+    "check:payments": "node scripts/check-payment-links.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.5",

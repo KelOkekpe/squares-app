@@ -34,6 +34,9 @@ export const DEFAULT_CONFIG = {
   // Free text shown to players on the payment step, e.g. "Venmo @kel-okekpe".
   // Squares are only assigned once an admin confirms the money arrived.
   paymentInstructions: "",
+  // Handles used to build prefilled deep links into the organiser's own
+  // payment apps. The platform never processes these payments.
+  paymentHandles: { venmo: "", cashapp: "", paypal: "", zelle: "" },
   teamX: "Seattle Seahawks",
   teamY: "New England Patriots",
   submissionsDisabled: false,
