@@ -4,7 +4,8 @@
  * Sites live on paths, spaces live in the fragment. They're separate
  * namespaces, so a space code can never shadow a site route:
  *
- *   /            → player landing (join a space)
+ *   /            → marketing page
+ *   /join        → player join form (enter a space code)
  *   /admin       → admin site (sign in / sign up, then dashboard)
  *   /superadmin  → superadmin console (superadmin role only)
  *   /#<code>     → a space
@@ -15,6 +16,7 @@
 
 export const ADMIN_PATH = "/admin";
 export const SUPERADMIN_PATH = "/superadmin";
+export const JOIN_PATH = "/join";
 
 /** Lowercase, strip anything that isn't a-z, 0-9 or a dash. */
 export function normalizeCode(raw) {
@@ -92,6 +94,9 @@ export function parseLocation(pathname, hash) {
   // Sites are matched on the path first; a lingering fragment is ignored.
   if (segment === "superadmin") return { name: "superadmin" };
   if (segment === "admin") return { name: "admin" };
+  // "/" is the marketing page now, so the join form needs its own address for
+  // players who arrive without a link.
+  if (segment === "join") return { name: "join" };
 
   // Spaces live in the fragment. Accepts both "#code" and the legacy "#/code".
   const rawHash = String(hash || "");
@@ -107,5 +112,5 @@ export function parseLocation(pathname, hash) {
   // Legacy path-form space link (/scriberfam) → /#scriberfam
   if (segment) return { name: "space", code: segment, redirectTo: spacePath(segment) };
 
-  return { name: "player" };
+  return { name: "marketing" };
 }

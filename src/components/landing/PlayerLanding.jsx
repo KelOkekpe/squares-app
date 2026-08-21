@@ -190,6 +190,10 @@ export function PlayerLanding({ onEnterSpace }) {
 
           {/* Admins get sent to their own site */}
           <p style={{ color: colors.textDim, fontSize: 12, margin: "24px 0 0" }}>
+            <a href="/" style={{ color: colors.textDim, textDecoration: "none" }}>
+              ← Home
+            </a>
+            {"  ·  "}
             Running a pool?{" "}
             <a
               href="/admin"

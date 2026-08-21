@@ -45,7 +45,7 @@ check(
   "#superadmin is still a space, not the console",
   parseLocation("/", "#superadmin").name === "space"
 );
-check("/ unaffected", parseLocation("/", "").name === "player");
+check("/ is now marketing, not the join form", parseLocation("/", "").name === "marketing");
 
 // Google via Supabase returns the same implicit-flow fragment, plus provider_token.
 // It must resolve to the auth route with no redirectTo — a rewrite here would
@@ -67,6 +67,22 @@ check(
   "google denial surfaces its message",
   authErrorFromHash(googleDenied) === "The user denied the request"
 );
+
+// "/" is the marketing page now. The thing that must not break is a shared
+// link: a player following /#code should never see marketing first.
+check("/ is the marketing page", parseLocation("/", "").name === "marketing");
+check("/join is the player join form", parseLocation("/join", "").name === "join");
+check("a shared space link bypasses marketing", parseLocation("/", "#scriberfam").name === "space");
+check(
+  "a legacy path link still reaches the space",
+  parseLocation("/scriberfam", "").name === "space"
+);
+check(
+  "an auth callback still outranks marketing",
+  parseLocation("/", "#access_token=abc").name === "auth"
+);
+check("/admin is unaffected", parseLocation("/admin", "").name === "admin");
+check("#join is a space, not the join page", parseLocation("/", "#join").name === "space");
 
 console.log(failed === 0 ? "\nAll auth-callback cases pass." : `\n${failed} failed.`);
 process.exit(failed === 0 ? 0 : 1);

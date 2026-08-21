@@ -13,13 +13,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Routing: paths are sites, fragments are spaces
 
 ```
-/            player landing
+/            marketing page
+/join        player join form (enter a space code)
 /admin       admin site (sign in / sign up → dashboard)
 /superadmin  superadmin console (superadmin role only)
 /#<code>     a space
 ```
 
-Spaces live in the URL fragment so their codes can never shadow a site path.
+Spaces live in the URL fragment so their codes can never shadow a site path. That's also why `/` could become the marketing page without breaking anything: a shared `/#code` link resolves to the space before the path is ever considered.
 
 Supabase also returns auth results in the fragment (`#access_token=…&type=signup`, `#error=…`). `parseLocation()` in `src/utils/routes.js` therefore checks `isAuthCallbackHash()` **first** and returns with no `redirectTo` — rewriting the URL there destroys the tokens before supabase-js can read them. Legacy `#/<code>` and `/<code>` links are rewritten to `/#<code>`.
 

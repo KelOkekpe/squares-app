@@ -2,8 +2,9 @@ import React, { useCallback, useState } from "react";
 import { useRoute } from "./hooks/useRoute";
 import { useAuth } from "./hooks/useAuth";
 import { isSupabaseEnabled } from "./lib/supabase";
-import { spacePath, ADMIN_PATH, isAuthCallbackHash } from "./utils/routes";
+import { spacePath, ADMIN_PATH, JOIN_PATH, isAuthCallbackHash } from "./utils/routes";
 import { PlayerLanding } from "./components/landing";
+import { MarketingPage } from "./components/marketing";
 import { AdminApp, AuthCallback } from "./components/admin";
 import { SuperAdminApp } from "./components/superadmin";
 import { GameBoard } from "./GameBoard";
@@ -59,5 +60,9 @@ export default function App() {
     return <GameBoard spaceCode={route.code} onExit={exitSpace} />;
   }
 
-  return <PlayerLanding onEnterSpace={enterSpace} />;
+  if (route.name === "join") {
+    return <PlayerLanding onEnterSpace={enterSpace} />;
+  }
+
+  return <MarketingPage onEnterSpace={enterSpace} onOpenJoin={() => navigate(JOIN_PATH)} />;
 }
