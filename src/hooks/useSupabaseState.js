@@ -149,9 +149,14 @@ export function useSupabaseState(key, initialValue, options = {}) {
   }, [storageKey, table]); // Removed initialValue from dependencies to prevent regeneration
 
   // Save function
+  // Monotonic write counter. Responses that aren't the newest are ignored, so
+  // a slow write can't clobber a value typed after it.
+  const writeSeqRef = useRef(0);
+
   const saveState = useCallback(
     async (newState) => {
       if (!isSupabaseEnabled()) return;
+      const seq = ++writeSeqRef.current;
 
       try {
         const match = parseStorageKey(storageKey);
@@ -194,30 +199,60 @@ export function useSupabaseState(key, initialValue, options = {}) {
           }
         }
 
-        setState(newState);
-        setError(null);
+        // State was already applied optimistically — a late response must not
+        // reintroduce the value it carried, or fast typing loses characters.
+        if (seq === writeSeqRef.current) setError(null);
       } catch (err) {
         console.error("Error saving to Supabase:", err);
-        setError(err);
+        if (seq === writeSeqRef.current) setError(err);
       }
     },
     [storageKey, table]
   );
 
-  // Update function that works like setState
-  // Use a ref to always get the latest state value (avoids stale closure issues)
+  // The ref is updated synchronously rather than through an effect. An effect
+  // only runs after a render, and a render only happened once the write
+  // resolved — so every keystroke in a fast burst read the same stale value and
+  // the ones in between were lost.
   const stateRef = useRef(state);
   useEffect(() => {
     stateRef.current = state;
   }, [state]);
 
+  const flushRef = useRef(null);
+  const pendingRef = useRef(null);
+
+  const flush = useCallback(() => {
+    if (flushRef.current) {
+      clearTimeout(flushRef.current);
+      flushRef.current = null;
+    }
+    if (pendingRef.current !== null) {
+      const value = pendingRef.current;
+      pendingRef.current = null;
+      saveState(value);
+    }
+  }, [saveState]);
+
   const updateState = useCallback(
     (updater) => {
       const newState = typeof updater === "function" ? updater(stateRef.current) : updater;
-      saveState(newState);
+
+      // Apply immediately so the field reflects what was typed and the next
+      // keystroke builds on it, instead of waiting for a network round trip.
+      stateRef.current = newState;
+      setState(newState);
+
+      // Coalesce a burst of keystrokes into one write on the pause.
+      pendingRef.current = newState;
+      if (flushRef.current) clearTimeout(flushRef.current);
+      flushRef.current = setTimeout(flush, 400);
     },
-    [saveState]
+    [flush]
   );
+
+  // Don't lose an edit that was still pending when the view changed
+  useEffect(() => flush, [flush]);
 
   return [state, updateState, { loading, error }];
 }

@@ -22,6 +22,7 @@ import {
   useUserSpaces,
   usePoolAdmin,
   useCheckout,
+  useLiveScores,
 } from "./hooks";
 import { supabase, isSupabaseEnabled } from "./lib/supabase";
 import { cellsToCoordinates, buildApprovalMessage } from "./utils/notify";
@@ -166,6 +167,15 @@ export function GameBoard({ spaceCode, onExit }) {
   const [paymentRef] = useState(generatePaymentRef);
   // Set on approval so the admin can send the player their coordinates
   const [approvalNotice, setApprovalNotice] = useState(null);
+
+  // Scores refresh from whoever has the board open. A scheduled job would need
+  // a paid Vercel tier, and the server throttles, so extra viewers cost nothing.
+  useLiveScores({
+    spaceCode,
+    poolId: activePoolId,
+    game: config.game,
+    enabled: !viewingCompleted,
+  });
 
   // Reset a board to its starting state. Config is deliberately preserved —
   // price, teams and payment instructions survive; the game does not.

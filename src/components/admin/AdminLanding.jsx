@@ -131,7 +131,7 @@ export function AdminLanding() {
                 WebkitTextFillColor: "transparent",
               }}
             >
-              SQUAREBET
+              SQUAREPOOL
             </h1>
             <p
               style={{

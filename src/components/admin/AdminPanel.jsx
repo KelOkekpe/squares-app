@@ -10,6 +10,7 @@ import { BoardManagementSection } from "./BoardManagementSection";
 import { AdminInviteSection } from "./AdminInviteSection";
 import { PendingEntriesSection } from "./PendingEntriesSection";
 import { ApprovalNotice } from "./ApprovalNotice";
+import { GameLinkSection } from "./GameLinkSection";
 import { EntriesSection } from "./EntriesSection";
 
 export function AdminPanel({
@@ -397,6 +398,9 @@ export function AdminPanel({
 
               {/* Prize pool */}
               <PrizePoolSection config={config} setConfig={setConfig} />
+
+              {/* Link a real game so scores fill themselves in */}
+              <GameLinkSection config={config} setConfig={setConfig} />
 
               {/* Quarter scores */}
               <QuarterScoresSection config={config} scores={scores} setScores={setScores} />

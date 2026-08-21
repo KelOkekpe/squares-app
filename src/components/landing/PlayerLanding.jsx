@@ -111,7 +111,7 @@ export function PlayerLanding({ onEnterSpace }) {
                 WebkitTextFillColor: "transparent",
               }}
             >
-              SQUAREBET
+              SQUAREPOOL
             </h1>
             <p style={{ color: colors.textMuted, fontSize: 16, margin: 0 }}>
               Sports squares made easy. Enter your code, pick your squares, play.

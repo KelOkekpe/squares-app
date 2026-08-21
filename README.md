@@ -1,4 +1,4 @@
-# GRIDIRON — Football Squares
+# SquarePool — Football Squares
 
 Interactive football squares web app with multi-room support, admin console, and per-room multi-board management.
 

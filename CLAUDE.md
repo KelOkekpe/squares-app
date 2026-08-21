@@ -39,6 +39,14 @@ An expiry date is **required** on creation and a space may hold at most **16 act
 
 Which board you're *viewing* is local per-viewer state in `GameBoard`. It must not be written to `spaces` — players are anonymous and have no write access there, so persisting it silently fails for them. The space-wide default still lives in `spaceMeta.activePoolId` and is set from the admin panel only.
 
+## Live scores
+
+A board can be linked to a real game (`config.game`), after which quarter scores fill in from ESPN's public scoreboard — free, no key, and isolated in `api/_lib/espn.js` so a provider change touches one file.
+
+ESPN reports points scored *within* each quarter; squares pay on the **cumulative** score, so totals are accumulated. A quarter is only recorded once it has ended (`period - 1`, or all four when final) — recording a quarter still in play would award it to whoever happened to lead mid-drive. Q4 uses the final score so overtime settles there.
+
+Polling runs from whoever has the board open rather than a cron job, since scheduled functions need a paid Vercel tier. `/api/sync-scores` is unauthenticated by design and throttled server-side to 45s per board; it can only ever write the scores row of a board that was explicitly linked to a game.
+
 ## Billing
 
 Boards are sold individually at a flat fee — never a share of the pot, which would make this a rake rather than a software sale, and processors treat that as restricted. The platform never touches pool money; players still pay the organiser directly.

@@ -114,8 +114,8 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
                     color: colors.headline,
                   }}
                 >
-                  GRID
-                  <span style={{ color: colors.accentViolet }}>IRON</span>
+                  SQUARE
+                  <span style={{ color: colors.accentViolet }}>POOL</span>
                 </span>
               )}
               {spaceCode && (

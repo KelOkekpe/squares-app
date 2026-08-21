@@ -132,7 +132,7 @@ export function AdminDashboard({ onOpenSpace }) {
                     color: colors.white,
                   }}
                 >
-                  SQUAREBET
+                  SQUAREPOOL
                 </span>
                 <span
                   style={{

@@ -13,8 +13,8 @@ export function Footer({ pricePerSquare, filledCount, poolName }) {
       }}
     >
       <div style={containerStyle}>
-        GRIDIRON Squares{poolName ? ` · ${poolName}` : ""} · ${pricePerSquare}/square ·{" "}
-        {filledCount}/100 filled
+        SQUAREPOOL{poolName ? ` · ${poolName}` : ""} · ${pricePerSquare}/square · {filledCount}/100
+        filled
       </div>
     </footer>
   );
