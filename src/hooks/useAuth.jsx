@@ -5,7 +5,7 @@ import {
   clearAuthStorage,
   recoverFromStaleSession,
 } from "../lib/supabase";
-import { withTimeout } from "../utils/async";
+import { withTimeout, isUnusableSessionError } from "../utils/async";
 
 const AuthContext = createContext(null);
 
@@ -51,7 +51,7 @@ export function AuthProvider({ children }) {
     // "Loading…" until localStorage was cleared by hand. Now a failure drops
     // the unusable session and continues as signed-out, which is recoverable.
     let cancelled = false;
-    withTimeout(supabase.auth.getSession(), 8000, "auth session")
+    withTimeout(supabase.auth.getSession(), 15000, "auth session")
       .then((result) => {
         if (cancelled) return;
         const authUser = result?.data?.session?.user ?? null;
@@ -65,13 +65,21 @@ export function AuthProvider({ children }) {
       })
       .catch((err) => {
         if (cancelled) return;
-        console.warn(
-          "Could not restore session — clearing stale credentials:",
-          err?.message || err
-        );
-        recoverFromStaleSession();
-        setUser(null);
-        setProfile(null);
+
+        // Only an explicit rejection means the session is unusable. A timeout
+        // means the response was slow — which is normal returning from an
+        // external redirect like Stripe Checkout — and clearing credentials
+        // there logs the user out of a perfectly good session.
+        if (isUnusableSessionError(err)) {
+          console.warn("Session rejected — clearing credentials:", err?.message || err);
+          recoverFromStaleSession();
+          setUser(null);
+          setProfile(null);
+        } else {
+          console.warn("Session restore was slow; keeping credentials:", err?.message || err);
+          // onAuthStateChange still fires when it resolves, so the session
+          // recovers on its own rather than being thrown away.
+        }
         setLoading(false);
       });
 

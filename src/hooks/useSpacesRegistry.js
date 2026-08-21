@@ -13,14 +13,17 @@ export function useSpacesRegistry() {
   // One recovery attempt per mount, so a genuinely broken backend can't loop
   const recoveredRef = useRef(false);
 
-  const loadSpaces = useCallback(async () => {
+  // `silent` refreshes in place without flipping `loading`. GameBoard gates the
+  // whole screen on that flag, so a background refresh would otherwise replace
+  // the board with "Checking access…" every time the tab regains focus.
+  const loadSpaces = useCallback(async ({ silent = false } = {}) => {
     if (!isSupabaseEnabled()) {
       setSpaces([]);
       setLoading(false);
       return;
     }
 
-    setLoading(true);
+    if (!silent) setLoading(true);
     setError(null);
     try {
       const query = () =>
@@ -67,6 +70,8 @@ export function useSpacesRegistry() {
     }
   }, []);
 
+  const refreshQuietly = useCallback(() => loadSpaces({ silent: true }), [loadSpaces]);
+
   useEffect(() => {
     loadSpaces();
   }, [loadSpaces]);
@@ -76,7 +81,7 @@ export function useSpacesRegistry() {
   // empty data — this is the "after periods of inactivity" case.
   useEffect(() => {
     const onVisible = () => {
-      if (document.visibilityState === "visible") loadSpaces();
+      if (document.visibilityState === "visible") refreshQuietly();
     };
     document.addEventListener("visibilitychange", onVisible);
     window.addEventListener("focus", onVisible);
@@ -84,7 +89,7 @@ export function useSpacesRegistry() {
       document.removeEventListener("visibilitychange", onVisible);
       window.removeEventListener("focus", onVisible);
     };
-  }, [loadSpaces]);
+  }, [refreshQuietly]);
 
   const addSpace = useCallback(
     async (code, adminName, isPrivate = false, password = "", ownerId = null) => {

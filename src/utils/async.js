@@ -39,6 +39,25 @@ export function withTimeout(promise, ms = DEFAULT_TIMEOUT_MS, label = "request")
  * the same underlying cause, and they're recoverable by simply trying again
  * once the bad session is gone.
  */
+/**
+ * True only when the stored session is definitively unusable.
+ *
+ * Deliberately narrower than isStaleSessionError: that one decides whether to
+ * retry a query, this one decides whether to delete someone's credentials.
+ * A slow response is not evidence of a bad session — treating it as such logs
+ * people out for being on a slow connection, or for returning from a redirect.
+ */
+export function isUnusableSessionError(err) {
+  if (!err || err.isTimeout || err.name === "AbortError") return false;
+  const text = `${err.message || ""} ${err.code || ""}`.toLowerCase();
+  return (
+    text.includes("refresh token") ||
+    text.includes("invalid claim") ||
+    text.includes("jwt expired") ||
+    text.includes("invalid jwt")
+  );
+}
+
 export function isStaleSessionError(err) {
   if (!err) return false;
   if (err.isTimeout) return true;

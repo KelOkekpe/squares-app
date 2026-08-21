@@ -48,5 +48,32 @@ check("PGRST301 counts", isStaleSessionError({ code: "PGRST301" }));
 check("unrelated error does not", !isStaleSessionError(new Error("network down")));
 check("null does not", !isStaleSessionError(null));
 
+// A slow response must never cost someone their session. Returning from an
+// external redirect (Stripe Checkout) is slow by nature, and treating that as a
+// bad session logged the admin out every time they paid.
+import { isUnusableSessionError } from "../src/utils/async.js";
+const timeout = new TimeoutError("auth session timed out");
+const aborted = Object.assign(new Error("aborted"), { name: "AbortError" });
+check("a timeout does not justify clearing credentials", !isUnusableSessionError(timeout));
+check("an abort does not justify clearing credentials", !isUnusableSessionError(aborted));
+check(
+  "an explicit refresh-token rejection does",
+  isUnusableSessionError(new Error("Invalid Refresh Token: Already Used"))
+);
+check("a null error does not", !isUnusableSessionError(null));
+check("timeouts still trigger a query retry", isStaleSessionError(timeout));
+
+// A background refresh must not gate the UI: GameBoard blanks the screen on
+// registryLoading, so a focus-triggered reload would replace the board with
+// "Checking access…" every time the tab regained focus.
+import { readFileSync as rf } from "node:fs";
+const registry = rf(new URL("../src/hooks/useSpacesRegistry.js", import.meta.url), "utf8");
+check("registry supports a silent refresh", /silent\s*=\s*false/.test(registry));
+check("silent refresh skips the loading flag", /if \(!silent\) setLoading\(true\)/.test(registry));
+check(
+  "the focus handler uses the silent path",
+  /visibilityState === "visible"\) refreshQuietly\(\)/.test(registry)
+);
+
 console.log(failed === 0 ? "\nAll async-guard cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);
