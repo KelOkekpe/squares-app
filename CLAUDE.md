@@ -43,7 +43,9 @@ Which board you're *viewing* is local per-viewer state in `GameBoard`. It must n
 
 An undersold board can be completed by handing the empty squares to existing participants in proportion to what they already bought (`src/utils/smartFill.js`). Nobody is charged for the extra squares; the payout drops to the money actually collected, so every dollar paid in keeps the same share of the pot.
 
-Two things are easy to get wrong. Payouts must be scaled from the board **before** filling — afterwards it reads as fully sold and the reduction is lost. And proportional shares rarely divide evenly, so leftovers go by largest remainder; naive rounding leaves squares unowned, and a winning number there pays nobody. `npm run check:smartfill` covers both.
+It runs **once, automatically, five minutes before kickoff**, from `maybeSmartFill()` inside `/api/sync-scores` — server-side so it happens whether or not anyone has the board open, guarded by `config.smartFilledAt` so it can never run twice. It needs a linked game for the kickoff time; without one the admin runs it by hand.
+
+Two things are easy to get wrong. Payouts must be scaled from the board **before** filling — afterwards it reads as fully sold and the reduction is lost. And proportional shares rarely divide evenly, so leftovers go by largest remainder, with genuine ties broken randomly so the biggest buyer doesn't win every coin-flip. Naive rounding would leave squares unowned, and a winning number there pays nobody. `npm run check:smartfill` covers both.
 
 Payouts scale the admin's configured figures rather than recomputing from price × squares, which preserves any margin they built in.
 

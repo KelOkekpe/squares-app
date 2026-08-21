@@ -15,7 +15,9 @@ export function SmartFillSection({ config, board, onSmartFill }) {
   const { allocations, empty, sold } = allocateFill(board);
   const scaled = scaledPayouts(config, board);
   const alreadyFilled = !!config.smartFilledAt;
-  const canFill = empty > 0 && sold > 0;
+  const canFill = empty > 0 && sold > 0 && !alreadyFilled;
+  const kickoff = config.game?.startsAt ? new Date(config.game.startsAt).getTime() : null;
+  const scheduled = kickoff && !alreadyFilled ? kickoff - 5 * 60 * 1000 : null;
 
   const money = (n) => `$${Number(n || 0).toLocaleString()}`;
 
@@ -26,6 +28,41 @@ export function SmartFillSection({ config, board, onSmartFill }) {
         Hands the empty squares to people who already bought in, proportional to what they paid, and
         drops the payout to the money actually collected. Nobody is charged for the extra squares.
       </p>
+
+      {/* Automatic, once, shortly before kickoff — late enough that stragglers
+          can still buy in, early enough that Q1 never lands on an empty square. */}
+      <div
+        style={{
+          padding: "10px 14px",
+          background: colors.surface2,
+          border: `1px solid ${colors.border}`,
+          borderRadius: radii.md,
+          marginBottom: 10,
+          fontSize: 12,
+          color: colors.textMuted,
+        }}
+      >
+        {alreadyFilled ? (
+          <>
+            <strong style={{ color: colors.accentGreenBright }}>Filled</strong>{" "}
+            {new Date(config.smartFilledAt).toLocaleString()} — payout is now{" "}
+            <strong style={{ color: colors.textPrimary }}>{money(config.totalPot)}</strong>.
+          </>
+        ) : scheduled ? (
+          <>
+            Runs automatically at{" "}
+            <strong style={{ color: colors.textPrimary }}>
+              {new Date(scheduled).toLocaleString()}
+            </strong>
+            , five minutes before kickoff. Nothing to do.
+          </>
+        ) : (
+          <>
+            Link a game under <strong>Live scores</strong> and this runs itself five minutes before
+            kickoff. Without a kickoff time it has to be run by hand.
+          </>
+        )}
+      </div>
 
       <div
         style={{
@@ -59,24 +96,20 @@ export function SmartFillSection({ config, board, onSmartFill }) {
 
       {!canFill ? (
         <p style={{ color: colors.textMuted, fontSize: 12, margin: 0 }}>
-          {empty === 0
-            ? "The board is full — nothing to fill."
-            : "No entries yet. Smart fill shares squares among existing players, so it needs at least one."}
+          {alreadyFilled
+            ? "Smart fill has already run on this board. It only runs once."
+            : empty === 0
+              ? "The board is full — nothing to fill."
+              : "No entries yet. Smart fill shares squares among existing players, so it needs at least one."}
         </p>
       ) : !confirming ? (
         <>
-          {alreadyFilled && (
-            <p style={{ color: colors.accentOrange, fontSize: 11, margin: "0 0 8px" }}>
-              Smart fill has already run on this board once. Running it again will scale the payout
-              down a second time.
-            </p>
-          )}
           <button
             type="button"
             onClick={() => setConfirming(true)}
             style={{ ...btnSecondary, width: "100%", padding: "10px", fontSize: 13 }}
           >
-            Preview smart fill
+            {scheduled ? "Run it now instead" : "Preview smart fill"}
           </button>
         </>
       ) : (

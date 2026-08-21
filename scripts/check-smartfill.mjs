@@ -99,5 +99,44 @@ check(
   holdingsByName(applySmartFill(emptyBoard).board).size === 0
 );
 
+// Timing and once-only. The fill runs server-side so it happens whether or not
+// an admin is watching, and re-running it would scale the payout twice.
+import { readFileSync } from "node:fs";
+const sync = readFileSync(new URL("../api/sync-scores.js", import.meta.url), "utf8");
+
+check("fill runs server-side, not only in the browser", sync.includes("maybeSmartFill"));
+check("lead time is five minutes", /FILL_LEAD_MS = 5 \* 60 \* 1000/.test(sync));
+check("it refuses before the lead time", sync.includes('reason: "too_early"'));
+check("smartFilledAt guards a second run", sync.includes('reason: "already_filled"'));
+check(
+  "payouts scale before the board is filled",
+  sync.indexOf("scaledPayouts(config, board)") < sync.indexOf("applySmartFill(board)")
+);
+check(
+  "the guard is written in the same pass as the fill",
+  /smartFilledAt: Date\.now\(\)/.test(sync)
+);
+check(
+  "a failed fill cannot break the score sync",
+  /catch \(err\)[\s\S]{0,140}smart fill failed/.test(sync)
+);
+
+const LEAD = 5 * 60 * 1000;
+const due = (nowOffset) => nowOffset >= -LEAD;
+check("not due 10 minutes before kickoff", !due(-10 * 60 * 1000));
+check("due exactly 5 minutes before", due(-LEAD));
+check("due 1 minute before", due(-60 * 1000));
+check("still due after kickoff", due(60 * 1000));
+
+// Ties must not favour the biggest buyer
+const tied = boardWith({ A: 3, B: 3, C: 3 });
+const winners = new Set();
+for (let i = 0; i < 200; i++) {
+  const a = allocateFill(tied);
+  const max = Math.max(...a.allocations.values());
+  [...a.allocations].filter(([, v]) => v === max).forEach(([n]) => winners.add(n));
+}
+check("tied holdings all win leftovers sometimes", winners.size === 3);
+
 console.log(failed === 0 ? "\nAll smart-fill cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

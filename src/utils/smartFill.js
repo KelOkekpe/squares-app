@@ -46,7 +46,11 @@ export function allocateFill(board) {
   const allocations = new Map(exact.map((e) => [e.name, Math.floor(e.share)]));
   let assigned = [...allocations.values()].reduce((a, b) => a + b, 0);
 
-  const byRemainder = [...exact].sort((a, b) => (b.share % 1) - (a.share % 1) || b.held - a.held);
+  // Largest remainder decides the leftovers, which keeps the result as close to
+  // exact proportionality as integers allow. Genuine ties break randomly rather
+  // than by holdings — otherwise the biggest buyer wins every coin-flip, which
+  // compounds into a real advantage across four quarters.
+  const byRemainder = shuffleArray(exact).sort((a, b) => (b.share % 1) - (a.share % 1));
   let i = 0;
   while (assigned < empty && byRemainder.length) {
     const target = byRemainder[i % byRemainder.length];
