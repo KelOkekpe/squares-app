@@ -4,6 +4,8 @@ import {
   isPoolCompleted,
   generatePaymentRef,
   buildPaymentNote,
+  applySmartFill,
+  scaledPayouts,
   STORAGE_KEYS,
   SPACE_META_KEY,
   DEFAULT_CONFIG,
@@ -353,6 +355,22 @@ export function GameBoard({ spaceCode, onExit }) {
     ]
   );
 
+  const smartFill = useCallback(() => {
+    // Payouts must be computed from the board *before* filling it — afterwards
+    // it reads as fully sold and the reduction would be lost.
+    const scaled = scaledPayouts(config, board);
+    const { board: filled, placed } = applySmartFill(board);
+    if (!placed) return;
+
+    setBoard(filled);
+    setConfig((c) => ({
+      ...c,
+      totalPot: scaled.totalPot,
+      quarterlyPayout: scaled.quarterlyPayout,
+      smartFilledAt: Date.now(),
+    }));
+  }, [board, config, setBoard, setConfig]);
+
   const rejectEntry = useCallback(
     (id) => setPending((list) => list.filter((p) => p.id !== id)),
     [setPending]
@@ -544,6 +562,7 @@ export function GameBoard({ spaceCode, onExit }) {
           onRejectEntry={rejectEntry}
           approvalNotice={approvalNotice}
           onDismissNotice={() => setApprovalNotice(null)}
+          onSmartFill={smartFill}
           onResetPool={resetPool}
           onToggleSubmissions={toggleSubmissions}
           poolConfigs={poolAdmin.configs}

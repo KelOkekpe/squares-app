@@ -11,6 +11,7 @@ import { AdminInviteSection } from "./AdminInviteSection";
 import { PendingEntriesSection } from "./PendingEntriesSection";
 import { ApprovalNotice } from "./ApprovalNotice";
 import { GameLinkSection } from "./GameLinkSection";
+import { SmartFillSection } from "./SmartFillSection";
 import { EntriesSection } from "./EntriesSection";
 
 export function AdminPanel({
@@ -43,12 +44,16 @@ export function AdminPanel({
   participants = [],
   setParticipants,
   onRemoveEntry,
+  onSmartFill,
   pendingCounts = {},
   onActivateBoard,
   checkoutStartingFor,
   checkoutError,
 }) {
   const [tab, setTab] = useState("space");
+  // Starts blank so a setting is never changed on whichever board happened to
+  // be in view — the admin picks one deliberately first.
+  const [selectedBoard, setSelectedBoard] = useState("");
 
   // Entries waiting anywhere in the space, and how many are on a board other
   // than the one being viewed — the case that reads as "pending is broken".
@@ -280,10 +285,14 @@ export function AdminPanel({
               <div style={adminSectionStyle}>
                 <label style={labelStyle}>Board</label>
                 <select
-                  value={activePoolId || ""}
-                  onChange={(e) => onSwitchPool(e.target.value)}
+                  value={selectedBoard}
+                  onChange={(e) => {
+                    setSelectedBoard(e.target.value);
+                    if (e.target.value) onSwitchPool(e.target.value);
+                  }}
                   style={adminInputStyle}
                 >
+                  <option value="">Select a board…</option>
                   {pools.map((p) => {
                     const waiting = poolConfigs && pendingCounts ? pendingCounts[p.id] || 0 : 0;
                     return (
@@ -303,150 +312,165 @@ export function AdminPanel({
                 )}
               </div>
 
-              {/* Surfaced immediately after approval — the only moment the
-                assigned squares are knowable */}
-              <ApprovalNotice notice={approvalNotice} onDismiss={onDismissNotice} />
-
-              {/* Entry requests awaiting payment confirmation */}
-              <PendingEntriesSection
-                pending={pending}
-                emptyCount={emptyCount}
-                onApprove={onApproveEntry}
-                onReject={onRejectEntry}
-              />
-
-              {/* Confirmed entries */}
-              <EntriesSection participants={participants} onRemove={onRemoveEntry} />
-              {/* Price per square */}
-              <div style={adminSectionStyle}>
-                <label style={labelStyle}>Price per square ($)</label>
-                <input
-                  type="number"
-                  min={1}
-                  value={config.pricePerSquare}
-                  onChange={(e) =>
-                    setConfig((c) => ({
-                      ...c,
-                      pricePerSquare: Math.max(1, Number(e.target.value)),
-                    }))
-                  }
-                  style={adminInputStyle}
-                />
-              </div>
-
-              {/* Where players should send payment */}
-              <div style={adminSectionStyle}>
-                <label style={labelStyle}>Payment instructions</label>
-                <p style={{ color: colors.textDim, fontSize: 12, margin: "0 0 10px" }}>
-                  Players get a tappable link that opens your payment app with the amount and a
-                  reference already filled in. Payments go directly to you — this app never handles
-                  them.
+              {!selectedBoard ? (
+                <p style={{ color: colors.textMuted, fontSize: 13, margin: "4px 0 0" }}>
+                  Pick a board above to manage its entries, price, teams and scores.
                 </p>
+              ) : (
+                <>
+                  {/* Surfaced immediately after approval — the only moment the
+                  assigned squares are knowable */}
+                  <ApprovalNotice notice={approvalNotice} onDismiss={onDismissNotice} />
 
-                {/* Structured handles build the deep links. Leave any blank to
-                    hide that option from players. */}
-                <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
-                  {PAYMENT_PROVIDERS.map((provider) => (
+                  {/* Entry requests awaiting payment confirmation */}
+                  <PendingEntriesSection
+                    pending={pending}
+                    emptyCount={emptyCount}
+                    onApprove={onApproveEntry}
+                    onReject={onRejectEntry}
+                  />
+
+                  {/* Confirmed entries */}
+                  <EntriesSection participants={participants} onRemove={onRemoveEntry} />
+                  {/* Price per square */}
+                  <div style={adminSectionStyle}>
+                    <label style={labelStyle}>Price per square ($)</label>
+                    <input
+                      type="number"
+                      min={1}
+                      value={config.pricePerSquare}
+                      onChange={(e) =>
+                        setConfig((c) => ({
+                          ...c,
+                          pricePerSquare: Math.max(1, Number(e.target.value)),
+                        }))
+                      }
+                      style={adminInputStyle}
+                    />
+                  </div>
+
+                  {/* Where players should send payment */}
+                  <div style={adminSectionStyle}>
+                    <label style={labelStyle}>Payment instructions</label>
+                    <p style={{ color: colors.textDim, fontSize: 12, margin: "0 0 10px" }}>
+                      Players get a tappable link that opens your payment app with the amount and a
+                      reference already filled in. Payments go directly to you — this app never
+                      handles them.
+                    </p>
+
+                    {/* Structured handles build the deep links. Leave any blank to
+                      hide that option from players. */}
                     <div
-                      key={provider.key}
-                      style={{ display: "flex", gap: 8, alignItems: "center" }}
+                      style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}
                     >
-                      <span
-                        style={{
-                          width: 74,
-                          flexShrink: 0,
-                          fontSize: 11,
-                          fontWeight: 700,
-                          color: colors.textMuted,
-                        }}
-                      >
-                        {provider.label}
-                      </span>
-                      <input
-                        value={config.paymentHandles?.[provider.key] || ""}
-                        onChange={(e) =>
+                      {PAYMENT_PROVIDERS.map((provider) => (
+                        <div
+                          key={provider.key}
+                          style={{ display: "flex", gap: 8, alignItems: "center" }}
+                        >
+                          <span
+                            style={{
+                              width: 74,
+                              flexShrink: 0,
+                              fontSize: 11,
+                              fontWeight: 700,
+                              color: colors.textMuted,
+                            }}
+                          >
+                            {provider.label}
+                          </span>
+                          <input
+                            value={config.paymentHandles?.[provider.key] || ""}
+                            onChange={(e) =>
+                              setConfig((c) => ({
+                                ...c,
+                                paymentHandles: {
+                                  ...(c.paymentHandles || {}),
+                                  [provider.key]: e.target.value,
+                                },
+                              }))
+                            }
+                            style={adminInputStyle}
+                            placeholder={provider.placeholder}
+                            title={provider.hint}
+                          />
+                        </div>
+                      ))}
+                    </div>
+
+                    <label style={{ ...labelStyle, fontSize: 10 }}>
+                      Extra instructions (optional)
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={config.paymentInstructions || ""}
+                      onChange={(e) =>
+                        setConfig((c) => ({ ...c, paymentInstructions: e.target.value }))
+                      }
+                      style={{ ...adminInputStyle, resize: "vertical", fontFamily: "inherit" }}
+                      placeholder={"Venmo @your-handle\nInclude your name in the note"}
+                    />
+                  </div>
+
+                  {/* Team names + colours */}
+                  <TeamColorSection config={config} setConfig={setConfig} />
+
+                  {/* Fill an undersold board and scale the payout to match */}
+                  <SmartFillSection config={config} board={board} onSmartFill={onSmartFill} />
+
+                  {/* Prize pool */}
+                  <PrizePoolSection config={config} setConfig={setConfig} />
+
+                  {/* Link a real game so scores fill themselves in */}
+                  <GameLinkSection config={config} setConfig={setConfig} />
+
+                  {/* Quarter scores */}
+                  <QuarterScoresSection config={config} scores={scores} setScores={setScores} />
+
+                  {/* Override cell */}
+                  <OverrideCellSection setBoard={setBoard} />
+
+                  {/* Toggle submissions */}
+                  <div style={adminSectionStyle}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                      }}
+                    >
+                      <div>
+                        <label style={{ ...labelStyle, marginBottom: 2 }}>Submissions</label>
+                        <span style={{ color: "#666", fontSize: 12 }}>
+                          {config.submissionsDisabled ? "Currently closed" : "Currently open"}
+                        </span>
+                      </div>
+                      <button
+                        onClick={() =>
                           setConfig((c) => ({
                             ...c,
-                            paymentHandles: {
-                              ...(c.paymentHandles || {}),
-                              [provider.key]: e.target.value,
-                            },
+                            submissionsDisabled: !c.submissionsDisabled,
                           }))
                         }
-                        style={adminInputStyle}
-                        placeholder={provider.placeholder}
-                        title={provider.hint}
-                      />
+                        style={{
+                          background: config.submissionsDisabled
+                            ? colors.accentGreen
+                            : colors.accentRedDark,
+                          color: colors.white,
+                          border: "none",
+                          padding: "10px 24px",
+                          borderRadius: 8,
+                          cursor: "pointer",
+                          fontWeight: 700,
+                          fontSize: 13,
+                        }}
+                      >
+                        {config.submissionsDisabled ? "Enable" : "Disable"}
+                      </button>
                     </div>
-                  ))}
-                </div>
-
-                <label style={{ ...labelStyle, fontSize: 10 }}>Extra instructions (optional)</label>
-                <textarea
-                  rows={2}
-                  value={config.paymentInstructions || ""}
-                  onChange={(e) =>
-                    setConfig((c) => ({ ...c, paymentInstructions: e.target.value }))
-                  }
-                  style={{ ...adminInputStyle, resize: "vertical", fontFamily: "inherit" }}
-                  placeholder={"Venmo @your-handle\nInclude your name in the note"}
-                />
-              </div>
-
-              {/* Team names + colours */}
-              <TeamColorSection config={config} setConfig={setConfig} />
-
-              {/* Prize pool */}
-              <PrizePoolSection config={config} setConfig={setConfig} />
-
-              {/* Link a real game so scores fill themselves in */}
-              <GameLinkSection config={config} setConfig={setConfig} />
-
-              {/* Quarter scores */}
-              <QuarterScoresSection config={config} scores={scores} setScores={setScores} />
-
-              {/* Override cell */}
-              <OverrideCellSection setBoard={setBoard} />
-
-              {/* Toggle submissions */}
-              <div style={adminSectionStyle}>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <div>
-                    <label style={{ ...labelStyle, marginBottom: 2 }}>Submissions</label>
-                    <span style={{ color: "#666", fontSize: 12 }}>
-                      {config.submissionsDisabled ? "Currently closed" : "Currently open"}
-                    </span>
                   </div>
-                  <button
-                    onClick={() =>
-                      setConfig((c) => ({
-                        ...c,
-                        submissionsDisabled: !c.submissionsDisabled,
-                      }))
-                    }
-                    style={{
-                      background: config.submissionsDisabled
-                        ? colors.accentGreen
-                        : colors.accentRedDark,
-                      color: colors.white,
-                      border: "none",
-                      padding: "10px 24px",
-                      borderRadius: 8,
-                      cursor: "pointer",
-                      fontWeight: 700,
-                      fontSize: 13,
-                    }}
-                  >
-                    {config.submissionsDisabled ? "Enable" : "Disable"}
-                  </button>
-                </div>
-              </div>
+                </>
+              )}
             </>
           )}
         </div>

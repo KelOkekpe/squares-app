@@ -13,3 +13,4 @@ export { QuarterScoresSection } from "./QuarterScoresSection";
 export { OverrideCellSection } from "./OverrideCellSection";
 export { ApprovalNotice } from "./ApprovalNotice";
 export { GameLinkSection } from "./GameLinkSection";
+export { SmartFillSection } from "./SmartFillSection";

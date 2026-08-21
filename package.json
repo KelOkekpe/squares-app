@@ -20,7 +20,8 @@
     "check:hooks": "node scripts/check-hooks.mjs",
     "check:api": "node scripts/check-api.mjs",
     "check:payments": "node scripts/check-payment-links.mjs",
-    "check:scores": "node scripts/check-scores.mjs"
+    "check:scores": "node scripts/check-scores.mjs",
+    "check:smartfill": "node scripts/check-smartfill.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.5",

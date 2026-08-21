@@ -39,6 +39,14 @@ An expiry date is **required** on creation and a space may hold at most **16 act
 
 Which board you're *viewing* is local per-viewer state in `GameBoard`. It must not be written to `spaces` — players are anonymous and have no write access there, so persisting it silently fails for them. The space-wide default still lives in `spaceMeta.activePoolId` and is set from the admin panel only.
 
+## Smart fill
+
+An undersold board can be completed by handing the empty squares to existing participants in proportion to what they already bought (`src/utils/smartFill.js`). Nobody is charged for the extra squares; the payout drops to the money actually collected, so every dollar paid in keeps the same share of the pot.
+
+Two things are easy to get wrong. Payouts must be scaled from the board **before** filling — afterwards it reads as fully sold and the reduction is lost. And proportional shares rarely divide evenly, so leftovers go by largest remainder; naive rounding leaves squares unowned, and a winning number there pays nobody. `npm run check:smartfill` covers both.
+
+Payouts scale the admin's configured figures rather than recomputing from price × squares, which preserves any margin they built in.
+
 ## Live scores
 
 A board can be linked to a real game (`config.game`), after which quarter scores fill in from ESPN's public scoreboard — free, no key, and isolated in `api/_lib/espn.js` so a provider change touches one file.
