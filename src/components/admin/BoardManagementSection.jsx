@@ -15,6 +15,9 @@ export function BoardManagementSection({
   onToggleSubmissions,
   poolConfigs = {},
   poolBusyId,
+  onActivateBoard,
+  checkoutStartingFor,
+  checkoutError,
 }) {
   const [newPoolName, setNewPoolName] = useState("");
   const [newPoolExpiry, setNewPoolExpiry] = useState(() => addDaysISO(30));
@@ -217,6 +220,18 @@ export function BoardManagementSection({
               <span style={{ color: colors.textSecondary, fontSize: 13, fontWeight: 600 }}>
                 {p.name}
               </span>
+              {p.paid === false && (
+                <span
+                  style={{
+                    color: colors.accentOrange,
+                    fontSize: 10,
+                    fontWeight: 800,
+                    letterSpacing: 0.5,
+                  }}
+                >
+                  INACTIVE
+                </span>
+              )}
               <span style={{ color: colors.textDim, fontSize: 11 }}>
                 {new Date(p.createdAt).toLocaleDateString()}
               </span>
@@ -225,6 +240,20 @@ export function BoardManagementSection({
               {p.id !== activePoolId && (
                 <button onClick={() => onSwitchPool(p.id)} style={rowBtn(colors.accentPurple)}>
                   Switch
+                </button>
+              )}
+
+              {p.paid === false && (
+                <button
+                  onClick={() => onActivateBoard?.(p.id)}
+                  disabled={checkoutStartingFor === p.id}
+                  style={{
+                    ...rowBtn(colors.white, checkoutStartingFor === p.id),
+                    background: `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`,
+                  }}
+                  title="Pay to open this board to players"
+                >
+                  {checkoutStartingFor === p.id ? "Opening…" : "Activate"}
                 </button>
               )}
 
@@ -293,6 +322,17 @@ export function BoardManagementSection({
           </div>
         ))}
       </div>
+
+      {activePools.some((p) => p.paid === false) && (
+        <p style={{ color: colors.accentOrange, fontSize: 11, margin: "8px 0 0" }}>
+          Inactive boards don't accept entries. Activating one is a one-off charge for that board —
+          your first board in a space is free.
+        </p>
+      )}
+
+      {checkoutError && (
+        <p style={{ color: colors.accentRed, fontSize: 12, margin: "8px 0 0" }}>{checkoutError}</p>
+      )}
 
       {/* Completed pools — archived or past their end date */}
       {completedPools.length > 0 && (

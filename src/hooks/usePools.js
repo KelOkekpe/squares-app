@@ -47,6 +47,7 @@ export function usePools(spaceCode) {
         name: row.name,
         archived: row.archived || false,
         expiresAt: row.expires_at || null,
+        paid: row.paid !== false,
         createdAt: new Date(row.created_at).getTime(),
       }));
 
@@ -143,6 +144,7 @@ export function usePools(spaceCode) {
           name: data.name,
           archived: data.archived || false,
           expiresAt: data.expires_at || null,
+          paid: data.paid !== false,
           createdAt: new Date(data.created_at).getTime(),
         };
 

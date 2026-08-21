@@ -17,12 +17,14 @@
     "check:pools": "node scripts/check-pools.mjs",
     "check:imports": "node scripts/check-imports.mjs",
     "check:notify": "node scripts/check-notify.mjs",
-    "check:hooks": "node scripts/check-hooks.mjs"
+    "check:hooks": "node scripts/check-hooks.mjs",
+    "check:api": "node scripts/check-api.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.5",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "react-dom": "^18.2.0",
+    "stripe": "^22.5.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.43",

@@ -43,6 +43,9 @@ export function AdminPanel({
   setParticipants,
   onRemoveEntry,
   pendingCounts = {},
+  onActivateBoard,
+  checkoutStartingFor,
+  checkoutError,
 }) {
   const [tab, setTab] = useState("space");
 
@@ -256,6 +259,9 @@ export function AdminPanel({
                 onToggleSubmissions={onToggleSubmissions}
                 poolConfigs={poolConfigs}
                 poolBusyId={poolBusyId}
+                onActivateBoard={onActivateBoard}
+                checkoutStartingFor={checkoutStartingFor}
+                checkoutError={checkoutError}
               />
 
               {/* Assign Admins (space owners only) */}

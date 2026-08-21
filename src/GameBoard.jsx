@@ -19,6 +19,7 @@ import {
   useSpaceAccess,
   useUserSpaces,
   usePoolAdmin,
+  useCheckout,
 } from "./hooks";
 import { supabase, isSupabaseEnabled } from "./lib/supabase";
 import { cellsToCoordinates, buildApprovalMessage } from "./utils/notify";
@@ -84,6 +85,7 @@ export function GameBoard({ spaceCode, onExit }) {
     loading: poolsLoading,
   } = usePools(spaceCode);
   const poolAdmin = usePoolAdmin(spaceCode);
+  const { startCheckout, startingFor, error: checkoutError } = useCheckout();
 
   // ── space-level meta (active pool only) ────────
   const [spaceMeta, setSpaceMeta] = usePersistedState(SPACE_META_KEY(spaceCode), {
@@ -530,6 +532,9 @@ export function GameBoard({ spaceCode, onExit }) {
           poolConfigs={poolAdmin.configs}
           poolBusyId={poolAdmin.busyPoolId}
           pendingCounts={poolAdmin.pendingCounts}
+          onActivateBoard={(poolId) => startCheckout(spaceCode, poolId)}
+          checkoutStartingFor={startingFor}
+          checkoutError={checkoutError}
           participants={participants}
           setParticipants={setParticipants}
           onRemoveEntry={removeEntry}

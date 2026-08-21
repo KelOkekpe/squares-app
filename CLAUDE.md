@@ -39,6 +39,14 @@ An expiry date is **required** on creation and a space may hold at most **16 act
 
 Which board you're *viewing* is local per-viewer state in `GameBoard`. It must not be written to `spaces` — players are anonymous and have no write access there, so persisting it silently fails for them. The space-wide default still lives in `spaceMeta.activePoolId` and is set from the admin panel only.
 
+## Billing
+
+Boards are sold individually at a flat fee — never a share of the pot, which would make this a rake rather than a software sale, and processors treat that as restricted. The platform never touches pool money; players still pay the organiser directly.
+
+`api/` holds the only server-side code: `checkout.js` creates a Stripe session, `stripe-webhook.js` marks the board paid. `api/_lib/*` is `_`-prefixed so Vercel doesn't route it. Secrets (`SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`) must **never** carry a `VITE_` prefix — Vite inlines those into the client bundle, and the service-role key bypasses every RLS policy. `npm run check:api` enforces that plus signature verification, server-side pricing, and replay-safety.
+
+`submit_entry_request` is redefined in `migration_billing.sql` — **that file holds the live version**, not `migration_entry_contact.sql`.
+
 ## Supabase
 
 - Migrations in `supabase/` are run **by hand** in the Supabase SQL Editor. There is no CLI, no `config.toml`, no linked project. Never assume a migration has been applied.
