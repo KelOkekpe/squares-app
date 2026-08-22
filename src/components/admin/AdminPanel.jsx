@@ -61,6 +61,14 @@ export function AdminPanel({
   // be in view — the admin picks one deliberately first.
   const [selectedBoard, setSelectedBoard] = useState("");
 
+  // Archiving the board you're managing would otherwise leave the picker
+  // pointing at something it no longer lists.
+  useEffect(() => {
+    if (!selectedBoard) return;
+    const stillListed = pools.some((p) => p.id === selectedBoard && !p.archived);
+    if (!stillListed) setSelectedBoard("");
+  }, [selectedBoard, pools]);
+
   // Entries waiting anywhere in the space, and how many are on a board other
   // than the one being viewed — the case that reads as "pending is broken".
   const totalPending = Object.values(pendingCounts).reduce((n, v) => n + (v || 0), 0);
@@ -155,7 +163,7 @@ export function AdminPanel({
           >
             {[
               { key: "space", label: "Space" },
-              { key: "board", label: isPickem ? "Pick'em Settings" : "Board Settings" },
+              { key: "board", label: isPickem ? "Game Settings" : "Board Settings" },
             ].map((t) => (
               <button
                 key={t.key}
@@ -299,16 +307,19 @@ export function AdminPanel({
                   style={adminInputStyle}
                 >
                   <option value="">Select a board…</option>
-                  {pools.map((p) => {
-                    const waiting = poolConfigs && pendingCounts ? pendingCounts[p.id] || 0 : 0;
-                    return (
-                      <option key={p.id} value={p.id}>
-                        {p.name}
-                        {waiting ? ` — ${waiting} pending` : ""}
-                        {p.archived ? " (archived)" : ""}
-                      </option>
-                    );
-                  })}
+                  {/* Archived boards are excluded — unarchive from Pool
+                      Management to manage one again. */}
+                  {pools
+                    .filter((p) => !p.archived)
+                    .map((p) => {
+                      const waiting = poolConfigs && pendingCounts ? pendingCounts[p.id] || 0 : 0;
+                      return (
+                        <option key={p.id} value={p.id}>
+                          {p.name}
+                          {waiting ? ` — ${waiting} pending` : ""}
+                        </option>
+                      );
+                    })}
                 </select>
                 {otherPending > 0 && (
                   <p style={{ color: colors.accentOrange, fontSize: 12, margin: "8px 0 0" }}>

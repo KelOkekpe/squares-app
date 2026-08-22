@@ -32,7 +32,9 @@ export function PickemView({ spaceCode, poolId, poolName }) {
           {slate.games.length} games · most correct wins
         </p>
 
-        {/* Standings lead once picks close — that's what people come back for */}
+        {/* The sheet sits collapsed above the standings — one bar rather than a
+            screenful, so the table is visible without scrolling past it. Once
+            picks close it drops below, since there's nothing left to fill in. */}
         {locked ? (
           <>
             <Standings slate={slate} entries={picks} />
