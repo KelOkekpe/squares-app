@@ -9,3 +9,4 @@ export * from "./notify.js";
 export * from "./errors.js";
 export * from "./paymentLinks.js";
 export * from "./smartFill.js";
+export * from "./pickem.js";

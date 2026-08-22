@@ -49,6 +49,7 @@ export function usePools(spaceCode) {
         archived: row.archived || false,
         expiresAt: row.expires_at || null,
         paid: row.paid !== false,
+        gameType: row.game_type || "squares",
         createdAt: new Date(row.created_at).getTime(),
       }));
 
@@ -117,7 +118,7 @@ export function usePools(spaceCode) {
   // The 16-board cap and the required expiry are enforced by a trigger, so the
   // database's message is surfaced verbatim rather than guessed at here.
   const createPool = useCallback(
-    async (name, expiresAt, initialConfig) => {
+    async (name, expiresAt, initialConfig, { gameType = "squares", slate } = {}) => {
       if (!spaceCode || !name) return { pool: null, error: "Name is required" };
       if (!expiresAt) return { pool: null, error: "An end date is required" };
       if (!isSupabaseEnabled()) return { pool: null, error: "Supabase is required" };
@@ -131,6 +132,7 @@ export function usePools(spaceCode) {
               name: name.trim(),
               archived: false,
               expires_at: expiresAt,
+              game_type: gameType,
             })
             .select()
             .single(),
@@ -146,8 +148,26 @@ export function usePools(spaceCode) {
           archived: data.archived || false,
           expiresAt: data.expires_at || null,
           paid: data.paid !== false,
+          gameType: data.game_type || "squares",
           createdAt: new Date(data.created_at).getTime(),
         };
+
+        // The slate is written with the pool so a pick'em contest is playable
+        // the moment it exists, rather than needing a second trip.
+        if (slate) {
+          const { error: slateError } = await supabase.from("spaces").upsert(
+            {
+              key: `fb-${spaceCode}-${data.id}-slate`,
+              space_code: spaceCode,
+              pool_id: data.id,
+              type: "slate",
+              value: slate,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "space_code,pool_id,type" }
+          );
+          if (slateError) console.warn("Could not seed slate:", slateError.message);
+        }
 
         // Seed the board's config in the same breath, so a board created with
         // a game attached is immediately wired for live scores.

@@ -13,3 +13,4 @@ export { useTheme } from "./useTheme";
 export { usePoolAdmin } from "./usePoolAdmin";
 export { useCheckout } from "./useCheckout";
 export { useLiveScores } from "./useLiveScores";
+export { usePickem } from "./usePickem";

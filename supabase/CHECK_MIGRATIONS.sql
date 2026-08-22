@@ -37,7 +37,11 @@ WITH checks(step, migration, artifact, present) AS (
       NOT EXISTS (SELECT 1 FROM pg_proc p
                     JOIN pg_namespace n ON n.oid = p.pronamespace
                    WHERE n.nspname='public' AND p.proname LIKE 'superadmin\_%'
-                     AND NOT has_function_privilege('authenticated', p.oid, 'EXECUTE')))
+                     AND NOT has_function_privilege('authenticated', p.oid, 'EXECUTE'))),
+    (12, 'migration_pickem.sql', 'pools.game_type + submit_picks',
+      EXISTS (SELECT 1 FROM information_schema.columns
+               WHERE table_name='pools' AND column_name='game_type')
+      AND EXISTS (SELECT 1 FROM pg_proc WHERE proname='submit_picks'))
 )
 SELECT
   step,

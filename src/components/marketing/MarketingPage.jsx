@@ -461,6 +461,10 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
             proportional to what they paid, and scales the payout to the money actually collected.
             No dead squares, no refunds.
           </Card>
+          <Card icon="🗒️" title="Squares and pick'em" tone={colors.accentViolet}>
+            Run a classic squares grid, or a weekly pick'em where everyone picks every game and most
+            correct takes it. Same space, same link, same automatic scoring.
+          </Card>
           <Card icon="💸" title="Money stays yours">
             Players pay you directly through your own Venmo or Cash App — we never touch it. A
             one-tap link fills in the amount and a reference so you can match payments at a glance.
@@ -494,7 +498,7 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
             </h2>
           </div>
           <div style={{ ...grid(240), gap: 22 }}>
-            <Step n="1" title="Make a board">
+            <Step n="1" title="Make a contest">
               Sign up free, name your space, set your price per square and what you're paying out
               each quarter.
             </Step>

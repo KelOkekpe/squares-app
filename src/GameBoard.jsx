@@ -42,6 +42,7 @@ import {
 } from "./components/layout";
 import { AdminPanel, NewBoardModal } from "./components/admin";
 import { PasswordInput } from "./components/common";
+import { PickemView } from "./components/pickem";
 
 export function GameBoard({ spaceCode, onExit }) {
   const { isSpaceAdmin, isOwner } = useAuth();
@@ -585,86 +586,92 @@ export function GameBoard({ spaceCode, onExit }) {
         />
       )}
 
-      <main style={{ ...containerStyle, paddingTop: 40, paddingBottom: 60 }}>
-        {view === "home" && (
-          <HomeView
-            config={effectiveConfig}
-            emptyCount={emptyCount}
-            participants={participants}
-            pools={pools}
-            activePoolId={activePoolId}
-            onSwitchPool={switchPool}
-            completedPools={completedPools}
-            onOpenPastBoards={() => setShowPastBoards(true)}
-            onJoin={() => setView("join")}
-            onViewBoard={() => setView("board")}
-          />
-        )}
+      {/* A pick'em contest is a different game, so it gets its own view rather
+          than trying to render a grid that doesn't apply. */}
+      {currentPool?.gameType === "pickem" ? (
+        <PickemView spaceCode={spaceCode} poolId={activePoolId} poolName={currentPool.name} />
+      ) : (
+        <main style={{ ...containerStyle, paddingTop: 40, paddingBottom: 60 }}>
+          {view === "home" && (
+            <HomeView
+              config={effectiveConfig}
+              emptyCount={emptyCount}
+              participants={participants}
+              pools={pools}
+              activePoolId={activePoolId}
+              onSwitchPool={switchPool}
+              completedPools={completedPools}
+              onOpenPastBoards={() => setShowPastBoards(true)}
+              onJoin={() => setView("join")}
+              onViewBoard={() => setView("board")}
+            />
+          )}
 
-        {view === "join" && (
-          <JoinView
-            firstName={firstName}
-            setFirstName={setFirstName}
-            lastName={lastName}
-            setLastName={setLastName}
-            nameSubmitted={nameSubmitted}
-            setNameSubmitted={setNameSubmitted}
-            middleInitial={middleInitial}
-            setMiddleInitial={setMiddleInitial}
-            email={email}
-            setEmail={setEmail}
-            phone={phone}
-            setPhone={setPhone}
-            payoutMethod={payoutMethod}
-            setPayoutMethod={setPayoutMethod}
-            payoutHandles={payoutHandles}
-            setPayoutHandles={setPayoutHandles}
-            fullName={fullName}
-            config={effectiveConfig}
-            emptyCount={emptyCount}
-            amount={amount}
-            setAmount={setAmount}
-            squaresForAmount={squaresForAmount}
-            requestSubmitted={requestSubmitted}
-            requestedCount={requestedCount}
-            submitting={submitting}
-            submitError={submitError}
-            paymentRef={paymentRef}
-            paymentNote={buildPaymentNote({
-              playerName: fullName,
-              poolName: pools.find((pl) => pl.id === activePoolId)?.name,
-              ref: paymentRef,
-            })}
-            onSubmitRequest={submitEntryRequest}
-            onViewBoard={() => setView("board")}
-            onBack={() => {
-              setView("home");
-              resetJoinFlow();
-            }}
-            onDone={() => {
-              setView("home");
-              resetJoinFlow();
-            }}
-          />
-        )}
+          {view === "join" && (
+            <JoinView
+              firstName={firstName}
+              setFirstName={setFirstName}
+              lastName={lastName}
+              setLastName={setLastName}
+              nameSubmitted={nameSubmitted}
+              setNameSubmitted={setNameSubmitted}
+              middleInitial={middleInitial}
+              setMiddleInitial={setMiddleInitial}
+              email={email}
+              setEmail={setEmail}
+              phone={phone}
+              setPhone={setPhone}
+              payoutMethod={payoutMethod}
+              setPayoutMethod={setPayoutMethod}
+              payoutHandles={payoutHandles}
+              setPayoutHandles={setPayoutHandles}
+              fullName={fullName}
+              config={effectiveConfig}
+              emptyCount={emptyCount}
+              amount={amount}
+              setAmount={setAmount}
+              squaresForAmount={squaresForAmount}
+              requestSubmitted={requestSubmitted}
+              requestedCount={requestedCount}
+              submitting={submitting}
+              submitError={submitError}
+              paymentRef={paymentRef}
+              paymentNote={buildPaymentNote({
+                playerName: fullName,
+                poolName: pools.find((pl) => pl.id === activePoolId)?.name,
+                ref: paymentRef,
+              })}
+              onSubmitRequest={submitEntryRequest}
+              onViewBoard={() => setView("board")}
+              onBack={() => {
+                setView("home");
+                resetJoinFlow();
+              }}
+              onDone={() => {
+                setView("home");
+                resetJoinFlow();
+              }}
+            />
+          )}
 
-        {view === "board" && (
-          <BoardView
-            board={board}
-            headers={headers}
-            config={effectiveConfig}
-            scores={scores}
-            emptyCount={emptyCount}
-            onJoin={() => setView("join")}
-          />
-        )}
-      </main>
+          {view === "board" && (
+            <BoardView
+              board={board}
+              headers={headers}
+              config={effectiveConfig}
+              scores={scores}
+              emptyCount={emptyCount}
+              onJoin={() => setView("join")}
+            />
+          )}
+        </main>
+      )}
 
       {showNewBoard && (
         <NewBoardModal
           pools={pools}
           onClose={() => setShowNewBoard(false)}
-          onCreate={async ({ name, expiresAt, game }) => {
+          onCreate={async ({ name, expiresAt, game, gameType, slate }) => {
             // Linking at creation means the board is wired for live scores and
             // smart fill before anyone has to open the admin console.
             const initialConfig = game
@@ -682,7 +689,10 @@ export function GameBoard({ spaceCode, onExit }) {
                 }
               : null;
 
-            const { pool, error } = await createPoolInDb(name, expiresAt, initialConfig);
+            const { pool, error } = await createPoolInDb(name, expiresAt, initialConfig, {
+              gameType,
+              slate,
+            });
             if (pool) switchPool(pool.id);
             return { error };
           }}

@@ -32,6 +32,14 @@ All game state is JSON blobs in the `spaces` table, keyed `fb-{spaceCode}-{poolI
 
 **Adding a key to `STORAGE_KEYS` means adding its type to `POOL_STATE_TYPES`.** `npm run check:keys` enforces this.
 
+## Game types
+
+A pool is a **squares board** or a **pick'em contest** (`pools.game_type`). They share the pool model deliberately, so pick'em inherits the 16-active cap, expiry, billing, Past Boards and the board picker rather than needing a parallel set of everything.
+
+Pick'em state lives in two blobs: `slate` (the week's games, **frozen at creation** so a rescheduled game can't move under picks already made) and `picks` (submitted sheets). Grading writes winners back into `slate` from `/api/sync-picks`, polled by viewers exactly like live scores.
+
+Scoring is in `src/utils/pickem.js`. The tiebreaker is closest-total-without-going-over, and two gaps the plain rule leaves are closed explicitly: if everyone tied goes over, the closest of them still wins; identical guesses fall back to earliest submission. Ungraded games never count, so standings are meaningful mid-week. `npm run check:pickem` covers all of it.
+
 ## Board lifecycle
 
 A board is active while it is **neither archived nor past `pools.expires_at`**. Anything else is "completed" — closed to entries but still viewable via Past Boards. `src/utils/poolStatus.js` is the single definition; don't re-derive it with `!p.archived`, which misses expired boards.
