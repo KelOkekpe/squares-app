@@ -101,8 +101,23 @@ check(
   "reset preserves the admin config (price, teams, payment details)",
   !resetBody.includes("setConfig(")
 );
+// A pick'em contest resets differently: sheets go, the slate's grading is
+// undone, but the games themselves stay — they are the contest.
+check("reset clears pick'em sheets", resetBody.includes("setPicks([])"));
+check("reset un-grades the slate", /winner, total, awayScore, homeScore/.test(resetBody));
+check("reset keeps the slate's games", resetBody.includes("games: (s.games || []).map"));
 // Anything new in POOL_STATE_TYPES should be considered here too
-const covered = ["board", "headers", "participants", "pending", "scores", "admin"];
+// slate/picks are cleared on the pick'em branch of the same function
+const covered = [
+  "board",
+  "headers",
+  "participants",
+  "pending",
+  "scores",
+  "admin",
+  "slate",
+  "picks",
+];
 const uncovered = POOL_STATE_TYPES.filter((t) => !covered.includes(t));
 check(
   `no per-pool state type is unaccounted for by reset${uncovered.length ? ` (${uncovered})` : ""}`,

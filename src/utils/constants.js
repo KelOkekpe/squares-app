@@ -10,6 +10,8 @@ export const STORAGE_KEYS = (space, poolId) => ({
   pending: `fb-${space}-${poolId}-pending`,
   scores: `fb-${space}-${poolId}-scores`,
   headers: `fb-${space}-${poolId}-headers`,
+  slate: `fb-${space}-${poolId}-slate`,
+  picks: `fb-${space}-${poolId}-picks`,
 });
 
 export const SPACE_META_KEY = (space) => `fb-${space}-meta`;

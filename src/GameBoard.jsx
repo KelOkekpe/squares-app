@@ -163,6 +163,10 @@ export function GameBoard({ spaceCode, onExit }) {
   const [participants, setParticipants] = usePersistedState(keys.participants, []);
   // Entry requests awaiting admin payment confirmation
   const [pending, setPending] = usePersistedState(keys.pending, []);
+  // Pick'em contests keep their slate and sheets alongside the squares state,
+  // so the admin panel can manage whichever type is selected.
+  const [slate, setSlate] = usePersistedState(keys.slate, null);
+  const [picks, setPicks] = usePersistedState(keys.picks, []);
 
   // ── ephemeral UI state ────────────────────────────────
   const [view, setView] = useState("home");
@@ -202,6 +206,23 @@ export function GameBoard({ spaceCode, onExit }) {
 
       if (targetId === activePoolId) {
         // Go through the loaded state so the UI updates immediately
+        if (currentPool?.gameType === "pickem") {
+          // Clear the sheets and un-grade the week, but keep the slate — the
+          // games are the contest, and refetching them isn't a reset.
+          setPicks([]);
+          setSlate((s) =>
+            s
+              ? {
+                  ...s,
+                  games: (s.games || []).map(
+                    ({ winner, total, awayScore, homeScore, ...game }) => game
+                  ),
+                }
+              : s
+          );
+          return { ok: true };
+        }
+
         setBoard(freshBoard);
         setHeaders(freshHeaders);
         setParticipants([]);
@@ -212,7 +233,18 @@ export function GameBoard({ spaceCode, onExit }) {
       }
       return poolAdmin.resetRemotePool(targetId, { board: freshBoard, headers: freshHeaders });
     },
-    [activePoolId, setBoard, setHeaders, setParticipants, setPending, setScores, poolAdmin]
+    [
+      activePoolId,
+      currentPool,
+      setBoard,
+      setHeaders,
+      setParticipants,
+      setPending,
+      setScores,
+      setPicks,
+      setSlate,
+      poolAdmin,
+    ]
   );
 
   const toggleSubmissions = useCallback(
@@ -577,6 +609,11 @@ export function GameBoard({ spaceCode, onExit }) {
           poolConfigs={poolAdmin.configs}
           poolBusyId={poolAdmin.busyPoolId}
           pendingCounts={poolAdmin.pendingCounts}
+          isPickem={currentPool?.gameType === "pickem"}
+          slate={slate}
+          setSlate={setSlate}
+          picks={picks}
+          setPicks={setPicks}
           onActivateBoard={(poolId) => startCheckout(spaceCode, poolId)}
           checkoutStartingFor={startingFor}
           checkoutError={checkoutError}
