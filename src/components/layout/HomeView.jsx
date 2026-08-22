@@ -14,6 +14,8 @@ export function HomeView({
   onOpenPastBoards,
   onJoin,
   onViewBoard,
+  isPickem,
+  onOpenPickem,
 }) {
   const activePools = pools.filter(isPoolActive);
   const currentPool = pools.find((p) => p.id === activePoolId);
@@ -126,46 +128,62 @@ export function HomeView({
           </div>
         )}
 
-        <div
-          style={{
-            display: "inline-flex",
-            gap: 24,
-            marginTop: 16,
-            padding: "12px 28px",
-            background: colors.surface3,
-            borderRadius: 100,
-            border: `1px solid ${colors.border}`,
-          }}
-        >
-          <span style={{ color: colors.accentPurple, fontWeight: 700, fontSize: 14 }}>
-            ${config.pricePerSquare}/square
-          </span>
-          <span style={{ color: colors.textDimmest }}>|</span>
-          <span style={{ color: "#a0a0cc", fontSize: 14 }}>{emptyCount} squares left</span>
-        </div>
+        {!isPickem && (
+          <div
+            style={{
+              display: "inline-flex",
+              gap: 24,
+              marginTop: 16,
+              padding: "12px 28px",
+              background: colors.surface3,
+              borderRadius: 100,
+              border: `1px solid ${colors.border}`,
+            }}
+          >
+            <span style={{ color: colors.accentPurple, fontWeight: 700, fontSize: 14 }}>
+              ${config.pricePerSquare}/square
+            </span>
+            <span style={{ color: colors.textDimmest }}>|</span>
+            <span style={{ color: "#a0a0cc", fontSize: 14 }}>{emptyCount} squares left</span>
+          </div>
+        )}
       </div>
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-        <button
-          onClick={onJoin}
-          style={{
-            ...btnPrimary,
-            width: "100%",
-            padding: "18px",
-            fontSize: 16,
-            opacity: config.submissionsDisabled || emptyCount === 0 ? 0.5 : 1,
-          }}
-          disabled={config.submissionsDisabled || emptyCount === 0}
-        >
-          {config.submissionsDisabled
-            ? "Submissions Closed"
-            : emptyCount === 0
-              ? "Pool Full"
-              : "Join the Pool"}
-        </button>
-        <button onClick={onViewBoard} style={{ ...btnSecondary, width: "100%", padding: "16px" }}>
-          View Board
-        </button>
+        {isPickem ? (
+          <button
+            onClick={onOpenPickem}
+            style={{ ...btnPrimary, width: "100%", padding: "18px", fontSize: 16 }}
+          >
+            Picks &amp; standings
+          </button>
+        ) : (
+          <>
+            <button
+              onClick={onJoin}
+              style={{
+                ...btnPrimary,
+                width: "100%",
+                padding: "18px",
+                fontSize: 16,
+                opacity: config.submissionsDisabled || emptyCount === 0 ? 0.5 : 1,
+              }}
+              disabled={config.submissionsDisabled || emptyCount === 0}
+            >
+              {config.submissionsDisabled
+                ? "Submissions Closed"
+                : emptyCount === 0
+                  ? "Pool Full"
+                  : "Join the Pool"}
+            </button>
+            <button
+              onClick={onViewBoard}
+              style={{ ...btnSecondary, width: "100%", padding: "16px" }}
+            >
+              View Board
+            </button>
+          </>
+        )}
       </div>
 
       {/* Recent participants */}

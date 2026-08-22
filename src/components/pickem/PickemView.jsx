@@ -6,7 +6,7 @@ import { PickSheet } from "./PickSheet";
 import { Standings } from "./Standings";
 
 /** A pick'em contest: the sheet while it's open, standings once it isn't. */
-export function PickemView({ spaceCode, poolId, poolName }) {
+export function PickemView({ spaceCode, poolId, poolName, onBack }) {
   const { slate, picks, submit, submitting } = usePickem(spaceCode, poolId);
 
   if (!slate?.games?.length) {
@@ -24,6 +24,23 @@ export function PickemView({ spaceCode, poolId, poolName }) {
   return (
     <main style={{ ...containerStyle, paddingTop: 32, paddingBottom: 60 }}>
       <div style={{ maxWidth: 540, margin: "0 auto" }}>
+        <button
+          onClick={onBack}
+          style={{
+            background: "none",
+            border: "none",
+            color: colors.accentViolet,
+            cursor: "pointer",
+            fontSize: 14,
+            fontWeight: 600,
+            marginBottom: 16,
+            padding: 0,
+            fontFamily: "inherit",
+          }}
+        >
+          ← Back
+        </button>
+
         <h2 style={{ margin: "0 0 4px", fontSize: 24, fontWeight: 800, letterSpacing: -0.6 }}>
           {poolName || "Weekly picks"}
         </h2>

@@ -125,6 +125,7 @@ export function GameBoard({ spaceCode, onExit }) {
 
   const currentPool = pools.find((p) => p.id === activePoolId) || null;
   const viewingCompleted = isPoolCompleted(currentPool);
+  const isPickem = currentPool?.gameType === "pickem";
 
   const setPools = useCallback(
     (updater) => {
@@ -147,8 +148,12 @@ export function GameBoard({ spaceCode, onExit }) {
     [pools, createPoolInDb, updatePoolInDb]
   );
 
-  // Local — works for anonymous players, who cannot write to `spaces`
-  const switchPool = (id) => setViewingPoolId(id);
+  // Local — works for anonymous players, who cannot write to `spaces`.
+  // Reset the view too: a squares board has no pick'em screen and vice versa.
+  const switchPool = (id) => {
+    setViewingPoolId(id);
+    setView("home");
+  };
 
   // Admin-only: the board this space opens on for everyone
   const setDefaultPool = (id) => setSpaceMeta((prev) => ({ ...prev, activePoolId: id }));
@@ -624,9 +629,16 @@ export function GameBoard({ spaceCode, onExit }) {
       )}
 
       {/* A pick'em contest is a different game, so it gets its own view rather
-          than trying to render a grid that doesn't apply. */}
-      {currentPool?.gameType === "pickem" ? (
-        <PickemView spaceCode={spaceCode} poolId={activePoolId} poolName={currentPool.name} />
+          than trying to render a grid that doesn't apply. It's entered from the
+          home screen rather than replacing it, so there's somewhere to go back
+          to — the contest picker lives there. */}
+      {isPickem && view === "pickem" ? (
+        <PickemView
+          spaceCode={spaceCode}
+          poolId={activePoolId}
+          poolName={currentPool.name}
+          onBack={() => setView("home")}
+        />
       ) : (
         <main style={{ ...containerStyle, paddingTop: 40, paddingBottom: 60 }}>
           {view === "home" && (
@@ -639,6 +651,8 @@ export function GameBoard({ spaceCode, onExit }) {
               onSwitchPool={switchPool}
               completedPools={completedPools}
               onOpenPastBoards={() => setShowPastBoards(true)}
+              isPickem={isPickem}
+              onOpenPickem={() => setView("pickem")}
               onJoin={() => setView("join")}
               onViewBoard={() => setView("board")}
             />
@@ -699,6 +713,7 @@ export function GameBoard({ spaceCode, onExit }) {
               scores={scores}
               emptyCount={emptyCount}
               onJoin={() => setView("join")}
+              onBack={() => setView("home")}
             />
           )}
         </main>

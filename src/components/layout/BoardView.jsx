@@ -1,11 +1,28 @@
 import React from "react";
-import { btnPrimary } from "../../styles";
+import { btnPrimary, colors } from "../../styles";
 import { SquaresGrid } from "../grid/SquaresGrid";
 import { WinnersSummary } from "../grid/WinnersSummary";
 
-export function BoardView({ board, headers, config, scores, emptyCount, onJoin }) {
+export function BoardView({ board, headers, config, scores, emptyCount, onJoin, onBack }) {
   return (
     <div>
+      <button
+        onClick={onBack}
+        style={{
+          background: "none",
+          border: "none",
+          color: colors.accentViolet,
+          cursor: "pointer",
+          fontSize: 14,
+          fontWeight: 600,
+          marginBottom: 16,
+          padding: 0,
+          fontFamily: "inherit",
+        }}
+      >
+        ← Back
+      </button>
+
       <div
         style={{
           display: "flex",
