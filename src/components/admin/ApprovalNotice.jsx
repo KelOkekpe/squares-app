@@ -21,7 +21,7 @@ export function ApprovalNotice({ notice, onDismiss }) {
     <div
       style={{
         background: colors.surface3,
-        border: `1px solid ${colors.accentGreenBright}40`,
+        border: `1px solid ${colors.borderSuccess}`,
         borderRadius: radii.lg,
         padding: 16,
         marginBottom: 16,

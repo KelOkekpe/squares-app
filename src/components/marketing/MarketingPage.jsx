@@ -4,9 +4,18 @@ import { useIsMobile } from "../../hooks/useMediaQuery";
 import { normalizeCode, spaceUrlPrefix } from "../../utils";
 import { BackgroundDecor } from "../layout/BackgroundDecor";
 import { ThemeToggle } from "../common";
-import { HeroBoard } from "./HeroBoard";
+import { HeroCarousel } from "./HeroCarousel";
 
 /* ── small building blocks ─────────────────────────────── */
+
+/**
+ * Scrolls rather than following an anchor: a fragment *is* a space code in this
+ * app, so `href="#features"` navigates off the marketing page into a lookup for
+ * a space named "features". Nothing on this page may put one in the URL.
+ */
+function scrollToSection(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
 function Section({ children, style, id }) {
   return (
@@ -60,6 +69,55 @@ function Card({ icon, title, children, tone }) {
       <p style={{ margin: 0, color: colors.textMuted, fontSize: 14, lineHeight: 1.6 }}>
         {children}
       </p>
+    </div>
+  );
+}
+
+function GameCard({ tone, kicker, title, points }) {
+  return (
+    <div
+      style={{
+        background: colors.surface3,
+        border: `1px solid ${colors.border}`,
+        borderRadius: radii.xl,
+        padding: 26,
+      }}
+    >
+      <span
+        style={{
+          display: "inline-block",
+          background: tone,
+          color: colors.white,
+          borderRadius: radii.pill,
+          padding: "3px 11px",
+          fontSize: 11,
+          fontWeight: 900,
+          letterSpacing: 0.6,
+          marginBottom: 12,
+        }}
+      >
+        {kicker}
+      </span>
+      <h3 style={{ margin: "0 0 14px", fontSize: 21, fontWeight: 900, color: colors.textPrimary }}>
+        {title}
+      </h3>
+      <ul style={{ margin: 0, padding: 0, listStyle: "none", display: "grid", gap: 10 }}>
+        {points.map((point, i) => (
+          <li
+            key={i}
+            style={{
+              display: "flex",
+              gap: 10,
+              color: colors.textMuted,
+              fontSize: 14,
+              lineHeight: 1.55,
+            }}
+          >
+            <span style={{ color: tone, fontWeight: 900, flexShrink: 0 }}>→</span>
+            {point}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -164,22 +222,28 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
           {!isMobile && (
             <div style={{ display: "flex", gap: 22 }}>
               {[
-                { label: "How it works", href: "#how" },
-                { label: "Features", href: "#features" },
-                { label: "Pricing", href: "#pricing" },
+                { label: "How it works", id: "how" },
+                { label: "Two ways to play", id: "games" },
+                { label: "Features", id: "features" },
+                { label: "Pricing", id: "pricing" },
               ].map((l) => (
-                <a
-                  key={l.href}
-                  href={l.href}
+                <button
+                  key={l.id}
+                  type="button"
+                  onClick={() => scrollToSection(l.id)}
                   style={{
+                    background: "none",
+                    border: "none",
+                    padding: 0,
+                    cursor: "pointer",
+                    fontFamily: "inherit",
                     color: colors.textMuted,
                     fontSize: 14,
                     fontWeight: 600,
-                    textDecoration: "none",
                   }}
                 >
                   {l.label}
-                </a>
+                </button>
               ))}
             </div>
           )}
@@ -239,7 +303,7 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
             left: "-15%",
             width: isMobile ? "140%" : "75%",
             height: "160%",
-            background: `radial-gradient(ellipse at 30% 40%, ${colors.accentPurple}33 0%, transparent 62%)`,
+            background: `radial-gradient(ellipse at 30% 40%, ${colors.borderAccentSoft} 0%, transparent 62%)`,
             pointerEvents: "none",
           }}
         />
@@ -314,8 +378,9 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
                 maxWidth: 440,
               }}
             >
-              Build a board in a minute and share one link. Players join without an account, scores
-              arrive on their own, and every quarter pays out without you doing the maths.
+              Squares boards and weekly pick'em contests, both in one place. Build one in a minute
+              and share a single link — players join without an account, scores arrive on their own,
+              and winners are worked out for you.
             </p>
 
             <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
@@ -359,7 +424,7 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
           </div>
 
           <div style={{ display: "flex", justifyContent: "center" }}>
-            <HeroBoard scale={isMobile ? 0.82 : 1} />
+            <HeroCarousel scale={isMobile ? 0.82 : 1} />
           </div>
         </section>
       </div>
@@ -421,6 +486,62 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
         </div>
       </Section>
 
+      {/* what you can actually run */}
+      <Section id="games" style={{ paddingTop: 20 }}>
+        <div style={{ textAlign: "center", marginBottom: 30 }}>
+          <Eyebrow>Two ways to play</Eyebrow>
+          <h2
+            style={{
+              fontSize: isMobile ? 30 : 42,
+              fontWeight: 900,
+              letterSpacing: isMobile ? -1.2 : -1.8,
+              lineHeight: 1.05,
+              margin: "0 0 12px",
+              color: colors.headline,
+            }}
+          >
+            One space, two games
+          </h2>
+          <p
+            style={{
+              color: colors.textMuted,
+              fontSize: isMobile ? 15 : 17,
+              lineHeight: 1.6,
+              margin: "0 auto",
+              maxWidth: 560,
+            }}
+          >
+            Your group joins once and finds everything you're running inside it — a squares grid for
+            the big game, a pick'em sheet every week, or both at the same time.
+          </p>
+        </div>
+
+        <div style={grid(300)}>
+          <GameCard
+            tone={colors.accentPurple}
+            kicker="Squares"
+            title="The grid everyone already knows"
+            points={[
+              "Players buy as many squares as they like; numbers are drawn once the board is full.",
+              "Set your own price per square and what each quarter pays.",
+              "Quarter winners fill themselves in from the live score — nobody has to be watching.",
+              "Undersold board? Smart Fill hands out the leftovers and scales the payout to what was collected.",
+            ]}
+          />
+          <GameCard
+            tone={colors.accentViolet}
+            kicker="Pick'em"
+            title="Pick every game, most correct wins"
+            points={[
+              "Everyone picks a winner straight up in each game on the week's slate — no spreads, no confidence points.",
+              "Every sheet locks at the first kickoff, so nobody picks a game already underway.",
+              "Results grade themselves as games finish and the standings move in real time.",
+              "Ties break on a closest-total-without-going-over tiebreaker you set with the slate.",
+            ]}
+          />
+        </div>
+      </Section>
+
       {/* the pitch */}
       <Section id="features" style={{ paddingTop: 20 }}>
         <div style={{ textAlign: "center", marginBottom: 30 }}>
@@ -460,10 +581,6 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
             Board didn't fill? Smart Fill shares the leftovers among everyone who bought in,
             proportional to what they paid, and scales the payout to the money actually collected.
             No dead squares, no refunds.
-          </Card>
-          <Card icon="🗒️" title="Squares and pick'em" tone={colors.accentViolet}>
-            Run a classic squares grid, or a weekly pick'em where everyone picks every game and most
-            correct takes it. Same space, same link, same automatic scoring.
           </Card>
           <Card icon="💸" title="Money stays yours">
             Players pay you directly through your own Venmo or Cash App — we never touch it. A

@@ -1,3 +1,6 @@
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { parseLocation, isAuthCallbackHash, authErrorFromHash } from "../src/utils/routes.js";
 
 let failed = 0;
@@ -83,6 +86,24 @@ check(
 );
 check("/admin is unaffected", parseLocation("/admin", "").name === "admin");
 check("#join is a space, not the join page", parseLocation("/", "#join").name === "space");
+
+// A fragment is a space code, so an in-page anchor on the marketing site is a
+// navigation *away* from it — `href="#features"` looks up a space called
+// "features". Marketing scrolls by id instead; nothing there may emit one.
+const marketingDir = fileURLToPath(new URL("../src/components/marketing", import.meta.url));
+const anchored = readdirSync(marketingDir).filter((f) =>
+  /href=\{?["'`]#/.test(
+    readFileSync(join(marketingDir, f), "utf8").replace(/\/\*[\s\S]*?\*\//g, "")
+  )
+);
+check(
+  `no fragment hrefs on the marketing page (${anchored.join(", ") || "none"})`,
+  anchored.length === 0
+);
+check(
+  "an anchor-shaped fragment would resolve as a space",
+  parseLocation("/", "#features").name === "space"
+);
 
 console.log(failed === 0 ? "\nAll auth-callback cases pass." : `\n${failed} failed.`);
 process.exit(failed === 0 ? 0 : 1);

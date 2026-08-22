@@ -54,7 +54,7 @@ export function Standings({ slate, entries }) {
                 gap: 12,
                 padding: "10px 14px",
                 background: leading ? "#ffd7000f" : colors.surface2,
-                border: `1px solid ${leading ? `${colors.accentGold}55` : colors.border}`,
+                border: `1px solid ${leading ? `${colors.borderGold}` : colors.border}`,
                 borderRadius: radii.lg,
               }}
             >

@@ -1,7 +1,9 @@
 // Verifies the theme wiring: every var() the JS tokens reference must be
 // defined in BOTH palettes in index.html. A missing token doesn't error —
 // it silently renders as transparent/inherit, which is worse.
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
 const theme = readFileSync(new URL("../src/styles/theme.js", import.meta.url), "utf8");
@@ -50,13 +52,29 @@ notOverridden.length
   ? fail(`defined for dark but never overridden for light: ${notOverridden.join(", ")}`)
   : pass(`light palette overrides all ${darkVars.size} tokens`);
 
-// The concatenation hazard: `${colors.x}` + alpha suffix produces invalid CSS
-const src = readFileSync(new URL("../src/styles/shared.js", import.meta.url), "utf8");
+// The concatenation hazard: `${colors.x}` + alpha suffix produces invalid CSS.
+// This once only scanned shared.js, which let the same bug straight into a
+// component — every file that can name a token has to be checked.
+const sources = [];
+const walk = (dir) => {
+  for (const e of readdirSync(dir, { withFileTypes: true })) {
+    const full = join(dir, e.name);
+    if (e.isDirectory()) walk(full);
+    else if (/\.(js|jsx)$/.test(e.name)) sources.push([full, readFileSync(full, "utf8")]);
+  }
+};
+walk(fileURLToPath(new URL("../src", import.meta.url)));
+
 // strip comments first — theme.js documents this exact anti-pattern in prose
-const code = (src + theme).replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
-/\$\{colors\.[a-zA-Z]+\}[0-9a-fA-F]{2}/.test(code)
-  ? fail("a colors.* token has an alpha suffix concatenated onto it — invalid CSS with var()")
-  : pass("no alpha suffixes concatenated onto colour tokens");
+const strip = (t) => t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+const offenders = sources
+  .filter(([, text]) => /\$\{colors\.[a-zA-Z]+\}[0-9a-fA-F]{2}/.test(strip(text)))
+  .map(([file]) => file.slice(file.lastIndexOf("/src/") + 1));
+offenders.length
+  ? fail(
+      `alpha suffix concatenated onto a colors.* token (invalid CSS with var()): ${offenders.join(", ")}`
+    )
+  : pass(`no alpha suffixes concatenated onto colour tokens (${sources.length} files)`);
 
 // The pre-paint script must agree with the CSS on the attribute name
 /data-theme/.test(html) && /localStorage.getItem\("sqrbet-theme"\)/.test(html)

@@ -172,7 +172,7 @@ export function HeroBoard({ scale = 1 }) {
           alignItems: "center",
           gap: 12 * scale,
           background: colors.surfacePrimary,
-          border: `1px solid ${colors.accentGold}55`,
+          border: `1px solid ${colors.borderGold}`,
           borderRadius: radii.pill,
           padding: `${10 * scale}px ${18 * scale}px`,
           boxShadow: "var(--shadow-modal)",

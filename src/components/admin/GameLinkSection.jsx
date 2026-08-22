@@ -78,7 +78,7 @@ export function GameLinkSection({ config, setConfig }) {
         <div
           style={{
             background: colors.surface3,
-            border: `1px solid ${colors.accentGreenBright}40`,
+            border: `1px solid ${colors.borderSuccess}`,
             borderRadius: radii.lg,
             padding: "12px 14px",
           }}

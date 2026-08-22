@@ -339,7 +339,7 @@ export function NewBoardModal({ pools, onCreate, onClose }) {
               marginTop: 14,
               padding: "10px 14px",
               background: colors.surface3,
-              border: `1px solid ${colors.accentGreenBright}40`,
+              border: `1px solid ${colors.borderSuccess}`,
               borderRadius: radii.lg,
               fontSize: 12,
               color: colors.textMuted,
