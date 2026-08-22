@@ -5,7 +5,7 @@ import { useAuth } from "../../hooks/useAuth";
 import { useIsMobile } from "../../hooks/useMediaQuery";
 import { ThemeToggle } from "../common";
 
-export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }) {
+export function Header({ view, spaceCode, onHome, onAdmin, onNewBoard, onExit }) {
   const { isLoggedIn, isOwner, profile, isSpaceAdmin, signOut } = useAuth();
   const isMobile = useIsMobile();
   const [canAccessAdmin, setCanAccessAdmin] = useState(false);
@@ -136,7 +136,7 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
             </div>
           </div>
 
-          {/* Home/View Board · Admin · Sign Out — one row, never wrapping */}
+          {/* Home (on board only) · + Board · Admin · Sign Out — one row */}
           <nav
             style={{
               display: "flex",
@@ -174,17 +174,25 @@ export function Header({ view, spaceCode, onHome, onViewBoard, onAdmin, onExit }
               </span>
             )}
 
-            {/* Toggles with the board, so the home view is still reachable
-                now that the logo leaves the space instead */}
-            <button
-              onClick={onBoard ? onHome : onViewBoard}
-              style={{
-                ...navButton,
-                background: onBoard ? colors.surface5 : "transparent",
-              }}
-            >
-              {onBoard ? "Home" : isMobile ? "Board" : "View Board"}
-            </button>
+            {/* Only while on the board. The logo leaves the space, so without
+                this there'd be no way back to the home view — and the "view
+                board" direction already lives on the home screen itself. */}
+            {onBoard && (
+              <button onClick={onHome} style={{ ...navButton, background: colors.surface5 }}>
+                Home
+              </button>
+            )}
+
+            {/* New board — admins only, opens the panel with the name field ready */}
+            {canAccessAdmin && (
+              <button
+                onClick={onNewBoard}
+                style={{ ...navButton, color: colors.accentGreenBright, borderColor: "#4ade8033" }}
+                title="Create a new board in this space"
+              >
+                {isMobile ? "+" : "+ Board"}
+              </button>
+            )}
 
             {/* Admin — hidden for players */}
             {canAccessAdmin && (

@@ -225,6 +225,22 @@ export function GameBoard({ spaceCode, onExit }) {
   const [submitError, setSubmitError] = useState("");
   const [adminAuth, setAdminAuth] = useState(false);
   const [showPastBoards, setShowPastBoards] = useState(false);
+  // Set when the header's + Board is used, so the panel opens ready to type
+  const [focusNewBoard, setFocusNewBoard] = useState(false);
+
+  // Both header buttons open the same panel, so the access check lives once here
+  const openAdmin = useCallback(
+    (after) => {
+      const grant = () => {
+        setAdminAuth(true);
+        setView("admin");
+        after?.();
+      };
+      if (isOwner) return grant();
+      isSpaceAdmin(spaceCode).then((ok) => ok && grant());
+    },
+    [isOwner, isSpaceAdmin, spaceCode]
+  );
 
   // ── derived ───────────────────────────────────────────
   const fullName = [firstName.trim(), middleInitial ? `${middleInitial}.` : "", lastName.trim()]
@@ -517,24 +533,10 @@ export function GameBoard({ spaceCode, onExit }) {
           setView("home");
           resetJoinFlow();
         }}
-        onViewBoard={() => {
-          setView("board");
-          resetJoinFlow();
+        onNewBoard={() => {
+          openAdmin(() => setFocusNewBoard(true));
         }}
-        onAdmin={() => {
-          // Global owners and space admins can access; non-Supabase mode falls back to isOwner
-          if (isOwner) {
-            setAdminAuth(true);
-            setView("admin");
-            return;
-          }
-          isSpaceAdmin(spaceCode).then((ok) => {
-            if (ok) {
-              setAdminAuth(true);
-              setView("admin");
-            }
-          });
-        }}
+        onAdmin={() => openAdmin()}
         onExit={onExit}
       />
 
@@ -568,6 +570,8 @@ export function GameBoard({ spaceCode, onExit }) {
           poolConfigs={poolAdmin.configs}
           poolBusyId={poolAdmin.busyPoolId}
           pendingCounts={poolAdmin.pendingCounts}
+          focusNewBoard={focusNewBoard}
+          onNewBoardFocused={() => setFocusNewBoard(false)}
           onActivateBoard={(poolId) => startCheckout(spaceCode, poolId)}
           checkoutStartingFor={startingFor}
           checkoutError={checkoutError}
