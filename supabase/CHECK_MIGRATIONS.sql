@@ -32,7 +32,12 @@ WITH checks(step, migration, artifact, present) AS (
     (10, 'migration_payment_ref.sql', 'submit_entry_request stores paymentRef',
       EXISTS (SELECT 1 FROM pg_proc
                WHERE proname='submit_entry_request'
-                 AND prosrc LIKE '%paymentRef%'))
+                 AND prosrc LIKE '%paymentRef%')),
+    (11, 'migration_fix_superadmin_grants.sql', 'superadmin RPCs are executable',
+      NOT EXISTS (SELECT 1 FROM pg_proc p
+                    JOIN pg_namespace n ON n.oid = p.pronamespace
+                   WHERE n.nspname='public' AND p.proname LIKE 'superadmin\_%'
+                     AND NOT has_function_privilege('authenticated', p.oid, 'EXECUTE')))
 )
 SELECT
   step,

@@ -52,7 +52,15 @@ export function useSuperAdmin() {
         setSpaces(sp || []);
         setAudit(a || []);
       } catch (err) {
-        setError(err?.message || "Could not load superadmin data");
+        const message = err?.message || "Could not load superadmin data";
+        // "permission denied for function" means EXECUTE was never granted,
+        // which is a different problem from not holding the role — and it has
+        // a specific fix rather than being a mystery.
+        setError(
+          /permission denied for function/i.test(message)
+            ? `${message} — run supabase/migration_fix_superadmin_grants.sql in the SQL Editor.`
+            : message
+        );
       } finally {
         setLoading(false);
       }

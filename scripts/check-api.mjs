@@ -93,5 +93,26 @@ check(
 check("clients cannot flip the paid flag", sql.includes("protect_paid_flag"));
 check("unpaid boards refuse entries", sql.includes("This board is not active yet"));
 
+// Grants written as a hand-typed list inside one DO block are all-or-nothing:
+// a single wrong signature aborts the block and leaves every function
+// ungranted, which is how superadmin_stats ended up uncallable.
+const superadminSql = read("supabase/migration_superadmin.sql");
+const fixSql = read("supabase/migration_fix_superadmin_grants.sql");
+check("a repair migration for the grants exists", fixSql.length > 0);
+check(
+  "the repair reads signatures from the catalog, not a hand-typed list",
+  /oid::regprocedure/.test(fixSql)
+);
+check("the repair grants each function independently", /EXCEPTION WHEN OTHERS/.test(fixSql));
+check("the repair is idempotent (no bare CREATE POLICY)", !/CREATE POLICY/.test(fixSql));
+check(
+  "CHECK_MIGRATIONS verifies the grants landed",
+  /has_function_privilege\('authenticated'/.test(read("supabase/CHECK_MIGRATIONS.sql"))
+);
+check(
+  "the original all-or-nothing block is documented as the cause",
+  /hand-written list of signatures/.test(fixSql) && superadminSql.includes("FOREACH fn IN ARRAY")
+);
+
 console.log(failed === 0 ? "\nAll API safety cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);
