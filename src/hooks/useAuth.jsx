@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from "react";
 import {
   supabase,
   isSupabaseEnabled,
@@ -13,6 +13,8 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null); // Supabase auth user
   const [profile, setProfile] = useState(null); // user_profiles row
   const [loading, setLoading] = useState(true);
+  // Which user's profile is already loaded, so a token refresh doesn't refetch it
+  const profileForRef = useRef(null);
 
   // Load user profile from user_profiles table
   const loadProfile = useCallback(async (authUser) => {
@@ -57,6 +59,7 @@ export function AuthProvider({ children }) {
         const authUser = result?.data?.session?.user ?? null;
         setUser(authUser);
         if (authUser) {
+          profileForRef.current = authUser.id;
           loadProfile(authUser).finally(() => !cancelled && setLoading(false));
         } else {
           setProfile(null);
@@ -88,10 +91,22 @@ export function AuthProvider({ children }) {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const authUser = session?.user ?? null;
-      setUser(authUser);
+
+      // supabase-js refreshes the token whenever a tab regains focus, and fires
+      // this with a fresh object for the same person. Handing that down changes
+      // identity for every consumer, re-running their queries and blanking the
+      // screen behind a loading gate. Keep the previous object when it's the
+      // same user.
+      setUser((prev) => (authUser ? (prev?.id === authUser.id ? prev : authUser) : null));
+
       if (authUser) {
-        await loadProfile(authUser);
+        // Same reasoning: don't refetch a profile we already hold
+        if (profileForRef.current !== authUser.id) {
+          profileForRef.current = authUser.id;
+          await loadProfile(authUser);
+        }
       } else {
+        profileForRef.current = null;
         setProfile(null);
       }
     });

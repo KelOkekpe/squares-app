@@ -75,5 +75,45 @@ check(
   /visibilityState === "visible"\) refreshQuietly\(\)/.test(registry)
 );
 
+// Returning to a tab must not blank the page.
+//
+// supabase-js refreshes the token whenever a tab regains focus and fires
+// onAuthStateChange with a fresh object for the same person. Passing that down
+// changes identity for every consumer, re-running their queries and dropping
+// the user behind a loading gate — which read as "extremely long load times"
+// on tab return.
+const nextUser = (prev, authUser) =>
+  authUser ? (prev?.id === authUser.id ? prev : authUser) : null;
+
+const a1 = { id: "u1" },
+  a2 = { id: "u1" },
+  b = { id: "u2" };
+check("a token refresh keeps the same user object", nextUser(a1, a2) === a1);
+check("a different user does replace it", nextUser(a1, b) === b);
+check("sign-out clears to null", nextUser(a1, null) === null);
+check("signing in from nothing sets the user", nextUser(null, a1) === a1);
+
+const auth = rf(new URL("../src/hooks/useAuth.js".replace(".js", ".jsx"), import.meta.url), "utf8");
+check(
+  "useAuth keeps user identity stable across refreshes",
+  /prev\?\.id === authUser\.id \? prev : authUser/.test(auth)
+);
+check(
+  "useAuth skips refetching a profile it already holds",
+  /profileForRef\.current !== authUser\.id/.test(auth)
+);
+
+const userSpaces = rf(new URL("../src/hooks/useUserSpaces.js", import.meta.url), "utf8");
+check(
+  "useUserSpaces only gates on the first load",
+  /if \(!hasLoadedRef\.current\) setLoading\(true\)/.test(userSpaces)
+);
+
+const gameBoard = rf(new URL("../src/GameBoard.jsx", import.meta.url), "utf8");
+check(
+  "the access gate resolves once rather than per request",
+  /!accessResolved && \(registryLoading \|\| userSpacesLoading\)/.test(gameBoard)
+);
+
 console.log(failed === 0 ? "\nAll async-guard cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

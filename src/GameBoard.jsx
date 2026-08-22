@@ -51,7 +51,15 @@ export function GameBoard({ spaceCode, onExit }) {
 
   const space = spaces.find((s) => s.code === spaceCode);
   const isOwnerOrAdmin = userSpaces.some((s) => s.code === spaceCode);
-  const checkingAccess = registryLoading || userSpacesLoading;
+  // Once access has resolved once, later refreshes happen behind the board
+  // rather than replacing it. Gating on in-flight requests meant every tab
+  // focus threw the player back to "Checking access…".
+  const [accessResolved, setAccessResolved] = useState(false);
+  useEffect(() => {
+    if (!registryLoading && !userSpacesLoading) setAccessResolved(true);
+  }, [registryLoading, userSpacesLoading]);
+
+  const checkingAccess = !accessResolved && (registryLoading || userSpacesLoading);
   const needsPassword =
     !checkingAccess && space?.isPrivate && !hasAccess(spaceCode) && !isOwnerOrAdmin;
 

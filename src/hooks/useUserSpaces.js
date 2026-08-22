@@ -11,6 +11,7 @@ export function useUserSpaces() {
   const { user, isLoggedIn } = useAuth();
   const [dbSpaces, setDbSpaces] = useState([]);
   const retriedRef = useRef(false);
+  const hasLoadedRef = useRef(false);
   const [loading, setLoading] = useState(false);
 
   const loadSpaces = useCallback(async () => {
@@ -24,7 +25,9 @@ export function useUserSpaces() {
       setLoading(false);
       return;
     }
-    setLoading(true);
+    // Only gate the UI on the first load. Later refetches keep the previous
+    // list on screen — a background refresh shouldn't blank the page.
+    if (!hasLoadedRef.current) setLoading(true);
     try {
       const query = () =>
         withTimeout(
@@ -76,6 +79,7 @@ export function useUserSpaces() {
       console.error("Error loading user spaces:", err);
       setDbSpaces([]);
     } finally {
+      hasLoadedRef.current = true;
       setLoading(false);
     }
   }, [user, isLoggedIn]);
