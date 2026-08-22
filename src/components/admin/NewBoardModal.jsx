@@ -105,7 +105,17 @@ export function NewBoardModal({ pools, onCreate, onClose }) {
     setCreating(true);
     const result = await onCreate({ name: name.trim(), expiresAt: endsOn, game });
     setCreating(false);
-    if (result?.error) return setError(result.error);
+    if (result?.error) {
+      // An RLS rejection here almost always means auth.uid() was null — the
+      // policy checks space membership, and a signed-out session has none.
+      // Quoting Postgres at an admin doesn't help them act on it.
+      const rls = /row-level security|violates row-level/i.test(result.error);
+      return setError(
+        rls
+          ? "Couldn't create the board — your session may have expired. Sign out and back in, then try again."
+          : result.error
+      );
+    }
     onClose();
   };
 
