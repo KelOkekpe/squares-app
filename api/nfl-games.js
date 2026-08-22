@@ -1,13 +1,18 @@
 import { listGames } from "./_lib/espn.js";
 
 /**
- * Games an admin can link a board to. Read-only passthrough of public data,
- * so it needs no auth — it exposes nothing this app owns.
+ * Games an admin can link a board to, by week or by date. Read-only
+ * passthrough of public data, so it needs no auth.
  */
 export default async function handler(req, res) {
   try {
-    const dates = typeof req.query?.dates === "string" ? req.query.dates.replace(/\D/g, "") : "";
-    const games = await listGames(dates || undefined);
+    const q = req.query || {};
+    const games = await listGames({
+      dates: typeof q.dates === "string" ? q.dates.replace(/\D/g, "") : undefined,
+      week: q.week ? Number(q.week) : undefined,
+      seasonType: q.seasonType ? Number(q.seasonType) : undefined,
+      year: q.year ? Number(q.year) : undefined,
+    });
     res.setHeader("Cache-Control", "public, s-maxage=60, stale-while-revalidate=300");
     return res.status(200).json({ games });
   } catch (err) {

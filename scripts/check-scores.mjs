@@ -47,5 +47,28 @@ check("overtime does not report a fifth quarter", ot === 4);
 // Winners come from the last digit of the running total, not the quarter's points
 check("winning digit uses the cumulative score", 17 % 10 === 7);
 
+// Board creation offers a week picker, so the calendar has to be usable
+import { listWeeks, seasonYear } from "../api/_lib/espn.js";
+const blocks = await listWeeks(2025).catch(() => []);
+check("season calendar is available", blocks.length > 0);
+const regular = blocks.find((b) => b.seasonType === 2);
+check("regular season is present", !!regular);
+check("regular season has 18 weeks", regular?.weeks.length === 18);
+check(
+  "weeks carry a label and a number",
+  !!regular?.weeks[0]?.label && Number.isFinite(regular?.weeks[0]?.week)
+);
+check("weeks carry dates for defaulting the end date", !!regular?.weeks[0]?.startDate);
+
+const wk = await listGames({ week: 1, seasonType: 2, year: 2025 }).catch(() => []);
+check("a week returns its games", wk.length > 0);
+check("games carry a short name for the picker", !!wk[0]?.shortName);
+check("games carry kickoff time for defaulting the end date", !!wk[0]?.startsAt);
+check("games carry both team ids for axis mapping", !!wk[0]?.away?.id && !!wk[0]?.home?.id);
+
+// NFL seasons span the new year, so the season year is not just "this year"
+check("August belongs to that year's season", seasonYear(new Date("2026-08-15")) === 2026);
+check("January belongs to the previous year's season", seasonYear(new Date("2027-01-15")) === 2026);
+
 console.log(failed === 0 ? "\nAll score-sync cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

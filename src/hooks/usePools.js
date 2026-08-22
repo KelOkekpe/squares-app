@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase, isSupabaseEnabled } from "../lib/supabase";
 import { withTimeout } from "../utils/async";
+import { DEFAULT_CONFIG } from "../utils";
 
 /**
  * Hook to manage pools for a space
@@ -116,7 +117,7 @@ export function usePools(spaceCode) {
   // The 16-board cap and the required expiry are enforced by a trigger, so the
   // database's message is surfaced verbatim rather than guessed at here.
   const createPool = useCallback(
-    async (name, expiresAt) => {
+    async (name, expiresAt, initialConfig) => {
       if (!spaceCode || !name) return { pool: null, error: "Name is required" };
       if (!expiresAt) return { pool: null, error: "An end date is required" };
       if (!isSupabaseEnabled()) return { pool: null, error: "Supabase is required" };
@@ -147,6 +148,23 @@ export function usePools(spaceCode) {
           paid: data.paid !== false,
           createdAt: new Date(data.created_at).getTime(),
         };
+
+        // Seed the board's config in the same breath, so a board created with
+        // a game attached is immediately wired for live scores.
+        if (initialConfig && Object.keys(initialConfig).length) {
+          const { error: configError } = await supabase.from("spaces").upsert(
+            {
+              key: `fb-${spaceCode}-${data.id}-admin`,
+              space_code: spaceCode,
+              pool_id: data.id,
+              type: "admin",
+              value: { ...DEFAULT_CONFIG, ...initialConfig },
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "space_code,pool_id,type" }
+          );
+          if (configError) console.warn("Could not seed board config:", configError.message);
+        }
 
         setPools((prev) => [...prev, transformedPool]);
         return { pool: transformedPool, error: null };

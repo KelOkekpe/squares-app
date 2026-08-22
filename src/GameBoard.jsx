@@ -40,7 +40,7 @@ import {
   BoardView,
   PastBoardsModal,
 } from "./components/layout";
-import { AdminPanel } from "./components/admin";
+import { AdminPanel, NewBoardModal } from "./components/admin";
 import { PasswordInput } from "./components/common";
 
 export function GameBoard({ spaceCode, onExit }) {
@@ -226,7 +226,7 @@ export function GameBoard({ spaceCode, onExit }) {
   const [adminAuth, setAdminAuth] = useState(false);
   const [showPastBoards, setShowPastBoards] = useState(false);
   // Set when the header's + Board is used, so the panel opens ready to type
-  const [focusNewBoard, setFocusNewBoard] = useState(false);
+  const [showNewBoard, setShowNewBoard] = useState(false);
 
   // Both header buttons open the same panel, so the access check lives once here
   const openAdmin = useCallback(
@@ -533,9 +533,7 @@ export function GameBoard({ spaceCode, onExit }) {
           setView("home");
           resetJoinFlow();
         }}
-        onNewBoard={() => {
-          openAdmin(() => setFocusNewBoard(true));
-        }}
+        onNewBoard={() => setShowNewBoard(true)}
         onAdmin={() => openAdmin()}
         onExit={onExit}
       />
@@ -570,8 +568,6 @@ export function GameBoard({ spaceCode, onExit }) {
           poolConfigs={poolAdmin.configs}
           poolBusyId={poolAdmin.busyPoolId}
           pendingCounts={poolAdmin.pendingCounts}
-          focusNewBoard={focusNewBoard}
-          onNewBoardFocused={() => setFocusNewBoard(false)}
           onActivateBoard={(poolId) => startCheckout(spaceCode, poolId)}
           checkoutStartingFor={startingFor}
           checkoutError={checkoutError}
@@ -655,6 +651,35 @@ export function GameBoard({ spaceCode, onExit }) {
           />
         )}
       </main>
+
+      {showNewBoard && (
+        <NewBoardModal
+          pools={pools}
+          onClose={() => setShowNewBoard(false)}
+          onCreate={async ({ name, expiresAt, game }) => {
+            // Linking at creation means the board is wired for live scores and
+            // smart fill before anyone has to open the admin console.
+            const initialConfig = game
+              ? {
+                  teamX: game.away?.name,
+                  teamY: game.home?.name,
+                  game: {
+                    provider: "espn",
+                    id: game.id,
+                    name: game.name,
+                    startsAt: game.startsAt,
+                    xTeamId: game.away?.id,
+                    yTeamId: game.home?.id,
+                  },
+                }
+              : null;
+
+            const { pool, error } = await createPoolInDb(name, expiresAt, initialConfig);
+            if (pool) switchPool(pool.id);
+            return { error };
+          }}
+        />
+      )}
 
       {showPastBoards && (
         <PastBoardsModal

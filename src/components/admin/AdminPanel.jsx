@@ -46,8 +46,6 @@ export function AdminPanel({
   onRemoveEntry,
   onSmartFill,
   pendingCounts = {},
-  focusNewBoard,
-  onNewBoardFocused,
   onActivateBoard,
   checkoutStartingFor,
   checkoutError,
@@ -56,12 +54,6 @@ export function AdminPanel({
   // Starts blank so a setting is never changed on whichever board happened to
   // be in view — the admin picks one deliberately first.
   const [selectedBoard, setSelectedBoard] = useState("");
-
-  // Arriving via the header's + Board should land on Pool Management, not
-  // wherever the panel was left last time.
-  useEffect(() => {
-    if (focusNewBoard) setTab("space");
-  }, [focusNewBoard]);
 
   // Entries waiting anywhere in the space, and how many are on a board other
   // than the one being viewed — the case that reads as "pending is broken".
@@ -269,8 +261,6 @@ export function AdminPanel({
                 toggleArchivePool={toggleArchivePool}
                 activePoolId={activePoolId}
                 onSwitchPool={onSwitchPool}
-                focusNewBoard={focusNewBoard}
-                onNewBoardFocused={onNewBoardFocused}
                 onResetPool={onResetPool}
                 onToggleSubmissions={onToggleSubmissions}
                 poolConfigs={poolConfigs}

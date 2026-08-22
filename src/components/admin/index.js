@@ -14,3 +14,4 @@ export { OverrideCellSection } from "./OverrideCellSection";
 export { ApprovalNotice } from "./ApprovalNotice";
 export { GameLinkSection } from "./GameLinkSection";
 export { SmartFillSection } from "./SmartFillSection";
+export { NewBoardModal } from "./NewBoardModal";

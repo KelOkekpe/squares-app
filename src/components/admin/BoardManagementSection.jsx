@@ -15,8 +15,6 @@ export function BoardManagementSection({
   onToggleSubmissions,
   poolConfigs = {},
   poolBusyId,
-  focusNewBoard,
-  onNewBoardFocused,
   onActivateBoard,
   checkoutStartingFor,
   checkoutError,
@@ -26,15 +24,6 @@ export function BoardManagementSection({
   const [showArchived, setShowArchived] = useState(false);
   const [createError, setCreateError] = useState("");
   const [confirmReset, setConfirmReset] = useState(null);
-  const nameRef = useRef(null);
-
-  // Focus the name field when arriving from the header's + Board button
-  useEffect(() => {
-    if (!focusNewBoard) return;
-    nameRef.current?.focus();
-    nameRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
-    onNewBoardFocused?.();
-  }, [focusNewBoard, onNewBoardFocused]);
 
   const isClosed = (poolId) => !!poolConfigs[poolId]?.submissionsDisabled;
 
@@ -137,7 +126,6 @@ export function BoardManagementSection({
       {/* Create new pool */}
       <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
         <input
-          ref={nameRef}
           value={newPoolName}
           onChange={(e) => {
             setNewPoolName(e.target.value);
