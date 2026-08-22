@@ -10,6 +10,7 @@ import {
   isSlateComplete,
   gradedCount,
 } from "../src/utils/pickem.js";
+import { readFileSync } from "node:fs";
 
 let failed = 0;
 const check = (l, c) => {
@@ -107,6 +108,25 @@ check("a null slate is handled", scoreEntry(entry("X", {}, 10), null).correct ==
 check(
   "a tie result grades as neither side",
   scoreEntry(entry("X", { t: "home" }, 10), { games: [g("t", "tie")] }).correct === 0
+);
+
+// ── standings only reveal sheets once picks are locked ──
+// The whole point of hiding them is that a visible sheet before kickoff is a
+// sheet to copy. Standings must gate on the same lock that closes submission,
+// never on "some game is graded" (which would expose the rest of the week's
+// picks the moment one early game went final).
+const standings = readFileSync(
+  new URL("../src/components/pickem/Standings.jsx", import.meta.url),
+  "utf8"
+);
+check("standings gate the reveal on isSlateLocked", /revealed\s*=\s*isSlateLocked\(/.test(standings));
+check(
+  "the breakdown is not rendered while picks are open",
+  /revealed && open && <PicksBreakdown/.test(standings)
+);
+check(
+  "a locked slate reveals, an open one does not",
+  isSlateLocked(past) === true && isSlateLocked(future) === false
 );
 
 console.log(failed === 0 ? "\nAll pick'em cases pass." : `\n${failed} failed.`);
