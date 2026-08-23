@@ -1,4 +1,5 @@
 import React from "react";
+import { DEFAULT_TEAM_COLORS, darken } from "../../utils";
 import { adminSectionStyle, adminInputStyle, labelStyle } from "../../styles";
 import { fonts } from "../../styles";
 
@@ -39,7 +40,8 @@ function TeamPreview({ bg, color, name }) {
   return (
     <div
       style={{
-        background: `linear-gradient(135deg, ${bg}, ${bg}cc)`,
+        // Same gradient the grid draws, so the preview isn't flattering.
+        background: `linear-gradient(135deg, ${bg}, ${darken(bg, 0.25)})`,
         color,
         padding: "8px 16px",
         borderRadius: 8,
@@ -71,21 +73,21 @@ export function TeamColorSection({ config, setConfig }) {
       <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
         <ColorPicker
           label="Background"
-          value={config.teamXBg || "#1e3a5f"}
+          value={config.teamXBg || DEFAULT_TEAM_COLORS.bg}
           onChange={update("teamXBg")}
           inputStyle={adminInputStyle}
         />
         <ColorPicker
           label="Text Color"
-          value={config.teamXColor || "#7db8f0"}
+          value={config.teamXColor || DEFAULT_TEAM_COLORS.color}
           onChange={update("teamXColor")}
           inputStyle={adminInputStyle}
         />
       </div>
       <div style={{ marginBottom: 20 }}>
         <TeamPreview
-          bg={config.teamXBg || "#1e3a5f"}
-          color={config.teamXColor || "#7db8f0"}
+          bg={config.teamXBg || DEFAULT_TEAM_COLORS.bg}
+          color={config.teamXColor || DEFAULT_TEAM_COLORS.color}
           name={config.teamX || "Team X"}
         />
       </div>
@@ -101,20 +103,20 @@ export function TeamColorSection({ config, setConfig }) {
       <div style={{ display: "flex", gap: 10, marginBottom: 8 }}>
         <ColorPicker
           label="Background"
-          value={config.teamYBg || "#3a1e2e"}
+          value={config.teamYBg || DEFAULT_TEAM_COLORS.bg}
           onChange={update("teamYBg")}
           inputStyle={adminInputStyle}
         />
         <ColorPicker
           label="Text Color"
-          value={config.teamYColor || "#f0a0b8"}
+          value={config.teamYColor || DEFAULT_TEAM_COLORS.color}
           onChange={update("teamYColor")}
           inputStyle={adminInputStyle}
         />
       </div>
       <TeamPreview
-        bg={config.teamYBg || "#3a1e2e"}
-        color={config.teamYColor || "#f0a0b8"}
+        bg={config.teamYBg || DEFAULT_TEAM_COLORS.bg}
+        color={config.teamYColor || DEFAULT_TEAM_COLORS.color}
         name={config.teamY || "Team Y"}
       />
     </div>

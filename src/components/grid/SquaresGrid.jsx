@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
-import { GRID_SIZE, QUARTERS, getWinnerCell } from "../../utils";
-import { darken } from "../../utils";
+import { GRID_SIZE, QUARTERS, getWinnerCell, DEFAULT_TEAM_COLORS } from "../../utils";
+import { darken, bestContrast } from "../../utils";
 import { colors, fonts } from "../../styles";
 import { useIsMobile } from "../../hooks/useMediaQuery";
 import { useTheme } from "../../hooks/useTheme";
@@ -20,10 +20,22 @@ export function SquaresGrid({ board, headers, config, scores }) {
   // In light mode the darkened team colour reads as a heavy black band across a
   // pale board, so the number gutters go white and the team colour moves to the
   // digits instead.
-  const axisCell = (teamBg, teamColor) =>
-    isLight
-      ? { background: colors.surfacePrimary, color: teamBg, border: `1px solid ${colors.border}` }
-      : { background: darken(teamBg, 0.5), color: teamColor };
+  // The number used to be painted in the team's background colour, which is
+  // invisible the moment that colour is white. Pick whichever of the team's two
+  // colours actually reads against the cell — for dark team colours that lands
+  // on the same one it always did.
+  const axisCell = (teamBg, teamColor) => {
+    if (isLight) {
+      // The light surface is white, so the darker of the pair wins.
+      return {
+        background: colors.surfacePrimary,
+        color: bestContrast([teamBg, teamColor], "#ffffff"),
+        border: `1px solid ${colors.border}`,
+      };
+    }
+    const cell = darken(teamBg, 0.5);
+    return { background: cell, color: bestContrast([teamColor, teamBg], cell) };
+  };
 
   const nameSize = (name) =>
     isMobile
@@ -56,10 +68,10 @@ export function SquaresGrid({ board, headers, config, scores }) {
   const xTeam = config.game?.xTeamId || config.teamX;
   const yTeam = config.game?.yTeamId || config.teamY;
 
-  const teamXBg = config.teamXBg || "#1e3a5f";
-  const teamXColor = config.teamXColor || "#7db8f0";
-  const teamYBg = config.teamYBg || "#3a1e2e";
-  const teamYColor = config.teamYColor || "#f0a0b8";
+  const teamXBg = config.teamXBg || DEFAULT_TEAM_COLORS.bg;
+  const teamXColor = config.teamXColor || DEFAULT_TEAM_COLORS.color;
+  const teamYBg = config.teamYBg || DEFAULT_TEAM_COLORS.bg;
+  const teamYColor = config.teamYColor || DEFAULT_TEAM_COLORS.color;
 
   return (
     <div style={{ width: "100%", overflowX: "auto" }}>

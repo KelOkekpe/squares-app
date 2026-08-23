@@ -122,6 +122,8 @@ There are no CSS files. Every style is an inline object, and inline styles beat 
 
 Two consequences: you **cannot concatenate an alpha suffix** onto a token (`` `${colors.accentGold}30` `` produces invalid CSS now) — add a token to `index.html` instead; and a new token must be defined in **both** palettes or it silently renders as transparent. `npm run check:theme` enforces both. Use `colors.white` only for text on accent-filled buttons; use `colors.headline` for text that must invert.
 
+**Team banner colours** default to white on black via `DEFAULT_TEAM_COLORS` in `src/utils/constants.js` — one definition, imported by the grid and the colour picker, because the same four hexes used to be written out in all three and could drift. The grid's axis numbers pick whichever of the team's two colours contrasts with the cell (`bestContrast()`); painting them in the team's *background* colour, as they once were, makes them invisible the moment that colour is light.
+
 Note `pageStyle` sets `overflow: hidden`, so anything that overflows horizontally is clipped rather than scrollable.
 
 ## Gotchas

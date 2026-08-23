@@ -31,6 +31,16 @@ export const DEFAULT_POOL_ENTRY = (name) => ({
 // Legacy name for backward compatibility
 export const DEFAULT_BOARD_ENTRY = DEFAULT_POOL_ENTRY;
 
+/**
+ * Team banner colours a board starts with.
+ *
+ * Plain white on black: a board is usually printed or screenshotted, and the
+ * admin sets their own team colours from here. These were three separate
+ * copies of the same four hexes — constants, the grid and the colour picker —
+ * which is why the picker could disagree with the board.
+ */
+export const DEFAULT_TEAM_COLORS = { bg: "#ffffff", color: "#000000" };
+
 export const DEFAULT_CONFIG = {
   pricePerSquare: DEFAULT_PRICE,
   // Free text shown to players on the payment step, e.g. "Venmo @kel-okekpe".
@@ -42,10 +52,10 @@ export const DEFAULT_CONFIG = {
   teamX: "Seattle Seahawks",
   teamY: "New England Patriots",
   submissionsDisabled: false,
-  teamXBg: "#1e3a5f",
-  teamXColor: "#7db8f0",
-  teamYBg: "#3a1e2e",
-  teamYColor: "#f0a0b8",
+  teamXBg: DEFAULT_TEAM_COLORS.bg,
+  teamXColor: DEFAULT_TEAM_COLORS.color,
+  teamYBg: DEFAULT_TEAM_COLORS.bg,
+  teamYColor: DEFAULT_TEAM_COLORS.color,
   totalPot: 0,
   quarterlyPayout: 0,
 };

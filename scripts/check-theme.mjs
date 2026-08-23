@@ -2,6 +2,7 @@
 // defined in BOTH palettes in index.html. A missing token doesn't error —
 // it silently renders as transparent/inherit, which is worse.
 import { readFileSync, readdirSync } from "node:fs";
+import { contrastRatio } from "../src/utils/colorUtils.js";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -94,6 +95,62 @@ for (const m of shared.matchAll(/export const (\w+) = \{([\s\S]*?)\n\};/g)) {
     ? pass(`${name} sets box-sizing (width:100% + padding)`)
     : fail(`${name} has width:100% and padding but no box-sizing — it will overflow its container`);
 }
+
+// ── team banner colours ──
+// The same four hexes were written out in three files — constants, the grid and
+// the colour picker — so the picker could show one thing and the board draw
+// another. One definition now, and nothing outside the marketing illustration
+// may hard-code the old pair.
+const strays = sources
+  .filter(([file]) => !file.includes("/marketing/"))
+  .filter(([, text]) => /#1e3a5f|#7db8f0|#3a1e2e|#f0a0b8/.test(strip(text)))
+  .map(([file]) => file.slice(file.lastIndexOf("/src/") + 1));
+strays.length
+  ? fail(`the old team colours are hard-coded outside marketing: ${strays.join(", ")}`)
+  : pass("team banner colours have a single definition");
+
+const constants = readFileSync(new URL("../src/utils/constants.js", import.meta.url), "utf8");
+const pair = constants.match(
+  /DEFAULT_TEAM_COLORS = \{ bg: "(#[0-9a-f]{6})", color: "(#[0-9a-f]{6})" \}/i
+);
+check_pair: {
+  if (!pair) {
+    fail("DEFAULT_TEAM_COLORS is missing or reshaped");
+    break check_pair;
+  }
+  const ratio = contrastRatio(pair[1], pair[2]);
+  ratio >= 7
+    ? pass(`the default team colours are legible (contrast ${ratio.toFixed(1)}:1)`)
+    : fail(`the default team colours only reach ${ratio.toFixed(1)}:1 contrast`);
+}
+
+// A white banner made the axis numbers white-on-white, because they were
+// painted in the team's *background* colour.
+const gridSrc = readFileSync(
+  new URL("../src/components/grid/SquaresGrid.jsx", import.meta.url),
+  "utf8"
+);
+// Checked per branch: testing the whole file for "bestContrast(" passed even
+// with the light branch reverted, because the dark branch still had one.
+const axisBody = gridSrc.slice(
+  gridSrc.indexOf("const axisCell ="),
+  gridSrc.indexOf("const nameSize =")
+);
+const colourAssignments = [...axisBody.matchAll(/color:\s*([^,\n]+)/g)].map((m) => m[1].trim());
+colourAssignments.length >= 2 && colourAssignments.every((c) => c.startsWith("bestContrast("))
+  ? pass(`axis numbers are chosen by contrast in all ${colourAssignments.length} branches`)
+  : fail(
+      `axis numbers ignore contrast in at least one branch (${colourAssignments.join(" | ")}) — a light team colour renders them invisible`
+    );
+
+// A preview that draws a different gradient than the board is a lie.
+const picker = readFileSync(
+  new URL("../src/components/admin/TeamColorSection.jsx", import.meta.url),
+  "utf8"
+);
+/darken\(bg, 0\.25\)/.test(picker)
+  ? pass("the colour preview draws the same gradient as the grid")
+  : fail("the colour preview's gradient no longer matches the grid");
 
 console.log(failed === 0 ? "\nAll theme cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);
