@@ -10,4 +10,5 @@ export * from "./errors.js";
 export * from "./paymentLinks.js";
 export * from "./smartFill.js";
 export * from "./pickem.js";
+export * from "./nflTeams.js";
 export * from "./teamLogo.js";

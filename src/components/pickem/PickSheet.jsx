@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { colors, radii, cardStyle, inputStyle, labelStyle, btnPrimary } from "../../styles";
 import { isSlateLocked, tiebreakGame, missingPicks, PICK_AWAY, PICK_HOME } from "../../utils";
 import { isValidEmail, isValidPhone } from "../join/NameStep";
-import { TeamLogo } from "./TeamLogo";
+import { TeamLogo } from "../common";
 
 function TeamButton({ team, label, selected, onClick, disabled }) {
   return (

@@ -11,6 +11,7 @@ import {
   gradedCount,
 } from "../src/utils/pickem.js";
 import { teamLogoUrl } from "../src/utils/teamLogo.js";
+import { NFL_TEAMS, findTeam } from "../src/utils/nflTeams.js";
 import { readFileSync } from "node:fs";
 
 let failed = 0;
@@ -181,6 +182,38 @@ check("derivation lower-cases the abbreviation", teamLogoUrl({ abbr: "WSH" }).en
 // renders a broken image next to somebody's pick.
 check("a non-abbreviation team yields no logo", teamLogoUrl({ name: "The Ducks" }) === null);
 check("an empty team yields no logo", teamLogoUrl(null) === null && teamLogoUrl({}) === null);
+
+// Squares boards never stored an abbreviation. A linked board kept ESPN's
+// numeric team id and an unlinked one keeps whatever the admin typed, so both
+// have to resolve through the team table or the grid headers stay blank.
+check("an ESPN team id resolves", teamLogoUrl({ id: "20" }).endsWith("/nyj.png"));
+check("a typed full name resolves", teamLogoUrl("Seattle Seahawks").endsWith("/sea.png"));
+check("a typed nickname resolves", teamLogoUrl("Packers").endsWith("/gb.png"));
+check("a typed city resolves", teamLogoUrl("Cincinnati").endsWith("/cin.png"));
+check("free text resolves to nothing", teamLogoUrl("The Office Champs") === null);
+check("all 32 teams are present", NFL_TEAMS.length === 32);
+check(
+  "every team resolves by id, abbr and name",
+  NFL_TEAMS.every(
+    (t) =>
+      findTeam(t.id)?.abbr === t.abbr &&
+      findTeam(t.abbr)?.abbr === t.abbr &&
+      findTeam(t.name)?.abbr === t.abbr
+  )
+);
+
+// The Y-axis banner used to rotate its whole container. A logo inside would
+// have been turned on its side with the text.
+const grid = readFileSync(
+  new URL("../src/components/grid/SquaresGrid.jsx", import.meta.url),
+  "utf8"
+);
+const yBanner = grid.slice(grid.indexOf("Y-axis team banner"), grid.indexOf("Y-axis numbers"));
+check(
+  "the Y banner rotates its text, not the whole banner",
+  !/transform: "rotate\(180deg\)"[\s\S]{0,400}<TeamLogo/.test(yBanner) &&
+    /<TeamLogo[\s\S]{0,400}transform: "rotate\(180deg\)"/.test(yBanner)
+);
 check(
   "the slate stores logos going forward",
   /logo: away\.team\?\.logo/.test(
@@ -191,7 +224,7 @@ check(
 check(
   "a failed logo removes itself",
   /onError=\{\(\) => setFailed\(true\)\}/.test(
-    readFileSync(new URL("../src/components/pickem/TeamLogo.jsx", import.meta.url), "utf8")
+    readFileSync(new URL("../src/components/common/TeamLogo.jsx", import.meta.url), "utf8")
   )
 );
 

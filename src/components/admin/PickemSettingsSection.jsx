@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { adminSectionStyle, adminInputStyle, labelStyle, btnSecondary, radii } from "../../styles";
+import { adminSectionStyle, labelStyle, btnSecondary, radii } from "../../styles";
 import { colors } from "../../styles";
 import { tiebreakGame, slateLocksAt, isSlateLocked, gradedCount, rankEntries } from "../../utils";
 import { usePickemContacts } from "../../hooks";
+import { TeamLogo } from "../common";
 
 /**
  * Managing a pick'em contest.
@@ -91,21 +92,49 @@ export function PickemSettingsSection({
           Ties break on this game's combined total — closest without going over. Defaults to the
           last kickoff of the week.
         </p>
-        <select
-          value={tb?.id || ""}
-          onChange={(e) => setTiebreak(e.target.value)}
-          disabled={locked}
-          style={adminInputStyle}
-        >
-          {games.map((g) => (
-            <option key={g.id} value={g.id}>
-              {g.shortName}
-              {g.startsAt
-                ? ` — ${new Date(g.startsAt).toLocaleDateString([], { weekday: "short" })} ${new Date(g.startsAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`
-                : ""}
-            </option>
-          ))}
-        </select>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          {games.map((g) => {
+            const chosen = tb?.id === g.id;
+            return (
+              <button
+                key={g.id}
+                type="button"
+                disabled={locked}
+                onClick={() => setTiebreak(g.id)}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  width: "100%",
+                  boxSizing: "border-box",
+                  padding: "8px 10px",
+                  borderRadius: radii.md,
+                  border: `1px solid ${chosen ? colors.accentGold : colors.border}`,
+                  background: chosen ? colors.surface5 : colors.surface2,
+                  color: colors.textPrimary,
+                  fontFamily: "inherit",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  textAlign: "left",
+                  cursor: locked ? "default" : "pointer",
+                }}
+              >
+                <TeamLogo team={g.away} size={18} />
+                <span>{g.away?.abbr || "?"}</span>
+                <span style={{ color: colors.textDimmest }}>@</span>
+                <TeamLogo team={g.home} size={18} />
+                <span>{g.home?.abbr || "?"}</span>
+                <span style={{ flex: 1 }} />
+                <span style={{ color: colors.textDim, fontWeight: 500 }}>
+                  {g.startsAt
+                    ? `${new Date(g.startsAt).toLocaleDateString([], { weekday: "short" })} ${new Date(g.startsAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })}`
+                    : ""}
+                </span>
+                {chosen && <span style={{ color: colors.accentGold, fontWeight: 900 }}>TB</span>}
+              </button>
+            );
+          })}
+        </div>
         {locked && (
           <p style={{ color: colors.textDim, fontSize: 11, margin: "6px 0 0" }}>
             Locked — changing it after picks are in would move the target.

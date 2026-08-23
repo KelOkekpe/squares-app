@@ -1,4 +1,5 @@
 import React from "react";
+import { TeamLogo } from "../common";
 import { btnPrimary, colors } from "../../styles";
 import { SquaresGrid } from "../grid/SquaresGrid";
 import { WinnersSummary } from "../grid/WinnersSummary";
@@ -44,8 +45,20 @@ export function BoardView({ board, headers, config, scores, emptyCount, onJoin, 
           >
             The Board
           </h2>
-          <p style={{ margin: "4px 0 0", color: "#666", fontSize: 13 }}>
+          <p
+            style={{
+              margin: "4px 0 0",
+              color: "#666",
+              fontSize: 13,
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              flexWrap: "wrap",
+            }}
+          >
+            <TeamLogo team={config.game?.xTeamId || config.teamX} size={18} />
             {config.teamX} vs {config.teamY}
+            <TeamLogo team={config.game?.yTeamId || config.teamY} size={18} />
           </p>
         </div>
         {/* Home lives in the header nav — no second one here */}

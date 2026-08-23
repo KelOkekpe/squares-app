@@ -5,6 +5,7 @@ import { colors, fonts } from "../../styles";
 import { useIsMobile } from "../../hooks/useMediaQuery";
 import { useTheme } from "../../hooks/useTheme";
 import { PrizePotBar } from "./PrizePotBar";
+import { TeamLogo } from "../common";
 
 export function SquaresGrid({ board, headers, config, scores }) {
   const isMobile = useIsMobile();
@@ -50,6 +51,11 @@ export function SquaresGrid({ board, headers, config, scores }) {
   const uniqueNames = [...new Set(board.flat().filter(Boolean))];
 
   /* ── team colours (with fallbacks) ────────────────────── */
+  // A linked game carries ESPN's team ids, which beat the free-text fields —
+  // those are whatever the admin typed and may be a nickname or a joke.
+  const xTeam = config.game?.xTeamId || config.teamX;
+  const yTeam = config.game?.yTeamId || config.teamY;
+
   const teamXBg = config.teamXBg || "#1e3a5f";
   const teamXColor = config.teamXColor || "#7db8f0";
   const teamYBg = config.teamYBg || "#3a1e2e";
@@ -140,8 +146,10 @@ export function SquaresGrid({ board, headers, config, scores }) {
             letterSpacing: isMobile ? 1 : 2,
             textTransform: "uppercase",
             borderRadius: "0 8px 0 0",
+            gap: 8,
           }}
         >
+          <TeamLogo team={xTeam} size={isMobile ? 16 : 22} />
           {config.teamX || "Team X"}
         </div>
 
@@ -172,20 +180,30 @@ export function SquaresGrid({ board, headers, config, scores }) {
             gridColumn: 1,
             background: `linear-gradient(180deg, ${teamYBg}, ${darken(teamYBg, 0.25)})`,
             display: "flex",
+            flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
+            gap: 8,
             borderRadius: "0 0 0 8px",
-            writingMode: "vertical-rl",
-            textOrientation: "mixed",
             color: teamYColor,
-            fontSize: isMobile ? 10 : 13,
-            fontWeight: 700,
-            letterSpacing: isMobile ? 1 : 2,
-            textTransform: "uppercase",
-            transform: "rotate(180deg)",
           }}
         >
-          {config.teamY || "Team Y"}
+          <TeamLogo team={yTeam} size={isMobile ? 16 : 22} />
+          {/* The rotation lives on the text, not the banner — on the banner it
+              turned the logo on its side too. */}
+          <span
+            style={{
+              writingMode: "vertical-rl",
+              textOrientation: "mixed",
+              transform: "rotate(180deg)",
+              fontSize: isMobile ? 10 : 13,
+              fontWeight: 700,
+              letterSpacing: isMobile ? 1 : 2,
+              textTransform: "uppercase",
+            }}
+          >
+            {config.teamY || "Team Y"}
+          </span>
         </div>
 
         {/* Y-axis numbers + data cells */}

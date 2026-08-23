@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { colors, radii, cardStyle } from "../../styles";
 import { rankEntries, tiebreakGame, gradedCount, isSlateLocked } from "../../utils";
-import { TeamLogo } from "./TeamLogo";
+import { TeamLogo } from "../common";
 
 /**
  * One player's sheet, revealed under their standings row.
