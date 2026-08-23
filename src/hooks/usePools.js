@@ -140,7 +140,11 @@ export function usePools(spaceCode) {
           "create pool"
         );
 
-        if (insertError) throw insertError;
+        if (insertError) {
+          const friendly = nameClash(insertError, name.trim(), "create");
+          if (friendly) return { pool: null, error: friendly };
+          throw insertError;
+        }
 
         const transformedPool = {
           id: data.id,
@@ -196,15 +200,27 @@ export function usePools(spaceCode) {
     [spaceCode]
   );
 
+  // Postgres reports this as `duplicate key value violates unique constraint
+  // "unique_pool_name_per_space"`, which tells an admin nothing about what to
+  // do. Only live boards hold a name, so say that.
+  const nameClash = (err, name, action) => {
+    if (!/unique_pool_name_per_space|duplicate key/i.test(err?.message || "")) return null;
+    const quoted = name ? `"${name}"` : "That name";
+    return action === "unarchive"
+      ? `${quoted} can't be unarchived — a live board already uses that name. Rename one of them first.`
+      : `${quoted} is already in use by a live board in this space. Archived and deleted boards don't hold a name.`;
+  };
+
   // Update a pool (archive/unarchive, rename)
   const updatePool = useCallback(
     async (poolId, updates) => {
-      if (!spaceCode || !poolId) return;
+      if (!spaceCode || !poolId) return { error: null };
 
+      const previous = pools;
       const updatedPools = pools.map((p) => (p.id === poolId ? { ...p, ...updates } : p));
       setPools(updatedPools);
 
-      if (!isSupabaseEnabled()) return;
+      if (!isSupabaseEnabled()) return { error: null };
 
       try {
         const { error: updateError } = await supabase
@@ -214,9 +230,19 @@ export function usePools(spaceCode) {
           .eq("space_code", spaceCode);
 
         if (updateError) throw updateError;
+        return { error: null };
       } catch (err) {
+        // Now that a name is only held by live boards, unarchiving can be
+        // rejected. Keeping the optimistic state would show the board as
+        // unarchived when the database still has it archived.
+        setPools(previous);
+        const pool = previous.find((p) => p.id === poolId);
+        const message =
+          nameClash(err, pool?.name, updates?.archived === false ? "unarchive" : "update") ||
+          err?.message ||
+          "Could not update that board";
         console.error("Error updating pool in Supabase:", err);
-        // State already updated, so we're good
+        return { error: message };
       }
     },
     [spaceCode, pools]
@@ -226,9 +252,9 @@ export function usePools(spaceCode) {
   const toggleArchivePool = useCallback(
     async (poolId) => {
       const pool = pools.find((p) => p.id === poolId);
-      if (!pool) return;
+      if (!pool) return { error: null };
 
-      await updatePool(poolId, { archived: !pool.archived });
+      return updatePool(poolId, { archived: !pool.archived });
     },
     [pools, updatePool]
   );

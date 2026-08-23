@@ -27,6 +27,7 @@ export function BoardManagementSection({
   // A reset is a server round trip and can fail; silently closing the
   // confirmation would look exactly like success.
   const [resetError, setResetError] = useState("");
+  const [archiveError, setArchiveError] = useState("");
 
   const isClosed = (poolId) => !!poolConfigs[poolId]?.submissionsDisabled;
 
@@ -88,9 +89,12 @@ export function BoardManagementSection({
   };
 
   const toggleArchive = async (id) => {
+    setArchiveError("");
     if (toggleArchivePool) {
-      // Use database toggle function if available
-      await toggleArchivePool(id);
+      // Use database toggle function if available. Unarchiving can be refused
+      // now that a name is only reserved by live boards, so the result matters.
+      const result = await toggleArchivePool(id);
+      if (result?.error) return setArchiveError(result.error);
     } else {
       // Fallback to local state update
       setPools((prev) => prev.map((p) => (p.id === id ? { ...p, archived: !p.archived } : p)));
@@ -190,6 +194,10 @@ export function BoardManagementSection({
           <p style={{ color: colors.accentRed, fontSize: 12, margin: 0 }}>{createError}</p>
         )}
       </div>
+
+      {archiveError && (
+        <p style={{ color: colors.accentRed, fontSize: 12, margin: "0 0 10px" }}>{archiveError}</p>
+      )}
 
       {/* Active pools */}
       <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>

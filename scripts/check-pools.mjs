@@ -139,5 +139,45 @@ check(
   /const selectPoolForAdmin = \(id\) => setViewingPoolId\(id\);/.test(gb)
 );
 
+// ── board names are only reserved by live boards ──
+// The original table constraint covered every row, so a board that had been
+// archived and then soft-deleted still owned its name and blocked a new one
+// the admin could neither see nor reach.
+const nameSql = readFileSync(
+  new URL("../supabase/migration_pool_name_scope.sql", import.meta.url),
+  "utf8"
+);
+check(
+  "the table-wide name constraint is dropped",
+  /DROP CONSTRAINT IF EXISTS unique_pool_name_per_space/.test(nameSql)
+);
+check(
+  "the replacement index is scoped to live boards",
+  /CREATE UNIQUE INDEX unique_pool_name_per_space[\s\S]{0,200}WHERE deleted_at IS NULL AND NOT coalesce\(archived, false\)/.test(
+    nameSql
+  )
+);
+check("it is still scoped per space", /ON pools \(space_code, name\)/.test(nameSql));
+
+// Unarchiving can now be refused, so it must not be reported as success.
+const poolsHook = readFileSync(new URL("../src/hooks/usePools.js", import.meta.url), "utf8");
+check(
+  "updatePool reports failure instead of swallowing it",
+  /return \{ error: message \}/.test(poolsHook)
+);
+check("a rejected update rolls back the optimistic state", /setPools\(previous\)/.test(poolsHook));
+check(
+  "the raw duplicate-key error is translated",
+  /unique_pool_name_per_space\|duplicate key/.test(poolsHook)
+);
+const boardMgmt = readFileSync(
+  new URL("../src/components/admin/BoardManagementSection.jsx", import.meta.url),
+  "utf8"
+);
+check(
+  "a refused unarchive is shown to the admin",
+  /setArchiveError\(result\.error\)/.test(boardMgmt)
+);
+
 console.log(failed === 0 ? "\nAll pool-lifecycle cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

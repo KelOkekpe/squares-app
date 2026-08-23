@@ -50,6 +50,8 @@ Scoring is in `src/utils/pickem.js`. The tiebreaker is closest-total-without-goi
 
 A board is active while it is **neither archived nor past `pools.expires_at`**. Anything else is "completed" — closed to entries but still viewable via Past Boards. `src/utils/poolStatus.js` is the single definition; don't re-derive it with `!p.archived`, which misses expired boards.
 
+Board names are unique **among live boards only** — `unique_pool_name_per_space` is a partial index (`WHERE deleted_at IS NULL AND NOT archived`), not a table constraint. It started as a table-wide constraint, which meant an archived-then-deleted board still owned its name and blocked a new one the admin could neither see nor reach. The cost is that Past Boards may hold two boards with the same name, told apart by their dates, and that **unarchiving can now be refused** if a live board has taken the name — so `updatePool` returns `{ error }`, rolls back its optimistic write, and the admin sees a message instead of a toggle that silently does nothing.
+
 An expiry date is **required** on creation and a space may hold at most **16 active boards**. Both are enforced by a trigger in `migration_pool_lifecycle.sql`, not just the UI, so `createPool` surfaces the database's message verbatim. `npm run check:pools` asserts the JS and SQL agree on the cap.
 
 Which board you're *viewing* is local per-viewer state in `GameBoard`. It must not be written to `spaces` — players are anonymous and have no write access there, so persisting it silently fails for them. The space-wide default still lives in `spaceMeta.activePoolId` and is set from the admin panel only.
