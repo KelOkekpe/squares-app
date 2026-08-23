@@ -10,6 +10,7 @@ import {
   isSlateComplete,
   gradedCount,
 } from "../src/utils/pickem.js";
+import { teamLogoUrl } from "../src/utils/teamLogo.js";
 import { readFileSync } from "node:fs";
 
 let failed = 0;
@@ -161,6 +162,37 @@ check(
 check(
   "contact details are never written into the blob",
   !/'email', v_email/.test(privacySql) && /'emailHash', v_hash/.test(privacySql)
+);
+
+// ── team logos ──
+// Slates are frozen at creation, so every contest that already exists has no
+// logo stored. The URL is derivable from the abbreviation, which is what keeps
+// those working without a backfill.
+check(
+  "a stored logo is preferred",
+  teamLogoUrl({ abbr: "PHI", logo: "https://example.com/x.png" }) === "https://example.com/x.png"
+);
+check(
+  "a missing logo is derived from the abbreviation",
+  teamLogoUrl({ abbr: "PHI" }) === "https://a.espncdn.com/i/teamlogos/nfl/500/scoreboard/phi.png"
+);
+check("derivation lower-cases the abbreviation", teamLogoUrl({ abbr: "WSH" }).endsWith("/wsh.png"));
+// A hand-built slate can carry any label at all; guessing a URL for one just
+// renders a broken image next to somebody's pick.
+check("a non-abbreviation team yields no logo", teamLogoUrl({ name: "The Ducks" }) === null);
+check("an empty team yields no logo", teamLogoUrl(null) === null && teamLogoUrl({}) === null);
+check(
+  "the slate stores logos going forward",
+  /logo: away\.team\?\.logo/.test(
+    readFileSync(new URL("../api/_lib/espn.js", import.meta.url), "utf8")
+  )
+);
+// Without the error fallback a dead CDN leaves a broken-image glyph on every row.
+check(
+  "a failed logo removes itself",
+  /onError=\{\(\) => setFailed\(true\)\}/.test(
+    readFileSync(new URL("../src/components/pickem/TeamLogo.jsx", import.meta.url), "utf8")
+  )
 );
 
 console.log(failed === 0 ? "\nAll pick'em cases pass." : `\n${failed} failed.`);

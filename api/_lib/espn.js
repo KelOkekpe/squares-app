@@ -71,8 +71,20 @@ export async function listGames(opts = {}) {
       shortName: event.shortName,
       startsAt: event.date,
       status: comp.status?.type?.name || "STATUS_SCHEDULED",
-      away: { id: away.id, name: away.team?.displayName, abbr: away.team?.abbreviation },
-      home: { id: home.id, name: home.team?.displayName, abbr: home.team?.abbreviation },
+      // Logos are frozen into the slate with everything else. Slates created
+      // before this carry none; teamLogoUrl() derives those from the abbr.
+      away: {
+        id: away.id,
+        name: away.team?.displayName,
+        abbr: away.team?.abbreviation,
+        logo: away.team?.logo || null,
+      },
+      home: {
+        id: home.id,
+        name: home.team?.displayName,
+        abbr: home.team?.abbreviation,
+        logo: home.team?.logo || null,
+      },
     };
   });
 }

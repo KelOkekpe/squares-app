@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { colors, radii, cardStyle } from "../../styles";
 import { rankEntries, tiebreakGame, gradedCount, isSlateLocked } from "../../utils";
+import { TeamLogo } from "./TeamLogo";
 
 /**
  * One player's sheet, revealed under their standings row.
@@ -57,24 +58,40 @@ function PicksBreakdown({ entry, slate }) {
             </span>
             <span
               style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
                 flex: 1,
                 minWidth: 0,
                 color: colors.textDim,
                 overflow: "hidden",
-                textOverflow: "ellipsis",
                 whiteSpace: "nowrap",
               }}
             >
-              {game.shortName || `${game.away?.abbr || "?"} @ ${game.home?.abbr || "?"}`}
+              <TeamLogo team={game.away} size={15} />
+              {game.away?.abbr || "?"}
+              <span style={{ color: colors.textDimmest }}>@</span>
+              <TeamLogo team={game.home} size={15} />
+              {game.home?.abbr || "?"}
             </span>
             <span
               style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
                 flexShrink: 0,
                 fontWeight: 700,
                 color: picked ? colors.textPrimary : colors.textDimmest,
               }}
             >
-              {picked ? picked.abbr || picked.name : "no pick"}
+              {picked ? (
+                <>
+                  <TeamLogo team={picked} size={15} />
+                  {picked.abbr || picked.name}
+                </>
+              ) : (
+                "no pick"
+              )}
             </span>
             {game.winner === "tie" && (
               <span style={{ color: colors.textDimmest, fontSize: 10, flexShrink: 0 }}>TIE</span>

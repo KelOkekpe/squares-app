@@ -2,14 +2,19 @@ import React, { useState } from "react";
 import { colors, radii, cardStyle, inputStyle, labelStyle, btnPrimary } from "../../styles";
 import { isSlateLocked, tiebreakGame, missingPicks, PICK_AWAY, PICK_HOME } from "../../utils";
 import { isValidEmail, isValidPhone } from "../join/NameStep";
+import { TeamLogo } from "./TeamLogo";
 
-function TeamButton({ label, selected, onClick, disabled }) {
+function TeamButton({ team, label, selected, onClick, disabled }) {
   return (
     <button
       type="button"
       onClick={onClick}
       disabled={disabled}
       style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 7,
         flex: 1,
         padding: "11px 10px",
         borderRadius: radii.md,
@@ -28,7 +33,8 @@ function TeamButton({ label, selected, onClick, disabled }) {
         whiteSpace: "nowrap",
       }}
     >
-      {label}
+      <TeamLogo team={team} size={18} />
+      <span style={{ overflow: "hidden", textOverflow: "ellipsis" }}>{label}</span>
     </button>
   );
 }
@@ -186,6 +192,7 @@ export function PickSheet({ slate, onSubmit, submitting }) {
               <div key={game.id}>
                 <div style={{ display: "flex", gap: 6 }}>
                   <TeamButton
+                    team={game.away}
                     label={game.away?.abbr || game.away?.name}
                     selected={sheet[game.id] === PICK_AWAY}
                     onClick={() => setSheet((s) => ({ ...s, [game.id]: PICK_AWAY }))}
@@ -201,6 +208,7 @@ export function PickSheet({ slate, onSubmit, submitting }) {
                     @
                   </span>
                   <TeamButton
+                    team={game.home}
                     label={game.home?.abbr || game.home?.name}
                     selected={sheet[game.id] === PICK_HOME}
                     onClick={() => setSheet((s) => ({ ...s, [game.id]: PICK_HOME }))}
