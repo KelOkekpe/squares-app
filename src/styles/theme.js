@@ -47,6 +47,7 @@ export const colors = {
   borderSuccess: "var(--border-success)",
   borderGold: "var(--border-gold)",
   borderAccentSoft: "var(--border-accent-soft)",
+  borderDanger: "var(--border-danger)",
   accentRedDark: "var(--accent-red-dark)",
   accentRedDeep: "var(--accent-red-deep)",
   accentRedMuted: "var(--accent-red-muted)",

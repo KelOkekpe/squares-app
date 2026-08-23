@@ -16,6 +16,7 @@ import { StatsGrid } from "./StatsGrid";
 import { UsersSection } from "./UsersSection";
 import { SpacesSection } from "./SpacesSection";
 import { AuditSection } from "./AuditSection";
+import { BoardsSection } from "./BoardsSection";
 import { ViewAsBanner } from "./ViewAsBanner";
 import { ThemeToggle } from "../common";
 
@@ -23,6 +24,7 @@ const TABS = [
   { key: "overview", label: "Overview" },
   { key: "users", label: "Users" },
   { key: "spaces", label: "Spaces" },
+  { key: "boards", label: "Boards" },
   { key: "audit", label: "Audit log" },
 ];
 
@@ -243,6 +245,15 @@ export function SuperAdminApp() {
               onResetPassword={sa.resetSpacePassword}
               onTransfer={sa.transferSpace}
               onDelete={sa.deleteSpace}
+            />
+          )}
+          {tab === "boards" && (
+            <BoardsSection
+              deletedBoards={sa.deletedBoards}
+              spaces={sa.spaces}
+              onDeleteArchived={sa.deleteArchivedBoards}
+              onRestore={sa.restoreBoard}
+              onPurge={sa.purgeDeletedBoards}
             />
           )}
           {tab === "audit" && <AuditSection audit={sa.audit} />}

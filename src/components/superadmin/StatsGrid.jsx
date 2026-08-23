@@ -113,6 +113,13 @@ export function StatsGrid({ stats }) {
           value={s.boards_touched_30d}
           tone={colors.accentGreenBright}
         />,
+        <Tile
+          key="d"
+          label="Deleted"
+          value={s.boards_deleted}
+          tone={s.boards_deleted ? colors.accentGold : null}
+          hint={s.boards_deleted ? "restorable" : null}
+        />,
       ])}
 
       {group("Operations", [

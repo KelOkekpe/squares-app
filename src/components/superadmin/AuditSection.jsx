@@ -10,6 +10,9 @@ const TONE = {
   space_password_reset: colors.accentGold,
   space_made_public: colors.accentGold,
   reopen_account: colors.accentGreenBright,
+  delete_archived_boards: colors.accentGold,
+  purge_deleted_boards: colors.accentRed,
+  restore_board: colors.accentGreenBright,
 };
 
 function when(ts) {

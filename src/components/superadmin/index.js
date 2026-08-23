@@ -4,3 +4,4 @@ export { StatsGrid } from "./StatsGrid";
 export { UsersSection } from "./UsersSection";
 export { SpacesSection } from "./SpacesSection";
 export { AuditSection } from "./AuditSection";
+export { BoardsSection } from "./BoardsSection";

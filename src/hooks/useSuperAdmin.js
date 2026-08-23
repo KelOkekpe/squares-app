@@ -25,6 +25,7 @@ export function useSuperAdmin() {
   const [users, setUsers] = useState([]);
   const [spaces, setSpaces] = useState([]);
   const [audit, setAudit] = useState([]);
+  const [deletedBoards, setDeletedBoards] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   // Survives navigation so the banner can't be lost by clicking into a space
@@ -41,16 +42,18 @@ export function useSuperAdmin() {
       setLoading(true);
       setError("");
       try {
-        const [s, u, sp, a] = await Promise.all([
+        const [s, u, sp, a, db] = await Promise.all([
           call("superadmin_stats"),
           call("superadmin_list_users", { p_search: search || null }),
           call("superadmin_list_spaces", { p_search: search || null }),
           call("superadmin_audit_log", { p_limit: 100 }),
+          call("superadmin_list_deleted_boards"),
         ]);
         setStats(s || null);
         setUsers(u || []);
         setSpaces(sp || []);
         setAudit(a || []);
+        setDeletedBoards(db || []);
       } catch (err) {
         const message = err?.message || "Could not load superadmin data";
         // "permission denied for function" means EXECUTE was never granted,
@@ -119,6 +122,7 @@ export function useSuperAdmin() {
     users,
     spaces,
     audit,
+    deletedBoards,
     loading,
     error,
     setError,
@@ -138,5 +142,10 @@ export function useSuperAdmin() {
     transferSpace: (code, newOwner) =>
       act("superadmin_transfer_space", { p_space_code: code, p_new_owner: newOwner }),
     deleteSpace: (code) => act("superadmin_delete_space", { p_space_code: code }),
+    deleteArchivedBoards: (code) =>
+      act("superadmin_delete_archived_boards", { p_space_code: code || null }),
+    restoreBoard: (poolId) => act("superadmin_restore_board", { p_pool_id: poolId }),
+    purgeDeletedBoards: (days) =>
+      act("superadmin_purge_deleted_boards", { p_older_than_days: days }),
   };
 }

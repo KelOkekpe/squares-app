@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - `npm run dev` (or `start`) — Vite dev server on port 3000
 - `npm run build`
-- `npm run check:imports` / `check:keys` / `check:routes` / `check:async` / `check:theme` / `check:pools` — plain node scripts in `scripts/`. There is no test framework; these are the only automated checks. Run them all before committing.
+- `npm run check:imports` / `check:keys` / `check:routes` / `check:async` / `check:theme` / `check:pools` / `check:deletion` — plain node scripts in `scripts/`. There is no test framework; these are the only automated checks. Run them all before committing.
 - `check:hooks` and `check:imports` matter most, because both catch runtime-only failures. A hook dependency array is evaluated immediately, so listing a `const` declared further down the component throws "Cannot access 'x' before initialization" — define callbacks *below* the state they depend on.
 - `check:imports`: Vite doesn't resolve identifiers, so a component used without being imported builds clean and throws `X is not defined` at runtime. That has shipped twice.
 
@@ -51,6 +51,16 @@ A board is active while it is **neither archived nor past `pools.expires_at`**. 
 An expiry date is **required** on creation and a space may hold at most **16 active boards**. Both are enforced by a trigger in `migration_pool_lifecycle.sql`, not just the UI, so `createPool` surfaces the database's message verbatim. `npm run check:pools` asserts the JS and SQL agree on the cap.
 
 Which board you're *viewing* is local per-viewer state in `GameBoard`. It must not be written to `spaces` — players are anonymous and have no write access there, so persisting it silently fails for them. The space-wide default still lives in `spaceMeta.activePoolId` and is set from the admin panel only.
+
+## Deleting boards
+
+`spaces.pool_id` is TEXT, `pools.id` is UUID, and there is **no foreign key between them — nothing cascades**. `DELETE FROM pools` therefore deletes a board's label and orphans its payload: grid, participants, pending queue, scores, slate and sheets all survive, unreachable, with entrants' emails and phones in them. Any hard delete must sweep `spaces`, `pickem_contacts` and `entry_request_log` in the same operation. `npm run check:deletion` discovers every table keyed by `pool_id`/`space_code` from the schema and fails if a sweep misses one.
+
+Deletion is two steps. `superadmin_delete_archived_boards()` stamps `pools.deleted_at`; RLS on `pools_select` then hides it from everyone but a superadmin, so no client query needs a `deleted_at IS NULL` filter and none can forget one. Nothing is destroyed — `paid`/`paid_at`/`checkout_session_id` are the only record tying a Stripe charge to what it bought. `superadmin_purge_deleted_boards()` is the irreversible half and only reaches boards deleted longer than its retention window (30 days).
+
+`superadmin_stats` and `superadmin_list_spaces` are SECURITY DEFINER and bypass that RLS, so they filter `deleted_at` themselves.
+
+To clear test data before launch, use `supabase/RESET_ALL_DATA.sql` — a one-time wipe of everything, keeping `user_profiles` so you don't lock yourself out. The superadmin actions only ever touch *archived* boards and are the wrong tool for it.
 
 ## Smart fill
 
