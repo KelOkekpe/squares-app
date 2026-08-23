@@ -119,7 +119,10 @@ const standings = readFileSync(
   new URL("../src/components/pickem/Standings.jsx", import.meta.url),
   "utf8"
 );
-check("standings gate the reveal on isSlateLocked", /revealed\s*=\s*isSlateLocked\(/.test(standings));
+check(
+  "standings gate the reveal on isSlateLocked",
+  /revealed\s*=\s*isSlateLocked\(/.test(standings)
+);
 check(
   "the breakdown is not rendered while picks are open",
   /revealed && open && <PicksBreakdown/.test(standings)
@@ -127,6 +130,37 @@ check(
 check(
   "a locked slate reveals, an open one does not",
   isSlateLocked(past) === true && isSlateLocked(future) === false
+);
+
+// ── sheets must not be read straight off the row ──
+// `picks` is admin-only in the database so the lock can be enforced server
+// side. Reading it with usePersistedState would get an empty list for players
+// and, worse, writing that back would erase everyone's sheets.
+const hookSrc = readFileSync(new URL("../src/hooks/usePickem.js", import.meta.url), "utf8");
+const boardSrc = readFileSync(new URL("../src/GameBoard.jsx", import.meta.url), "utf8");
+check(
+  "no component reads keys.picks as persisted state",
+  !/usePersistedState\(\s*keys\.picks/.test(hookSrc + boardSrc)
+);
+check(
+  "entries come from the list_picks RPC",
+  /rpc\("list_picks"/.test(
+    readFileSync(new URL("../src/hooks/usePickemEntries.js", import.meta.url), "utf8")
+  )
+);
+// The migration is the only thing standing between an anonymous caller and
+// every entrant's sheet, so the policy has to actually name 'picks'.
+const privacySql = readFileSync(
+  new URL("../supabase/migration_pickem_privacy.sql", import.meta.url),
+  "utf8"
+);
+check(
+  "spaces_select excludes picks as well as pending",
+  /type NOT IN \('pending', 'picks'\)/.test(privacySql)
+);
+check(
+  "contact details are never written into the blob",
+  !/'email', v_email/.test(privacySql) && /'emailHash', v_hash/.test(privacySql)
 );
 
 console.log(failed === 0 ? "\nAll pick'em cases pass." : `\n${failed} failed.`);

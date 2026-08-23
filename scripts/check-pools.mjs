@@ -103,7 +103,9 @@ check(
 );
 // A pick'em contest resets differently: sheets go, the slate's grading is
 // undone, but the games themselves stay — they are the contest.
-check("reset clears pick'em sheets", resetBody.includes("setPicks([])"));
+// Sheets are cleared through the RPC now — the client no longer holds the
+// full blob, so it has nothing safe to write back.
+check("reset clears pick'em sheets", resetBody.includes("clearPickEntries()"));
 check("reset un-grades the slate", /winner, total, awayScore, homeScore/.test(resetBody));
 check("reset keeps the slate's games", resetBody.includes("games: (s.games || []).map"));
 // Anything new in POOL_STATE_TYPES should be considered here too

@@ -14,3 +14,5 @@ export { usePoolAdmin } from "./usePoolAdmin";
 export { useCheckout } from "./useCheckout";
 export { useLiveScores } from "./useLiveScores";
 export { usePickem } from "./usePickem";
+export { usePickemEntries } from "./usePickemEntries";
+export { usePickemContacts } from "./usePickemContacts";

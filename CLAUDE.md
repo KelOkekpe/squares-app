@@ -38,6 +38,10 @@ A pool is a **squares board** or a **pick'em contest** (`pools.game_type`). They
 
 Pick'em state lives in two blobs: `slate` (the week's games, **frozen at creation** so a rescheduled game can't move under picks already made) and `picks` (submitted sheets). Grading writes winners back into `slate` from `/api/sync-picks`, polled by viewers exactly like live scores.
 
+Sheets are **not** readable off the `spaces` row: `spaces_select` excludes `picks` the same way it excludes `pending`. Players read them through `list_picks()`, which withholds each entry's picks *and* tiebreaker guess until the slate locks — a sheet visible before kickoff is a sheet to copy, and hiding it only in the UI left it one devtools panel away. Standings rows expand to show a sheet, gated on the same `isSlateLocked` that closes submission; never gate that on "something has graded", which would expose the rest of the week the moment one early game went final.
+
+Because the client only ever holds the sanitised list, **admin edits must go through `set_pickem_paid` / `remove_pickem_entry` / `clear_pickem_entries`** — writing the array back would erase everyone's picks. Entrant email and phone live in `pickem_contacts` (admin-only RLS), never in the blob, which keeps only `emailHash` for the one-sheet-per-email rule. `migration_pickem_privacy.sql` moves existing data and is idempotent.
+
 Scoring is in `src/utils/pickem.js`. The tiebreaker is closest-total-without-going-over, and two gaps the plain rule leaves are closed explicitly: if everyone tied goes over, the closest of them still wins; identical guesses fall back to earliest submission. Ungraded games never count, so standings are meaningful mid-week. `npm run check:pickem` covers all of it.
 
 ## Board lifecycle

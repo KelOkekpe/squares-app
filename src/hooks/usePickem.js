@@ -7,14 +7,15 @@ import { STORAGE_KEYS } from "../utils";
 const POLL_MS = 5 * 60 * 1000;
 
 /**
- * A pick'em contest: the frozen weekly slate, the submitted sheets, and
- * grading. Slate and picks are ordinary persisted state; submitting goes
- * through an RPC because players are anonymous and can't write `spaces`.
+ * A pick'em contest: the frozen weekly slate, submitting, and grading.
+ *
+ * The sheets themselves are not here — they're admin-only at the table level
+ * and come back sanitised from `usePickemEntries`, which is owned one level up
+ * so the admin panel and the player view read the same list.
  */
 export function usePickem(spaceCode, poolId) {
   const keys = STORAGE_KEYS(spaceCode, poolId);
   const [slate, setSlate] = usePersistedState(keys.slate, null);
-  const [picks, setPicks] = usePersistedState(keys.picks, []);
   const [submitting, setSubmitting] = useState(false);
   const inFlight = useRef(false);
 
@@ -80,5 +81,5 @@ export function usePickem(spaceCode, poolId) {
     return () => clearInterval(timer);
   }, [slate, grade]);
 
-  return { slate, setSlate, picks, setPicks, submit, submitting, grade };
+  return { slate, setSlate, submit, submitting, grade };
 }

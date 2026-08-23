@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { adminSectionStyle, adminInputStyle, labelStyle, btnSecondary, radii } from "../../styles";
 import { colors } from "../../styles";
 import { tiebreakGame, slateLocksAt, isSlateLocked, gradedCount, rankEntries } from "../../utils";
+import { usePickemContacts } from "../../hooks";
 
 /**
  * Managing a pick'em contest.
@@ -10,8 +11,20 @@ import { tiebreakGame, slateLocksAt, isSlateLocked, gradedCount, rankEntries } f
  * colours, quarter scores, override cell — mean nothing here, and showing them
  * invited an admin to change settings that don't apply.
  */
-export function PickemSettingsSection({ slate, setSlate, picks, setPicks }) {
+export function PickemSettingsSection({
+  spaceCode,
+  poolId,
+  slate,
+  setSlate,
+  picks,
+  onSetPaid,
+  onRemove,
+}) {
   const [confirmRemove, setConfirmRemove] = useState(null);
+  const [error, setError] = useState("");
+  // Entrants' details are not in the sheets any more; they come from the
+  // admin-only table, so this is empty for anyone who shouldn't see them.
+  const contacts = usePickemContacts(spaceCode, poolId);
 
   const games = slate?.games || [];
   const tb = tiebreakGame(slate);
@@ -21,11 +34,14 @@ export function PickemSettingsSection({ slate, setSlate, picks, setPicks }) {
   const standings = rankEntries(picks || [], slate);
   const paidCount = (picks || []).filter((p) => p.paid).length;
 
-  const togglePaid = (id) =>
-    setPicks((list) => list.map((p) => (p.id === id ? { ...p, paid: !p.paid } : p)));
+  const togglePaid = async (id, paid) => {
+    const result = await onSetPaid?.(id, !paid);
+    setError(result?.error || "");
+  };
 
-  const remove = (id) => {
-    setPicks((list) => list.filter((p) => p.id !== id));
+  const remove = async (id) => {
+    const result = await onRemove?.(id);
+    setError(result?.error || "");
     setConfirmRemove(null);
   };
 
@@ -104,6 +120,12 @@ export function PickemSettingsSection({ slate, setSlate, picks, setPicks }) {
           Standings order. Mark who's paid; removing an entry drops it from the standings.
         </p>
 
+        {/* These edits go to the server one entry at a time, so a failure has to
+            be visible — the list won't have changed. */}
+        {error && (
+          <p style={{ color: colors.accentRed, fontSize: 12, margin: "0 0 12px" }}>{error}</p>
+        )}
+
         {!picks?.length ? (
           <p style={{ color: colors.textMuted, fontSize: 13, margin: 0 }}>No entries yet.</p>
         ) : (
@@ -141,13 +163,18 @@ export function PickemSettingsSection({ slate, setSlate, picks, setPicks }) {
                         )}
                       </div>
                       <div style={{ fontSize: 11, color: colors.textDim, marginTop: 2 }}>
-                        <a
-                          href={`mailto:${p.email}`}
-                          style={{ color: colors.accentViolet, textDecoration: "none" }}
-                        >
-                          {p.email}
-                        </a>
-                        {p.phone ? ` · ${p.phone}` : ""} · TB {p.tiebreak}
+                        {contacts[p.id]?.email ? (
+                          <a
+                            href={`mailto:${contacts[p.id].email}`}
+                            style={{ color: colors.accentViolet, textDecoration: "none" }}
+                          >
+                            {contacts[p.id].email}
+                          </a>
+                        ) : (
+                          <span style={{ color: colors.textDimmest }}>contact hidden</span>
+                        )}
+                        {contacts[p.id]?.phone ? ` · ${contacts[p.id].phone}` : ""} · TB{" "}
+                        {p.tiebreak ?? "—"}
                       </div>
                     </div>
                     <span style={{ fontWeight: 800, fontSize: 14, color: colors.textPrimary }}>
@@ -155,13 +182,13 @@ export function PickemSettingsSection({ slate, setSlate, picks, setPicks }) {
                     </span>
                     <button
                       type="button"
-                      onClick={() => togglePaid(p.id)}
+                      onClick={() => togglePaid(p.id, p.paid)}
                       style={{
                         ...btnSecondary,
                         padding: "4px 10px",
                         fontSize: 11,
                         color: p.paid ? colors.accentGreenBright : colors.textDim,
-                        borderColor: p.paid ? "#4ade8040" : colors.border,
+                        borderColor: p.paid ? colors.borderSuccess : colors.border,
                       }}
                     >
                       {p.paid ? "Paid" : "Unpaid"}

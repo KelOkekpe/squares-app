@@ -24,6 +24,9 @@ export function BoardManagementSection({
   const [showArchived, setShowArchived] = useState(false);
   const [createError, setCreateError] = useState("");
   const [confirmReset, setConfirmReset] = useState(null);
+  // A reset is a server round trip and can fail; silently closing the
+  // confirmation would look exactly like success.
+  const [resetError, setResetError] = useState("");
 
   const isClosed = (poolId) => !!poolConfigs[poolId]?.submissionsDisabled;
 
@@ -308,16 +311,29 @@ export function BoardManagementSection({
                 </span>
                 <button
                   onClick={async () => {
-                    await onResetPool?.(p.id);
+                    const result = await onResetPool?.(p.id);
+                    if (result?.ok === false) return setResetError(result.error || "Reset failed");
+                    setResetError("");
                     setConfirmReset(null);
                   }}
                   style={rowBtn(colors.accentRed)}
                 >
                   Yes, reset
                 </button>
-                <button onClick={() => setConfirmReset(null)} style={rowBtn(colors.textDim)}>
+                <button
+                  onClick={() => {
+                    setResetError("");
+                    setConfirmReset(null);
+                  }}
+                  style={rowBtn(colors.textDim)}
+                >
                   Cancel
                 </button>
+                {resetError && (
+                  <span style={{ color: colors.accentRed, fontSize: 11, width: "100%" }}>
+                    {resetError}
+                  </span>
+                )}
               </div>
             )}
           </div>

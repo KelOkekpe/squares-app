@@ -51,7 +51,8 @@ export function AdminPanel({
   slate,
   setSlate,
   picks,
-  setPicks,
+  onSetPickPaid,
+  onRemovePickEntry,
   onActivateBoard,
   checkoutStartingFor,
   checkoutError,
@@ -337,10 +338,13 @@ export function AdminPanel({
                 <>
                   {isPickem ? (
                     <PickemSettingsSection
+                      spaceCode={spaceCode}
+                      poolId={activePoolId}
                       slate={slate}
                       setSlate={setSlate}
                       picks={picks}
-                      setPicks={setPicks}
+                      onSetPaid={onSetPickPaid}
+                      onRemove={onRemovePickEntry}
                     />
                   ) : (
                     <>

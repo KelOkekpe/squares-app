@@ -17,6 +17,7 @@ import {
 } from "./utils";
 import {
   usePersistedState,
+  usePickemEntries,
   usePools,
   useAuth,
   useSpacesRegistry,
@@ -171,7 +172,15 @@ export function GameBoard({ spaceCode, onExit }) {
   // Pick'em contests keep their slate and sheets alongside the squares state,
   // so the admin panel can manage whichever type is selected.
   const [slate, setSlate] = usePersistedState(keys.slate, null);
-  const [picks, setPicks] = usePersistedState(keys.picks, []);
+  // Sheets come from an RPC, not the row: they're admin-only in the database
+  // so they can stay hidden until the slate locks.
+  const {
+    entries: picks,
+    refresh: refreshPicks,
+    setPaid: setPickPaid,
+    removeEntry: removePickEntry,
+    clearEntries: clearPickEntries,
+  } = usePickemEntries(spaceCode, activePoolId);
 
   // ── ephemeral UI state ────────────────────────────────
   const [view, setView] = useState("home");
@@ -214,7 +223,12 @@ export function GameBoard({ spaceCode, onExit }) {
         if (currentPool?.gameType === "pickem") {
           // Clear the sheets and un-grade the week, but keep the slate — the
           // games are the contest, and refetching them isn't a reset.
-          setPicks([]);
+          //
+          // The clear is a server round trip, so it can fail. Reporting ok here
+          // would tell the admin a contest was reset while every sheet is still
+          // in it.
+          const cleared = await clearPickEntries();
+          if (cleared?.error) return { ok: false, error: cleared.error };
           setSlate((s) =>
             s
               ? {
@@ -246,7 +260,7 @@ export function GameBoard({ spaceCode, onExit }) {
       setParticipants,
       setPending,
       setScores,
-      setPicks,
+      clearPickEntries,
       setSlate,
       poolAdmin,
     ]
@@ -618,7 +632,8 @@ export function GameBoard({ spaceCode, onExit }) {
           slate={slate}
           setSlate={setSlate}
           picks={picks}
-          setPicks={setPicks}
+          onSetPickPaid={setPickPaid}
+          onRemovePickEntry={removePickEntry}
           onActivateBoard={(poolId) => startCheckout(spaceCode, poolId)}
           checkoutStartingFor={startingFor}
           checkoutError={checkoutError}
@@ -637,6 +652,8 @@ export function GameBoard({ spaceCode, onExit }) {
           spaceCode={spaceCode}
           poolId={activePoolId}
           poolName={currentPool.name}
+          entries={picks}
+          onEntriesChanged={refreshPicks}
           onBack={() => setView("home")}
         />
       ) : (
