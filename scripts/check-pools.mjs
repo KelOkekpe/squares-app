@@ -126,5 +126,18 @@ check(
   uncovered.length === 0
 );
 
+// The admin console selects a board to edit it. Handing it the navigating
+// switchPool sent the view home, closing the panel the selection was made in —
+// which looked like the board and pick'em settings had vanished.
+const gb = readFileSync(new URL("../src/GameBoard.jsx", import.meta.url), "utf8");
+check(
+  "the admin console gets a non-navigating board picker",
+  /<AdminPanel[\s\S]{0,1200}onSwitchPool=\{selectPoolForAdmin\}/.test(gb)
+);
+check(
+  "...and that picker does not change the view",
+  /const selectPoolForAdmin = \(id\) => setViewingPoolId\(id\);/.test(gb)
+);
+
 console.log(failed === 0 ? "\nAll pool-lifecycle cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

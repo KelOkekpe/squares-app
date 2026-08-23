@@ -85,7 +85,14 @@ check(
 // would mean finding all dozen reads of pools and never missing one.
 check(
   "deleted boards are hidden by RLS, not by client filtering",
-  /pools_select[\s\S]{0,200}deleted_at IS NULL OR public\.is_superadmin\(\)/.test(deletion)
+  /CREATE POLICY "pools_select"[\s\S]{0,120}deleted_at IS NULL/.test(deletion)
+);
+// The console reads deleted boards through SECURITY DEFINER RPCs, so exempting
+// superadmins in the policy buys nothing and hides the delete from the one
+// person most likely to be testing it.
+check(
+  "the hide has no superadmin exception",
+  !/CREATE POLICY "pools_select"[\s\S]{0,200}is_superadmin/.test(deletion)
 );
 
 // Every destructive RPC re-checks the role server-side.

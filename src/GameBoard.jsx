@@ -156,6 +156,11 @@ export function GameBoard({ spaceCode, onExit }) {
     setView("home");
   };
 
+  // The admin console selects a board to *edit* it. Sending the view home
+  // closes the panel the selection was just made in, which reads as the board
+  // and pick'em settings having disappeared.
+  const selectPoolForAdmin = (id) => setViewingPoolId(id);
+
   // Admin-only: the board this space opens on for everyone
   const setDefaultPool = (id) => setSpaceMeta((prev) => ({ ...prev, activePoolId: id }));
 
@@ -613,7 +618,7 @@ export function GameBoard({ spaceCode, onExit }) {
           updatePool={updatePoolInDb}
           toggleArchivePool={toggleArchivePool}
           activePoolId={activePoolId}
-          onSwitchPool={switchPool}
+          onSwitchPool={selectPoolForAdmin}
           onClose={() => setView("home")}
           spaceCode={spaceCode}
           pending={pending}

@@ -37,16 +37,23 @@ COMMENT ON COLUMN pools.deleted_at IS
   'Soft delete. Hidden from every non-superadmin read by RLS; purged for real by superadmin_purge_deleted_boards().';
 
 -- ============================================================
--- 1. Hide soft-deleted boards from everyone but a superadmin
+-- 1. Hide soft-deleted boards
 --
 -- Done in RLS rather than by filtering each query: there are a dozen places
 -- that read pools, and one missed `deleted_at IS NULL` would put a deleted
 -- board back on screen. This fails closed instead.
+--
+-- No exception for superadmins. An earlier version read
+-- `deleted_at IS NULL OR public.is_superadmin()`, which meant a superadmin
+-- browsing their own space still saw every deleted board in Past Boards — the
+-- delete looked like it had done nothing. The console doesn't need the
+-- exception anyway: superadmin_list_deleted_boards() and the restore and purge
+-- functions are all SECURITY DEFINER and bypass RLS regardless.
 -- ============================================================
 DROP POLICY IF EXISTS "pools_select" ON pools;
 
 CREATE POLICY "pools_select" ON pools
-  FOR SELECT USING (deleted_at IS NULL OR public.is_superadmin());
+  FOR SELECT USING (deleted_at IS NULL);
 
 -- ============================================================
 -- 2. Soft delete
