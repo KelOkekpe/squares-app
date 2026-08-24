@@ -61,7 +61,7 @@ check(
 check("references rarely collide", refs.size > 495);
 
 // Every link must point at the provider's own domain — never ours.
-const ours = ["sqrbet.app", "/api/", "localhost"];
+const ours = ["squarepool.app", "sqrbet.app", "/api/", "localhost"];
 for (const p of PAYMENT_PROVIDERS) {
   const link = buildPaymentLink(p.key, "someone", 25, note);
   if (!link) continue;

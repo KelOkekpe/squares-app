@@ -111,7 +111,7 @@ check(
 // fetches the link to build its preview and never sends the fragment, so a link
 // whose space lives in the fragment cannot be previewed at all — the crawler
 // would see only "/" and the static index.html behind it.
-const invite = new URL(inviteUrl("scriberfam", "pool-abc", "https://sqrbet.app"));
+const invite = new URL(inviteUrl("scriberfam", "pool-abc", "https://www.squarepool.app"));
 check("an invite link is a server-readable path", invite.pathname === "/i/pool-abc");
 check("an invite link carries no fragment", invite.hash === "");
 check(
@@ -122,7 +122,7 @@ check(
 // /i/ bounces the browser to this URL, which the app itself has to understand.
 // The danger is parseLocation rewriting it to a canonical form, dropping ?b=
 // and landing the visitor on whatever board the admin set as the default.
-const landing = new URL("https://sqrbet.app/?b=pool-abc#scriberfam");
+const landing = new URL("https://www.squarepool.app/?b=pool-abc#scriberfam");
 const landed = parseLocation(landing.pathname, landing.hash);
 check(
   "the landing URL resolves to the space",

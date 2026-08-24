@@ -19,6 +19,13 @@ The last two are written and ready, but until the app offers the flow, Supabase
 has nothing to trigger them. A user who forgets their password currently has no
 route back into their account except signing in with Google.
 
+## Sending domain
+
+The app is on **squarepool.app** (canonical host `www.squarepool.app` — the apex
+308-redirects to it). Supabase's **Site URL** has to match that exactly, or the
+`{{ .ConfirmationURL }}` in these emails points somewhere else: signUp passes no
+`redirectTo`, so the link is built from Site URL alone.
+
 ## Before these reach anyone
 
 The built-in Supabase email service **only delivers to your organisation's team

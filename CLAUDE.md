@@ -142,6 +142,14 @@ Two consequences: you **cannot concatenate an alpha suffix** onto a token (`` `$
 
 Note `pageStyle` sets `overflow: hidden`, so anything that overflows horizontally is clipped rather than scrollable.
 
+## Domain
+
+Production is **squarepool.app**, canonical host `www.squarepool.app` — the apex 308-redirects to www. `sqrbet.app` still resolves and serves the same app.
+
+Nothing in the code hard-codes it: the client builds links from `window.location.origin`, and `api/checkout.js` and `api/invite.js` use `req.headers.origin`/`host`. The couplings that *do* need the exact canonical host are all outside the repo — Supabase **Site URL** (which is what `{{ .ConfirmationURL }}` is built from, since `signUp` passes no `redirectTo`) and Supabase's **redirect allowlist** (which `resetPasswordForEmail` and Google sign-in both need, as they pass `redirectTo: origin + "/admin"`).
+
+The `sqrbet-theme` localStorage key keeps its old name deliberately — renaming it would reset the theme for everyone who has already chosen one.
+
 ## Gotchas
 
 - `.env` holds `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` and is gitignored. Vite inlines them at **build** time — changing them requires a rebuild, not a restart.
