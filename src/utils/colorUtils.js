@@ -45,3 +45,32 @@ export function bestContrast(candidates, background) {
     contrastRatio(c, background) > contrastRatio(best, background) ? c : best
   );
 }
+
+/**
+ * The colour for a board's axis digits.
+ *
+ * The gutter keeps its own background — the team's colour, darkened — so the
+ * digits have to work against whatever that turns out to be. A dark team
+ * colour used to leave near-black digits on a near-black gutter, and a white
+ * one left black digits on mid grey.
+ *
+ * The team's own colour is kept when it is light enough to read against the
+ * gutter, so a board keeps its identity; otherwise the digits go light. Only
+ * light candidates are considered — a technically-contrasting dark digit is
+ * what made this unreadable in the first place.
+ *
+ * Exported rather than inlined so the theme check tests the rule that actually
+ * ships; duplicating it there let a broken threshold pass unnoticed.
+ */
+export const MIN_DIGIT_CONTRAST = 3; // large, bold digits — WCAG large-text
+export const MIN_DIGIT_LUMINANCE = 0.35;
+
+export function axisDigitColor({ candidates, background, fallback }) {
+  const legible = (candidates || [])
+    .filter(Boolean)
+    .filter(
+      (c) =>
+        luminance(c) >= MIN_DIGIT_LUMINANCE && contrastRatio(c, background) >= MIN_DIGIT_CONTRAST
+    );
+  return legible.length ? bestContrast(legible, background) : fallback;
+}

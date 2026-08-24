@@ -2,7 +2,14 @@
 // defined in BOTH palettes in index.html. A missing token doesn't error —
 // it silently renders as transparent/inherit, which is worse.
 import { readFileSync, readdirSync } from "node:fs";
-import { contrastRatio } from "../src/utils/colorUtils.js";
+import {
+  contrastRatio,
+  luminance,
+  darken,
+  axisDigitColor,
+  MIN_DIGIT_CONTRAST,
+  MIN_DIGIT_LUMINANCE,
+} from "../src/utils/colorUtils.js";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -130,18 +137,9 @@ const gridSrc = readFileSync(
   new URL("../src/components/grid/SquaresGrid.jsx", import.meta.url),
   "utf8"
 );
-// Checked per branch: testing the whole file for "bestContrast(" passed even
-// with the light branch reverted, because the dark branch still had one.
-const axisBody = gridSrc.slice(
-  gridSrc.indexOf("const axisCell ="),
-  gridSrc.indexOf("const nameSize =")
-);
-const colourAssignments = [...axisBody.matchAll(/color:\s*([^,\n]+)/g)].map((m) => m[1].trim());
-colourAssignments.length >= 2 && colourAssignments.every((c) => c.startsWith("bestContrast("))
-  ? pass(`axis numbers are chosen by contrast in all ${colourAssignments.length} branches`)
-  : fail(
-      `axis numbers ignore contrast in at least one branch (${colourAssignments.join(" | ")}) — a light team colour renders them invisible`
-    );
+// Superseded by the numeric checks further down, which compute the actual
+// contrast of the digits against the real palette for a range of team colours
+// — that catches a regression this pattern-match would miss.
 
 // A preview that draws a different gradient than the board is a lie.
 const picker = readFileSync(
@@ -151,6 +149,91 @@ const picker = readFileSync(
 /darken\(bg, 0\.25\)/.test(picker)
   ? pass("the colour preview draws the same gradient as the grid")
   : fail("the colour preview's gradient no longer matches the grid");
+
+// ── the board has to be readable in the dark ──
+// It used to draw its cells on --surface-deep with a 3%-white border and take
+// the number gutters from the team colour, so a dark board was a near-black
+// void carrying near-black digits.
+const darkVal = (name) =>
+  (block(":root") || "").match(new RegExp(`${name}:\\s*(#[0-9a-f]{3,8})`, "i"))?.[1];
+const lightVal = (name) =>
+  (block('[data-theme="light"]') || "").match(new RegExp(`${name}:\\s*(#[0-9a-f]{3,8})`, "i"))?.[1];
+
+const gridUses = readFileSync(
+  new URL("../src/components/grid/SquaresGrid.jsx", import.meta.url),
+  "utf8"
+);
+/colors\.surfaceDeep|colors\.surfaceFilled/.test(gridUses)
+  ? fail("the grid still draws cells on the general page surfaces")
+  : pass("the grid draws cells on its own surfaces");
+
+const pageBg = darkVal("--page-bg");
+const empty = darkVal("--grid-cell-empty");
+const filled = darkVal("--grid-cell-filled");
+
+// Adjacent large blocks, so these are separation checks rather than text
+// contrast — but they must be a visible step, which 1.03:1 was not.
+const step = (a, b, label, min) => {
+  const r = contrastRatio(a, b);
+  r >= min
+    ? pass(`${label} are distinguishable in the dark (${r.toFixed(2)}:1)`)
+    : fail(`${label} are only ${r.toFixed(2)}:1 apart in the dark — the grid reads as a void`);
+};
+step(empty, pageBg, "empty cells and the page", 1.1);
+step(filled, empty, "filled and empty cells", 1.15);
+
+// The gutter takes its background from the team's colour, so the digits have to
+// hold up against anything an admin can pick. axisDigitColor is imported rather
+// than restated — an earlier version of this check duplicated the rule, and a
+// deliberately broken threshold in the component sailed straight through it.
+// The thresholds are asserted directly as well as through samples. Lowering
+// MIN_DIGIT_CONTRAST barely moves the sample outcomes — a team's background is
+// nearly always brighter than its own darkened gutter, so it stays a valid
+// candidate — which means the samples alone would not notice it being weakened.
+MIN_DIGIT_CONTRAST >= 3
+  ? pass(`the digit contrast floor is WCAG large-text or better (${MIN_DIGIT_CONTRAST}:1)`)
+  : fail(`the digit contrast floor has dropped to ${MIN_DIGIT_CONTRAST}:1`);
+MIN_DIGIT_LUMINANCE >= 0.35
+  ? pass(`digits must be genuinely light (luminance ${MIN_DIGIT_LUMINANCE})`)
+  : fail(`the digit luminance floor has dropped to ${MIN_DIGIT_LUMINANCE}`);
+
+const SAMPLE_TEAMS = [
+  ["white banner", "#ffffff", "#000000"],
+  ["dark navy", "#1e3a5f", "#7db8f0"],
+  ["black on green", "#000000", "#7bcc9e"],
+  ["black on black", "#000000", "#000000"],
+  ["mid grey on grey", "#808080", "#909090"],
+  // A light team colour that is still too close to its own darkened gutter —
+  // this is the case the contrast floor exists for; without it the digits are
+  // technically light and still unreadable.
+  ["pale on pale", "#c8c8c8", "#b0b0b0"],
+];
+for (const [label, bg, fg] of SAMPLE_TEAMS) {
+  const gutter = darken(bg, 0.5);
+  const used = axisDigitColor({
+    candidates: [fg, bg],
+    background: gutter,
+    // colors.white in the component
+    fallback: "#ffffff",
+  });
+  const r = contrastRatio(used, gutter);
+  const lightEnough = luminance(used) >= 0.35;
+  // 3:1 and 0.35 are written out rather than imported: taking them from the
+  // module under test meant weakening the module weakened the assertion too.
+  r >= 3 && lightEnough
+    ? pass(
+        `dark-mode axis digits are legible for ${label} (${used} on ${gutter}, ${r.toFixed(1)}:1)`
+      )
+    : fail(
+        `dark-mode axis digits for ${label} are ${used} on ${gutter} — ${r.toFixed(1)}:1${lightEnough ? "" : ", and not a light colour"}`
+      );
+}
+
+// The gutter background itself must not change: it was asked to stay as it was.
+const gridCode = strip(gridUses);
+/const gutter = darken\(teamBg, 0\.5\);/.test(gridCode) && /background: gutter,/.test(gridCode)
+  ? pass("the number gutter keeps its team-derived background")
+  : fail("the number gutter no longer uses the darkened team colour");
 
 console.log(failed === 0 ? "\nAll theme cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

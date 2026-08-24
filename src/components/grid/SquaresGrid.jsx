@@ -1,11 +1,21 @@
 import React, { useMemo } from "react";
 import { GRID_SIZE, QUARTERS, getWinnerCell, DEFAULT_TEAM_COLORS } from "../../utils";
-import { darken, bestContrast } from "../../utils";
+import {
+  darken,
+  axisDigitColor,
+  bestContrast,
+  contrastRatio,
+  MIN_DIGIT_CONTRAST,
+} from "../../utils";
 import { colors, fonts } from "../../styles";
 import { useIsMobile } from "../../hooks/useMediaQuery";
 import { useTheme } from "../../hooks/useTheme";
 import { PrizePotBar } from "./PrizePotBar";
 import { TeamLogo } from "../common";
+
+// The light gutter is --surface-primary, which is white. Mirrored here because
+// contrast can't be computed from a var().
+const LIGHT_GUTTER_HEX = "#ffffff";
 
 export function SquaresGrid({ board, headers, config, scores }) {
   const isMobile = useIsMobile();
@@ -17,24 +27,38 @@ export function SquaresGrid({ board, headers, config, scores }) {
   const cellHeight = isMobile ? 30 : 52;
   const cellGap = isMobile ? 1 : 2;
   const gridMinWidth = isMobile ? 0 : 700;
-  // In light mode the darkened team colour reads as a heavy black band across a
-  // pale board, so the number gutters go white and the team colour moves to the
-  // digits instead.
-  // The number used to be painted in the team's background colour, which is
-  // invisible the moment that colour is white. Pick whichever of the team's two
-  // colours actually reads against the cell — for dark team colours that lands
-  // on the same one it always did.
+  // The number gutters used to take their background from the team's colour —
+  // darken(teamBg, 0.5). That produced a near-black gutter carrying near-black
+  // digits for a dark team colour, and a grey band for a light one. They now
+  // sit on a fixed board surface in both themes, so the digits are legible
+  // whatever the admin picks.
+  //
+  // The team's colour is still used for the digits, but only when it actually
+  // reads against that surface; otherwise the theme's own text colour wins.
+  // The gutter keeps the background it always had. Only the digits changed:
+  // they were painted in the team's colour regardless of whether it showed up,
+  // which left black-on-grey for a white board and near-black-on-near-black for
+  // a dark one.
   const axisCell = (teamBg, teamColor) => {
     if (isLight) {
-      // The light surface is white, so the darker of the pair wins.
+      // A white gutter, so the darker of the team's colours reads best.
+      const best = bestContrast([teamBg, teamColor], LIGHT_GUTTER_HEX);
       return {
         background: colors.surfacePrimary,
-        color: bestContrast([teamBg, teamColor], "#ffffff"),
-        border: `1px solid ${colors.border}`,
+        color:
+          contrastRatio(best, LIGHT_GUTTER_HEX) >= MIN_DIGIT_CONTRAST ? best : colors.textPrimary,
+        border: `1px solid ${colors.gridCellBorder}`,
       };
     }
-    const cell = darken(teamBg, 0.5);
-    return { background: cell, color: bestContrast([teamColor, teamBg], cell) };
+    const gutter = darken(teamBg, 0.5);
+    return {
+      background: gutter,
+      color: axisDigitColor({
+        candidates: [teamColor, teamBg],
+        background: gutter,
+        fallback: colors.white,
+      }),
+    };
   };
 
   const nameSize = (name) =>
@@ -249,9 +273,11 @@ export function SquaresGrid({ board, headers, config, scores }) {
                     background: winQ
                       ? "linear-gradient(135deg, #ffd70030, #ff8c0025)"
                       : isEmpty
-                        ? colors.surfaceDeep
-                        : colors.surfaceFilled,
-                    border: winQ ? `2px solid ${colors.accentGold}` : `1px solid ${colors.border}`,
+                        ? colors.gridCellEmpty
+                        : colors.gridCellFilled,
+                    border: winQ
+                      ? `2px solid ${colors.accentGold}`
+                      : `1px solid ${colors.gridCellBorder}`,
                     borderRadius: isMobile ? 3 : 4,
                     display: "flex",
                     flexDirection: "column",
