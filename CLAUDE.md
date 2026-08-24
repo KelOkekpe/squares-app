@@ -46,6 +46,14 @@ Because the client only ever holds the sanitised list, **admin edits must go thr
 
 Scoring is in `src/utils/pickem.js`. The tiebreaker is closest-total-without-going-over, and two gaps the plain rule leaves are closed explicitly: if everyone tied goes over, the closest of them still wins; identical guesses fall back to earliest submission. Ungraded games never count, so standings are meaningful mid-week. `npm run check:pickem` covers all of it.
 
+## Invites
+
+Anyone in a space can invite — players fill boards, not just admins. The link is `/?b=<poolId>#<spaceCode>`: the board rides in the **query string** because the fragment already carries the space code, and `parseLocation()` ignores `search` entirely, so it can't collide and won't be stripped by the canonical-URL rewrite. Putting the board in the fragment instead breaks the space code outright — `npm run check:routes` covers it.
+
+Which board you're viewing is otherwise per-viewer state that never reaches the URL, so without this an invite lands people on whatever the admin set as the space default rather than the board the message is about.
+
+There is no way to send a text from a desktop, so the two cases get different primary actions rather than one compromise: phones get the native share sheet (`navigator.share`, which already contains Messages and WhatsApp) with a direct `sms:` link underneath; desktops get copy-to-clipboard plus `mailto:`. The share sheet is used wherever it exists, including recent macOS and Windows. **iOS and Android disagree on the SMS separator** (`sms:&body=` vs `sms:?body=`) — the wrong one opens an empty composer, which reads as the feature being broken.
+
 ## Board lifecycle
 
 A board is active while it is **neither archived nor past `pools.expires_at`**. Anything else is "completed" — closed to entries but still viewable via Past Boards. `src/utils/poolStatus.js` is the single definition; don't re-derive it with `!p.archived`, which misses expired boards.

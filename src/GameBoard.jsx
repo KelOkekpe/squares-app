@@ -2,6 +2,9 @@ import React, { useState, useCallback, useEffect } from "react";
 import {
   splitPools,
   isPoolCompleted,
+  invitedPoolId,
+  inviteUrl,
+  inviteMessage,
   generatePaymentRef,
   buildPaymentNote,
   applySmartFill,
@@ -44,6 +47,7 @@ import {
 import { AdminPanel, NewBoardModal } from "./components/admin";
 import { PasswordInput } from "./components/common";
 import { PickemView } from "./components/pickem";
+import { InviteModal } from "./components/common";
 
 export function GameBoard({ spaceCode, onExit }) {
   const { isSpaceAdmin, isOwner } = useAuth();
@@ -115,7 +119,11 @@ export function GameBoard({ spaceCode, onExit }) {
   // be written to `spaces`, which players have no write access to — so their
   // clicks silently failed. The space default still lives in spaceMeta and is
   // set from the admin panel; this only seeds the initial view.
-  const [viewingPoolId, setViewingPoolId] = useState(null);
+  // An invite link names a board. Seeded once, so it doesn't fight the picker
+  // if the visitor then switches boards themselves.
+  const [viewingPoolId, setViewingPoolId] = useState(() =>
+    typeof window !== "undefined" ? invitedPoolId(window.location.search) : null
+  );
 
   const defaultPoolId = pools.find((p) => p.id === spaceMeta.activePoolId)?.id;
   const activePoolId =
@@ -189,6 +197,7 @@ export function GameBoard({ spaceCode, onExit }) {
 
   // ── ephemeral UI state ────────────────────────────────
   const [view, setView] = useState("home");
+  const [showInvite, setShowInvite] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [middleInitial, setMiddleInitial] = useState("");
   const [lastName, setLastName] = useState("");
@@ -675,6 +684,7 @@ export function GameBoard({ spaceCode, onExit }) {
               onOpenPastBoards={() => setShowPastBoards(true)}
               isPickem={isPickem}
               onOpenPickem={() => setView("pickem")}
+              onInvite={currentPool ? () => setShowInvite(true) : undefined}
               onJoin={() => setView("join")}
               onViewBoard={() => setView("board")}
             />
@@ -770,6 +780,20 @@ export function GameBoard({ spaceCode, onExit }) {
             if (pool) switchPool(pool.id);
             return { error };
           }}
+        />
+      )}
+
+      {showInvite && currentPool && (
+        <InviteModal
+          url={inviteUrl(spaceCode, currentPool.id)}
+          message={inviteMessage({
+            pool: currentPool,
+            config: effectiveConfig,
+            slate,
+            squaresLeft: emptyCount,
+          })}
+          isPrivate={space?.isPrivate}
+          onClose={() => setShowInvite(false)}
         />
       )}
 

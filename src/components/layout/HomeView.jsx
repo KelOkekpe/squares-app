@@ -16,6 +16,7 @@ export function HomeView({
   onViewBoard,
   isPickem,
   onOpenPickem,
+  onInvite,
 }) {
   const activePools = pools.filter(isPoolActive);
   const currentPool = pools.find((p) => p.id === activePoolId);
@@ -183,6 +184,26 @@ export function HomeView({
               View Board
             </button>
           </>
+        )}
+
+        {/* Anyone can invite — the people most likely to fill a board are the
+            ones already in it, not only whoever set it up. */}
+        {onInvite && (
+          <button
+            onClick={onInvite}
+            style={{
+              ...btnSecondary,
+              width: "100%",
+              padding: "16px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              gap: 8,
+              color: colors.accentViolet,
+            }}
+          >
+            <span aria-hidden="true">✉︎</span> Invite friends
+          </button>
         )}
       </div>
 

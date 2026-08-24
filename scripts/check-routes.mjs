@@ -2,6 +2,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseLocation, isAuthCallbackHash, authErrorFromHash } from "../src/utils/routes.js";
+import { inviteUrl, invitedPoolId, inviteMessage, smsHref } from "../src/utils/invite.js";
 
 let failed = 0;
 const check = (label, cond) => {
@@ -104,6 +105,76 @@ check(
   "an anchor-shaped fragment would resolve as a space",
   parseLocation("/", "#features").name === "space"
 );
+
+// ── invite links ──
+// The board being invited to rides in the query string, because the fragment
+// already carries the space code. The danger is parseLocation deciding the URL
+// needs rewriting to its canonical form, which would drop ?b= and land the
+// visitor on whatever board the admin set as the default instead.
+const invite = new URL(inviteUrl("scriberfam", "pool-abc", "https://sqrbet.app"));
+const inviteRoute = parseLocation(invite.pathname, invite.hash);
+check(
+  "an invite link resolves to the space",
+  inviteRoute.name === "space" && inviteRoute.code === "scriberfam"
+);
+check(
+  "an invite link is not rewritten (that would strip ?b=)",
+  inviteRoute.redirectTo === undefined
+);
+check("the board survives the round trip", invitedPoolId(invite.search) === "pool-abc");
+check("a plain space link still carries no board", invitedPoolId("") === null);
+check(
+  "the board id is escaped into the query",
+  inviteUrl("s", "a b&c=d", "https://x").includes("b=a%20b%26c%3Dd")
+);
+
+// ── what the invite says ──
+// "Pool 1" means nothing to someone who has not joined; the matchup does.
+const squaresMsg = inviteMessage({
+  pool: { name: "Pool 1", gameType: "squares" },
+  config: {
+    teamX: "Seattle Seahawks",
+    teamY: "New England Patriots",
+    pricePerSquare: 10,
+    quarterlyPayout: 250,
+  },
+  squaresLeft: 88,
+});
+check(
+  "a squares invite names the teams, not the board",
+  /Seahawks vs New England Patriots/.test(squaresMsg) && !/Pool 1/.test(squaresMsg)
+);
+check(
+  "a squares invite leads with the stakes",
+  /\$10 a square/.test(squaresMsg) && /\$250 a quarter/.test(squaresMsg)
+);
+const pickemMsg = inviteMessage({
+  pool: { name: "Week 3", gameType: "pickem" },
+  slate: { label: "Week 3", games: new Array(16).fill({}) },
+});
+check(
+  "a pick'em invite describes picks, not squares",
+  /picks/i.test(pickemMsg) && !/square/i.test(pickemMsg)
+);
+check("a pick'em invite warns about the lock", /lock/i.test(pickemMsg));
+// A board with nothing configured must still produce a sentence.
+check("a bare board still yields a message", inviteMessage({}).length > 0);
+check(
+  "no undefined leaks into the message",
+  !/undefined|NaN|\$0\b/.test(inviteMessage({ pool: {}, config: {} }))
+);
+
+// iOS and Android disagree on the separator; the wrong one opens an empty
+// composer, which reads as the feature being broken.
+check(
+  "the SMS link is iOS-shaped on Apple devices",
+  smsHref("hi", "iPhone").startsWith("sms:&body=")
+);
+check(
+  "the SMS link is Android-shaped elsewhere",
+  smsHref("hi", "Android").startsWith("sms:?body=")
+);
+check("the SMS body is escaped", smsHref("a b&c", "Android").includes("a%20b%26c"));
 
 console.log(failed === 0 ? "\nAll auth-callback cases pass." : `\n${failed} failed.`);
 process.exit(failed === 0 ? 0 : 1);
