@@ -7,7 +7,7 @@ import { colors } from "../../styles";
  * that person's squares — the board and the entry list are separate stores, so
  * blanking cells with Override Cell leaves the entry behind.
  */
-export function EntriesSection({ participants, onRemove }) {
+export function EntriesSection({ participants, contacts = {}, onRemove }) {
   const [confirming, setConfirming] = useState(null);
 
   return (
@@ -50,6 +50,7 @@ export function EntriesSection({ participants, onRemove }) {
       ) : (
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
           {participants.map((entry, index) => {
+            const contact = contacts[entry.id];
             const isConfirming = confirming === index;
             return (
               <div
@@ -85,17 +86,20 @@ export function EntriesSection({ participants, onRemove }) {
                     <div style={{ color: colors.textDim, fontSize: 11, marginTop: 2 }}>
                       {entry.squares} square{entry.squares !== 1 ? "s" : ""}
                       {entry.amount ? ` · $${entry.amount}` : ""}
-                      {entry.payoutMethod ? ` · ${entry.payoutMethod}` : ""}
+                      {contact?.payoutMethod ? ` · ${contact.payoutMethod}` : ""}
                     </div>
-                    {entry.email && (
+                    {/* Not on the entry itself — the participants blob is
+                        readable by every player, so contact details come from
+                        the admin-only table instead. */}
+                    {contact?.email && (
                       <div style={{ color: colors.textDim, fontSize: 11, marginTop: 2 }}>
                         <a
-                          href={`mailto:${entry.email}`}
+                          href={`mailto:${contact.email}`}
                           style={{ color: colors.accentViolet, textDecoration: "none" }}
                         >
-                          {entry.email}
+                          {contact.email}
                         </a>
-                        {entry.phone ? ` · ${entry.phone}` : ""}
+                        {contact.phone ? ` · ${contact.phone}` : ""}
                       </div>
                     )}
                   </div>

@@ -118,6 +118,8 @@ Players never sign up or sign in. They have **no write access** to `spaces` — 
 
 Entry submissions require an email and phone. `submit_entry_request` validates both and uses the email as a rate-limit key — 5/hour per address, 120/hour per space, tracked in `entry_request_log` (which stores an md5, not the address). Payout details and middle initial are optional.
 
+Entrant **contact and payout details are never written into the `participants` blob**. That blob is world-readable and cannot be gated — the board draws its names from it — so email, phone and payout handles live in `entry_contacts`, admin-only by RLS, keyed by an `id` now carried on each participant. `migration_entry_privacy.sql` moved the existing ones; its backfill deliberately leaves an entry that already has an id alone, because regenerating would orphan every contact. `npm run check:deletion` fails if the approval path puts any of those fields back.
+
 `placeParticipant` returns the cells it filled, because the grid stores only names — approval is the one moment a player's actual squares are knowable. `src/utils/notify.js` turns those into grid coordinates and an approval message.
 
 Entries are gated by admin confirmation: a submission lands in a pending queue and only reaches the board when an admin approves it. The trust boundary is a human, not the database.

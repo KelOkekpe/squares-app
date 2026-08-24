@@ -23,6 +23,7 @@ UNION ALL SELECT 'spaces_registry',       count(*) FROM spaces_registry
 UNION ALL SELECT 'space_admins',          count(*) FROM space_admins
 UNION ALL SELECT 'user_space_access',     count(*) FROM user_space_access
 UNION ALL SELECT 'pickem_contacts',       count(*) FROM pickem_contacts
+UNION ALL SELECT 'entry_contacts',        count(*) FROM entry_contacts
 UNION ALL SELECT 'entry_request_log',     count(*) FROM entry_request_log
 UNION ALL SELECT 'admin_audit_log',       count(*) FROM admin_audit_log
 UNION ALL SELECT 'user_profiles (KEPT)',  count(*) FROM user_profiles;
@@ -40,6 +41,7 @@ BEGIN;
 
 DELETE FROM spaces;
 DELETE FROM pickem_contacts;
+DELETE FROM entry_contacts;
 DELETE FROM entry_request_log;
 DELETE FROM pools;
 DELETE FROM space_admins;
@@ -82,5 +84,6 @@ UNION ALL SELECT 'spaces_registry',     count(*) FROM spaces_registry
 UNION ALL SELECT 'space_admins',        count(*) FROM space_admins
 UNION ALL SELECT 'user_space_access',   count(*) FROM user_space_access
 UNION ALL SELECT 'pickem_contacts',     count(*) FROM pickem_contacts
+UNION ALL SELECT 'entry_contacts',      count(*) FROM entry_contacts
 UNION ALL SELECT 'entry_request_log',   count(*) FROM entry_request_log
 UNION ALL SELECT 'user_profiles (KEPT)', count(*) FROM user_profiles;

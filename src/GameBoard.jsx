@@ -21,6 +21,7 @@ import {
 import {
   usePersistedState,
   usePickemEntries,
+  useEntryContacts,
   usePools,
   useAuth,
   useSpacesRegistry,
@@ -195,6 +196,15 @@ export function GameBoard({ spaceCode, onExit }) {
     clearEntries: clearPickEntries,
   } = usePickemEntries(spaceCode, activePoolId);
 
+  // Entrant contact details live outside the participants blob, which players
+  // can read. Admin-only by RLS, so this is empty for everyone else.
+  const {
+    contacts: entryContacts,
+    saveContact,
+    removeContact,
+    clearContacts,
+  } = useEntryContacts(spaceCode, activePoolId, isOwnerOrAdmin);
+
   // ── ephemeral UI state ────────────────────────────────
   const [view, setView] = useState("home");
   const [showInvite, setShowInvite] = useState(false);
@@ -259,6 +269,7 @@ export function GameBoard({ spaceCode, onExit }) {
         setBoard(freshBoard);
         setHeaders(freshHeaders);
         setParticipants([]);
+        clearContacts();
         setPending([]);
         setScores({});
         setApprovalNotice(null);
@@ -275,6 +286,7 @@ export function GameBoard({ spaceCode, onExit }) {
       setPending,
       setScores,
       clearPickEntries,
+      clearContacts,
       setSlate,
       poolAdmin,
     ]
@@ -416,19 +428,26 @@ export function GameBoard({ spaceCode, onExit }) {
           }),
         });
       }
+      // Contact and payout details deliberately do NOT go in here. This blob is
+      // world-readable — the board draws its names from it — so they go to
+      // entry_contacts, which only admins can read. The id is what ties the two
+      // together.
+      const entryId =
+        typeof crypto !== "undefined" && crypto.randomUUID
+          ? crypto.randomUUID()
+          : `e${Date.now()}${Math.round(Math.random() * 1e6)}`;
+
       setParticipants((p) => [
         ...p,
         {
+          id: entryId,
           name: entry.name,
-          email: entry.email || null,
-          phone: entry.phone || null,
-          payoutMethod: entry.payoutMethod || null,
-          payoutHandles: entry.payoutHandles || null,
           amount: entry.amount,
           squares: placed,
           time: Date.now(),
         },
       ]);
+      saveContact(entryId, entry);
       setPending((list) => list.filter((p) => p.id !== id));
     },
     [
@@ -442,6 +461,7 @@ export function GameBoard({ spaceCode, onExit }) {
       setBoard,
       setParticipants,
       setPending,
+      saveContact,
     ]
   );
 
@@ -491,9 +511,11 @@ export function GameBoard({ spaceCode, onExit }) {
         return next;
       });
 
+      const removed = participants[index];
       setParticipants((list) => list.filter((_, i) => i !== index));
+      if (removed?.id) removeContact(removed.id);
     },
-    [participants, setBoard, setParticipants]
+    [participants, setBoard, setParticipants, removeContact]
   );
 
   // ── Checking access or private space password gate ──
@@ -652,6 +674,7 @@ export function GameBoard({ spaceCode, onExit }) {
           checkoutStartingFor={startingFor}
           checkoutError={checkoutError}
           participants={participants}
+          entryContacts={entryContacts}
           setParticipants={setParticipants}
           onRemoveEntry={removeEntry}
         />

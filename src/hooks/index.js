@@ -16,3 +16,4 @@ export { useLiveScores } from "./useLiveScores";
 export { usePickem } from "./usePickem";
 export { usePickemEntries } from "./usePickemEntries";
 export { usePickemContacts } from "./usePickemContacts";
+export { useEntryContacts } from "./useEntryContacts";

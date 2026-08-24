@@ -43,6 +43,7 @@ export function AdminPanel({
   poolConfigs,
   poolBusyId,
   participants = [],
+  entryContacts = {},
   setParticipants,
   onRemoveEntry,
   onSmartFill,
@@ -361,7 +362,11 @@ export function AdminPanel({
                       />
 
                       {/* Confirmed entries */}
-                      <EntriesSection participants={participants} onRemove={onRemoveEntry} />
+                      <EntriesSection
+                        participants={participants}
+                        contacts={entryContacts}
+                        onRemove={onRemoveEntry}
+                      />
                       {/* Price per square */}
                       <div style={adminSectionStyle}>
                         <label style={labelStyle}>Price per square ($)</label>
