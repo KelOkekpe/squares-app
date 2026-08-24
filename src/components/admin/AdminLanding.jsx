@@ -19,9 +19,9 @@ import { ThemeToggle } from "../common";
  * Players never see this page.
  */
 export function AdminLanding() {
-  const { signUpWithEmail, signInWithEmail, signInWithGoogle } = useAuth();
+  const { signUpWithEmail, signInWithEmail, signInWithGoogle, requestPasswordReset } = useAuth();
 
-  const [mode, setMode] = useState("login"); // 'login' | 'register'
+  const [mode, setMode] = useState("login"); // 'login' | 'register' | 'forgot'
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -46,7 +46,35 @@ export function AdminLanding() {
     }
   };
 
+  const handleForgot = async () => {
+    setError("");
+    setSuccess("");
+    if (!email.trim()) {
+      setError("Enter the email address you signed up with");
+      return;
+    }
+
+    setLoading(true);
+    const { error: resetError } = await requestPasswordReset(email.trim());
+    setLoading(false);
+    if (resetError) {
+      setError(resetError.message || "Could not send the reset email");
+      return;
+    }
+
+    // Deliberately the same message whether or not that address has an account.
+    // Saying "no account found" would turn this into a way to check who is
+    // registered.
+    const sentTo = email.trim();
+    setMode("login");
+    setSuccess(`If ${sentTo} has an account, a reset link is on its way.`);
+  };
+
   const handleSubmit = async () => {
+    if (mode === "forgot") {
+      await handleForgot();
+      return;
+    }
     setError("");
     setSuccess("");
 
@@ -271,19 +299,21 @@ export function AdminLanding() {
                   placeholder="you@example.com"
                 />
               </div>
-              <div>
-                <label style={labelStyle}>Password</label>
-                <PasswordInput
-                  value={password}
-                  onChange={(e) => {
-                    setPassword(e.target.value);
-                    setError("");
-                  }}
-                  onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-                  style={inputStyle}
-                  placeholder={mode === "register" ? "At least 6 characters" : "Your password"}
-                />
-              </div>
+              {mode !== "forgot" && (
+                <div>
+                  <label style={labelStyle}>Password</label>
+                  <PasswordInput
+                    value={password}
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      setError("");
+                    }}
+                    onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
+                    style={inputStyle}
+                    placeholder={mode === "register" ? "At least 6 characters" : "Your password"}
+                  />
+                </div>
+              )}
             </div>
 
             {error && (
@@ -323,8 +353,55 @@ export function AdminLanding() {
                 cursor: loading ? "not-allowed" : "pointer",
               }}
             >
-              {loading ? "…" : mode === "register" ? "Create Account" : "Sign In"}
+              {loading
+                ? "…"
+                : mode === "register"
+                  ? "Create Account"
+                  : mode === "forgot"
+                    ? "Email me a reset link"
+                    : "Sign In"}
             </button>
+
+            {/* Only on sign-in: there is nothing to recover mid-signup, and the
+                recovery screen is where you land coming back from the email. */}
+            {mode === "login" && (
+              <button
+                type="button"
+                onClick={() => switchMode("forgot")}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: colors.textDim,
+                  fontSize: 13,
+                  fontFamily: "inherit",
+                  cursor: "pointer",
+                  marginTop: 14,
+                  padding: 0,
+                }}
+              >
+                Forgot your password?
+              </button>
+            )}
+
+            {mode === "forgot" && (
+              <button
+                type="button"
+                onClick={() => switchMode("login")}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: colors.accentViolet,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  fontFamily: "inherit",
+                  cursor: "pointer",
+                  marginTop: 14,
+                  padding: 0,
+                }}
+              >
+                ← Back to sign in
+              </button>
+            )}
 
             {mode === "register" && (
               <p style={{ color: colors.textDim, fontSize: 11, margin: "12px 0 0" }}>

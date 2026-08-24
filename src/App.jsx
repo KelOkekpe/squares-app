@@ -5,7 +5,7 @@ import { isSupabaseEnabled } from "./lib/supabase";
 import { spacePath, ADMIN_PATH, JOIN_PATH, isAuthCallbackHash } from "./utils/routes";
 import { PlayerLanding } from "./components/landing";
 import { MarketingPage } from "./components/marketing";
-import { AdminApp, AuthCallback } from "./components/admin";
+import { AdminApp, AuthCallback, ResetPasswordScreen } from "./components/admin";
 import { SuperAdminApp } from "./components/superadmin";
 import { GameBoard } from "./GameBoard";
 import { pageStyle, containerStyle } from "./styles";
@@ -26,7 +26,7 @@ function SupabaseRequired() {
 
 export default function App() {
   const { route, navigate } = useRoute();
-  const { isLoggedIn } = useAuth();
+  const { isLoggedIn, recovering } = useAuth();
   // Latched on mount: supabase-js clears the token fragment as soon as it reads
   // it, which would otherwise bounce us out of the callback mid-sign-in.
   const [handlingAuth, setHandlingAuth] = useState(
@@ -39,6 +39,13 @@ export default function App() {
   }, [navigate]);
 
   if (!isSupabaseEnabled()) return <SupabaseRequired />;
+
+  // Checked before the auth callback and before every route: a recovery link
+  // signs the user in, so without this they would land in the dashboard with
+  // the password they have forgotten still set.
+  if (recovering) {
+    return <ResetPasswordScreen onDone={finishAuth} />;
+  }
 
   if (handlingAuth || route.name === "auth") {
     return <AuthCallback onDone={finishAuth} />;

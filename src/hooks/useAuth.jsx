@@ -13,6 +13,8 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null); // Supabase auth user
   const [profile, setProfile] = useState(null); // user_profiles row
   const [loading, setLoading] = useState(true);
+  // True from a recovery link until the password is actually changed.
+  const [recovering, setRecovering] = useState(false);
   // Which user's profile is already loaded, so a token refresh doesn't refetch it
   const profileForRef = useRef(null);
 
@@ -89,8 +91,15 @@ export function AuthProvider({ children }) {
     // Listen for changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session) => {
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
       const authUser = session?.user ?? null;
+
+      // A recovery link signs the user in *and* fires this. Reading the
+      // fragment instead would be a race — supabase-js clears it as soon as it
+      // has consumed the token, and it does that before React renders. This
+      // event is the only reliable signal that the session came from a "forgot
+      // password" link rather than an ordinary sign-in.
+      if (event === "PASSWORD_RECOVERY") setRecovering(true);
 
       // supabase-js refreshes the token whenever a tab regains focus, and fires
       // this with a fresh object for the same person. Handing that down changes
@@ -184,6 +193,39 @@ export function AuthProvider({ children }) {
     },
     [loadProfile]
   );
+
+  // ── Password reset ──
+  // Supabase returns the recovery session in the URL fragment, same as a
+  // confirmation link. It's sent to /admin so the callback lands on the site
+  // that owns sign-in rather than the marketing page.
+  //
+  // The result is deliberately not distinguished between a known and unknown
+  // address: telling a caller which is which turns this into a way to check
+  // who has an account.
+  const requestPasswordReset = useCallback(async (email) => {
+    if (!isSupabaseEnabled()) {
+      return { error: { message: "Supabase is required" } };
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/admin`,
+    });
+    return { error };
+  }, []);
+
+  // Called from the recovery screen. The session already exists by then —
+  // supabase-js consumed the token from the fragment — so this is an ordinary
+  // authenticated update.
+  const updatePassword = useCallback(async (password) => {
+    if (!isSupabaseEnabled()) {
+      return { error: { message: "Supabase is required" } };
+    }
+    const { error } = await supabase.auth.updateUser({ password });
+    if (!error) setRecovering(false);
+    return { error };
+  }, []);
+
+  /** Leaving the recovery screen without setting a password. */
+  const endRecovery = useCallback(() => setRecovering(false), []);
 
   // ── Sign in with Google ──
   // Only offered on /admin — players never sign in. Supabase returns the
@@ -322,6 +364,10 @@ export function AuthProvider({ children }) {
     signUpWithEmail,
     signInWithEmail,
     signInWithGoogle,
+    requestPasswordReset,
+    updatePassword,
+    recovering,
+    endRecovery,
     claimOwnerRole,
     signOut,
     updateProfile,

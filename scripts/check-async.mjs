@@ -115,5 +115,49 @@ check(
   /!accessResolved && \(registryLoading \|\| userSpacesLoading\)/.test(gameBoard)
 );
 
+// ── password recovery ──
+// A recovery link signs the user in before anything renders. The two ways to
+// get this wrong are both silent.
+// Comments are stripped before matching. A check that greps raw source finds
+// the comment explaining why a thing is NOT done and concludes it is.
+const stripComments = (t) => t.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+const readSrc = (rel) => stripComments(rf(new URL(rel, import.meta.url), "utf8"));
+const app = readSrc("../src/App.jsx");
+const screen = readSrc("../src/components/admin/ResetPasswordScreen.jsx");
+const landing = readSrc("../src/components/admin/AdminLanding.jsx");
+
+// 1. Detecting recovery by reading the fragment is a race — supabase-js clears
+//    it as soon as it consumes the token, before React renders.
+check(
+  "recovery is detected from the PASSWORD_RECOVERY event",
+  /event === "PASSWORD_RECOVERY"/.test(auth)
+);
+check(
+  "recovery is not detected by parsing the fragment",
+  !/type=recovery|type === "recovery"/.test(auth + app)
+);
+
+// 2. The link already granted a session, so if the recovery screen doesn't win
+//    the routing race the user lands in the dashboard with the password they
+//    have forgotten still set — and never gets asked to change it.
+const recoveryAt = app.indexOf("if (recovering)");
+const callbackAt = app.indexOf('route.name === "auth"');
+const adminAt = app.indexOf('route.name === "admin"');
+check("the recovery screen is routed at all", recoveryAt !== -1);
+check(
+  "recovery is checked before the auth callback and the dashboard",
+  recoveryAt !== -1 && recoveryAt < callbackAt && recoveryAt < adminAt
+);
+
+// 3. Leaving without setting one must not leave them signed in.
+check("cancelling recovery signs out", /endRecovery\(\);\s*signOut\(\);/.test(screen));
+
+// 4. A different message for a known and unknown address turns the reset form
+//    into a way to enumerate who has an account.
+check(
+  "the reset request does not disclose whether an account exists",
+  /If \$\{sentTo\} has an account/.test(landing) && !/no account|not found/i.test(landing)
+);
+
 console.log(failed === 0 ? "\nAll async-guard cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);
