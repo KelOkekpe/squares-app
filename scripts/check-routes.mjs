@@ -107,26 +107,30 @@ check(
 );
 
 // ── invite links ──
-// The board being invited to rides in the query string, because the fragment
-// already carries the space code. The danger is parseLocation deciding the URL
-// needs rewriting to its canonical form, which would drop ?b= and land the
-// visitor on whatever board the admin set as the default instead.
+// The shared link is a *path*, /i/<poolId>, not the app URL. A messaging app
+// fetches the link to build its preview and never sends the fragment, so a link
+// whose space lives in the fragment cannot be previewed at all — the crawler
+// would see only "/" and the static index.html behind it.
 const invite = new URL(inviteUrl("scriberfam", "pool-abc", "https://sqrbet.app"));
-const inviteRoute = parseLocation(invite.pathname, invite.hash);
+check("an invite link is a server-readable path", invite.pathname === "/i/pool-abc");
+check("an invite link carries no fragment", invite.hash === "");
 check(
-  "an invite link resolves to the space",
-  inviteRoute.name === "space" && inviteRoute.code === "scriberfam"
+  "the board id is escaped into the path",
+  inviteUrl("s", "a b/c", "https://x").endsWith("/i/a%20b%2Fc")
 );
+
+// /i/ bounces the browser to this URL, which the app itself has to understand.
+// The danger is parseLocation rewriting it to a canonical form, dropping ?b=
+// and landing the visitor on whatever board the admin set as the default.
+const landing = new URL("https://sqrbet.app/?b=pool-abc#scriberfam");
+const landed = parseLocation(landing.pathname, landing.hash);
 check(
-  "an invite link is not rewritten (that would strip ?b=)",
-  inviteRoute.redirectTo === undefined
+  "the landing URL resolves to the space",
+  landed.name === "space" && landed.code === "scriberfam"
 );
-check("the board survives the round trip", invitedPoolId(invite.search) === "pool-abc");
+check("the landing URL is not rewritten (that would strip ?b=)", landed.redirectTo === undefined);
+check("the board survives the round trip", invitedPoolId(landing.search) === "pool-abc");
 check("a plain space link still carries no board", invitedPoolId("") === null);
-check(
-  "the board id is escaped into the query",
-  inviteUrl("s", "a b&c=d", "https://x").includes("b=a%20b%26c%3Dd")
-);
 
 // ── what the invite says ──
 // "Pool 1" means nothing to someone who has not joined; the matchup does.

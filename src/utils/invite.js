@@ -11,7 +11,11 @@
 export function inviteUrl(spaceCode, poolId, origin) {
   const base = origin ?? (typeof window !== "undefined" ? window.location.origin : "");
   if (!spaceCode) return base;
-  return poolId ? `${base}/?b=${encodeURIComponent(poolId)}#${spaceCode}` : `${base}/#${spaceCode}`;
+  // /i/<poolId> rather than the app URL directly. A messaging app fetches the
+  // link to build its preview, and it never sends the fragment — so a link
+  // whose space lives in the fragment cannot be previewed. /i/ is a path the
+  // server can read, and it bounces browsers on to /?b=…#space.
+  return poolId ? `${base}/i/${encodeURIComponent(poolId)}` : `${base}/#${spaceCode}`;
 }
 
 /** The board id from an invite link, if it carried one. */

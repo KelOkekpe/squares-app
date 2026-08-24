@@ -79,9 +79,14 @@ check(
 
 // ── routing ──
 const vercel = JSON.parse(read("vercel.json"));
+// Only the catch-all needs the /api exclusion — a specific route like /i/:id
+// matches nothing under /api by construction. Asserting it of *every* rule
+// meant adding any targeted rewrite failed this.
+const catchAllRules = vercel.rewrites.filter((r) => r.destination === "/index.html");
+check("an SPA catch-all exists", catchAllRules.length > 0);
 check(
   "SPA rewrite excludes /api so functions are reachable",
-  vercel.rewrites.every((r) => r.source.includes("?!api"))
+  catchAllRules.every((r) => r.source.includes("?!api"))
 );
 
 // ── the DB half ──
@@ -113,6 +118,37 @@ check(
   "the original all-or-nothing block is documented as the cause",
   /hand-written list of signatures/.test(fixSql) && superadminSql.includes("FOREACH fn IN ARRAY")
 );
+
+// ── link previews ──
+// The app is client-rendered and a space code lives in the URL fragment, which
+// is never sent to a server. A preview crawler asking for the app URL sees a
+// static index.html and no idea which board is meant, so board previews are
+// served from a path instead — and no crawler runs JavaScript, so the tags have
+// to be in the HTML itself.
+const invite = read("api/invite.js");
+const og = read("api/og.js");
+
+check("the invite route is server-rendered HTML", /og:title|og:image/.test(invite));
+check(
+  "the preview names its image size",
+  /og:image:width/.test(invite) && /og:image:height/.test(invite)
+);
+check("previews use a large card", /summary_large_image/.test(invite));
+check("board values are escaped into the HTML", /escape\(/.test(invite));
+check("the browser is bounced on to the app", /location\.replace/.test(invite));
+
+// The catch-all rewrite sends everything non-api to index.html, so /i/ has to
+// be matched before it or the function never runs.
+const rules = vercel.rewrites || [];
+const iIndex = rules.findIndex((r) => r.source.startsWith("/i/"));
+const catchAll = rules.findIndex((r) => r.source.includes("(?!api/)"));
+check("the invite route is rewritten to the function", iIndex !== -1);
+check("it is matched before the catch-all", iIndex !== -1 && iIndex < catchAll);
+
+check("the image runs on the edge runtime", /runtime:\s*"edge"/.test(og));
+check("previews are cached for messaging apps", /s-maxage/.test(og) && /s-maxage/.test(invite));
+// A preview is fetched by an anonymous crawler; it must never mutate.
+check("preview endpoints only read", !/\.(insert|update|upsert|delete)\(/.test(invite + og));
 
 console.log(failed === 0 ? "\nAll API safety cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

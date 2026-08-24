@@ -52,6 +52,10 @@ Anyone in a space can invite — players fill boards, not just admins. The link 
 
 Which board you're viewing is otherwise per-viewer state that never reaches the URL, so without this an invite lands people on whatever the admin set as the space default rather than the board the message is about.
 
+**Link previews** are why an invite is `/i/<poolId>` rather than the app URL. The app is client-rendered and a space code lives in the URL **fragment, which is never sent to a server** — a crawler asking for `/?b=x#code` sees only `/?b=x` and a static `index.html`. So `/i/` is a Vercel rewrite to `api/invite.js`, which resolves the board server-side and returns HTML with per-board OG tags, then bounces real browsers on to `/?b=…#code`. No preview crawler runs JavaScript, so the tags must be in the HTML itself. The rewrite must sit **before** the SPA catch-all or the function never runs.
+
+The image comes from `api/og.js` (`@vercel/og`, the only edge-runtime function). `api/_lib/ogCard.js` holds the card as a plain element tree so it can be rendered to a PNG on disk and looked at — Satori supports flex only, and every multi-child node needs an explicit `display: flex`.
+
 There is no way to send a text from a desktop, so the two cases get different primary actions rather than one compromise: phones get the native share sheet (`navigator.share`, which already contains Messages and WhatsApp) with a direct `sms:` link underneath; desktops get copy-to-clipboard plus `mailto:`. The share sheet is used wherever it exists, including recent macOS and Windows. **iOS and Android disagree on the SMS separator** (`sms:&body=` vs `sms:?body=`) — the wrong one opens an empty composer, which reads as the feature being broken.
 
 ## Board lifecycle
