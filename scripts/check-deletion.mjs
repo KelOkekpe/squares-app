@@ -212,5 +212,18 @@ for (const rel of clientFiles) {
   check(`${rel.split("/").pop()} has no phone field`, !/type="tel"/.test(src));
 }
 
+// ── migrations that depend on an earlier one must say so in SQL ──
+// CREATE OR REPLACE FUNCTION resolves column references only when the function
+// is called. A migration built on a column an earlier one adds therefore
+// applies cleanly out of order and then fails at runtime for every user — which
+// is exactly what happened with pickem_contacts.payment_ref.
+for (const file of ["migration_pickem_ref.sql", "migration_pickem_approval.sql"]) {
+  const body = sql[file] || "";
+  check(
+    `${file} refuses to run out of order`,
+    /RAISE EXCEPTION 'Run migration_[\w.]+ first/.test(body)
+  );
+}
+
 console.log(failed === 0 ? "\nAll deletion cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

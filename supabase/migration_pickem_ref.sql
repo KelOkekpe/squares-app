@@ -10,6 +10,22 @@
 -- email does: the blob is what every player reads through list_picks, and one
 -- player should not be able to quote another's reference.
 
+-- Refuses to run out of order.
+--
+-- CREATE OR REPLACE FUNCTION does not resolve column references until the
+-- function is called, so a migration that depends on a column added by an
+-- earlier one applies cleanly and then fails at runtime for every user. This
+-- turns that into an obvious failure here instead.
+DO $guard$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+     WHERE table_schema = 'public' AND table_name = 'pickem_contacts' AND column_name = 'payout_method'
+  ) THEN
+    RAISE EXCEPTION 'Run migration_pickem_payout.sql first — pickem_contacts.payout_method does not exist yet';
+  END IF;
+END $guard$;
+
 ALTER TABLE public.pickem_contacts
   ADD COLUMN IF NOT EXISTS payment_ref TEXT;
 

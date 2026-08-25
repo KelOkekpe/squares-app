@@ -16,6 +16,22 @@
 -- from the request: a client that could name its own fee could mark itself
 -- paid.
 
+-- Refuses to run out of order.
+--
+-- CREATE OR REPLACE FUNCTION does not resolve column references until the
+-- function is called, so a migration that depends on a column added by an
+-- earlier one applies cleanly and then fails at runtime for every user. This
+-- turns that into an obvious failure here instead.
+DO $guard$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+     WHERE table_schema = 'public' AND table_name = 'pickem_contacts' AND column_name = 'payment_ref'
+  ) THEN
+    RAISE EXCEPTION 'Run migration_pickem_ref.sql first — pickem_contacts.payment_ref does not exist yet';
+  END IF;
+END $guard$;
+
 CREATE OR REPLACE FUNCTION public.submit_picks(
   p_space_code TEXT,
   p_pool_id TEXT,

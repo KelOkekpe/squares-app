@@ -136,6 +136,7 @@ Players pay the organiser through **prefilled deep links** into Venmo, Cash App 
 
 ## Supabase
 
+- **A migration that depends on an earlier one must assert it in SQL.** `CREATE OR REPLACE FUNCTION` resolves column references only when the function is *called*, so a migration built on a column an earlier one adds applies cleanly out of order and then fails at runtime for every user. That happened with `pickem_contacts.payment_ref`: the approval migration reported success and every pick'em submission broke. The recent pick'em migrations now open with a `DO` block that raises if the prerequisite column is missing; `npm run check:deletion` enforces it for them.
 - Migrations in `supabase/` are run **by hand** in the Supabase SQL Editor. There is no CLI, no `config.toml`, no linked project. Never assume a migration has been applied.
 - Functions using `crypt`/`gen_salt` need `SET search_path = public, extensions` — pgcrypto lives in the `extensions` schema on Supabase, not `public`.
 - Policies on `space_admins` must not query `space_admins` directly (infinite RLS recursion). Use the `SECURITY DEFINER` helpers `is_space_admin()` / `is_space_owner()`.
