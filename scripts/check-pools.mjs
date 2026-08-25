@@ -179,5 +179,55 @@ check(
   /setArchiveError\(result\.error\)/.test(boardMgmt)
 );
 
+// ── the alpha organiser cap ──
+// Capping create_space() would have been the obvious place and would have
+// caught almost nothing: that function only handles *private* spaces. A public
+// one is a direct client insert against spaces_registry, guarded by RLS. The
+// cap therefore has to sit on the table, where both paths and any future one
+// must pass through it.
+const capSql = readFileSync(
+  new URL("../supabase/migration_alpha_cap.sql", import.meta.url),
+  "utf8"
+);
+const capCode = capSql.replace(/--.*$/gm, "");
+
+check(
+  "the cap is a trigger on spaces_registry, not a check inside create_space",
+  /CREATE TRIGGER trg_enforce_owner_cap[\s\S]{0,120}BEFORE INSERT ON spaces_registry/.test(capCode)
+);
+check("create_space is not where the cap lives", !/FUNCTION public\.create_space/.test(capCode));
+
+// The cap counts people, not spaces: an organiser opening a second space must
+// not consume a second slot.
+check(
+  "an existing owner keeps their slot",
+  /EXISTS \(SELECT 1 FROM spaces_registry WHERE owner_id = p_user\)[\s\S]{0,60}RETURN TRUE/.test(
+    capCode
+  )
+);
+check("the count is of distinct owners", /count\(DISTINCT owner_id\)/.test(capCode));
+
+// Ways out, so the gate can't strand anyone.
+check("superadmins bypass the cap", /role = 'superadmin'[\s\S]{0,60}RETURN TRUE/.test(capCode));
+check("an allowlist can override it", /FROM owner_allowlist/.test(capCode));
+check(
+  "the allowlist matches regardless of case",
+  /lower\(email\) = lower\(v_email\)/.test(capCode)
+);
+// Your own tooling has no auth.uid(); blocking it would lock you out of your
+// own database.
+check(
+  "the service role and SQL editor are exempt",
+  /auth\.uid\(\) IS NULL[\s\S]{0,40}RETURN NEW/.test(capCode)
+);
+
+// The message reaches the admin verbatim — AdminDashboard surfaces err.message.
+const capMessage = capSql.match(/RAISE EXCEPTION\s*\n?\s*'([^']+)'/);
+check("the refusal explains itself in plain language", !!capMessage && capMessage[1].length > 60);
+check(
+  "the refusal tells them what they can still do",
+  !!capMessage && /admin|invite|ask/i.test(capMessage[1])
+);
+
 console.log(failed === 0 ? "\nAll pool-lifecycle cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

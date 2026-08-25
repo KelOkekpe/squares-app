@@ -98,6 +98,27 @@ export function StatsGrid({ stats }) {
         />,
       ])}
 
+      {group("Alpha gate", [
+        <Tile
+          key="ou"
+          label="Organisers"
+          value={s.owners_cap == null ? s.owners_used : `${s.owners_used} / ${s.owners_cap}`}
+          tone={
+            s.owners_cap != null && s.owners_used >= s.owners_cap
+              ? colors.accentRed
+              : colors.accentGreenBright
+          }
+          hint={
+            s.owners_cap == null
+              ? "no cap set"
+              : s.owners_used >= s.owners_cap
+                ? "full — new organisers refused"
+                : `${s.owners_cap - s.owners_used} slots left`
+          }
+        />,
+        <Tile key="oa" label="Allowlisted" value={s.owners_allowlisted} />,
+      ])}
+
       {group("Boards", [
         <Tile key="t" label="Total" value={s.boards_total} />,
         <Tile key="u" label="Not archived" value={s.boards_unarchived} />,

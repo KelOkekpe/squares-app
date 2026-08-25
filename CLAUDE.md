@@ -58,6 +58,19 @@ The image comes from `api/og.js` (`@vercel/og`, the only edge-runtime function).
 
 There is no way to send a text from a desktop, so the two cases get different primary actions rather than one compromise: phones get the native share sheet (`navigator.share`, which already contains Messages and WhatsApp) with a direct `sms:` link underneath; desktops get copy-to-clipboard plus `mailto:`. The share sheet is used wherever it exists, including recent macOS and Windows. **iOS and Android disagree on the SMS separator** (`sms:&body=` vs `sms:?body=`) — the wrong one opens an empty composer, which reads as the feature being broken.
 
+## The alpha cap
+
+During the alpha, **12 people** may run spaces. The number lives in `app_settings.alpha_max_owners` and is changed with SQL, not a deploy:
+
+```sql
+UPDATE app_settings SET value = '100000' WHERE key = 'alpha_max_owners';
+INSERT INTO owner_allowlist (email, note) VALUES ('them@example.com', 'why');
+```
+
+It caps **organisers, not signups** — one organiser brings 10–30 players, and it's organisers who generate support. Accounts are never blocked; only creating a space is, and invited co-admins don't consume a slot.
+
+Enforced by a trigger on `spaces_registry`, **not** inside `create_space()`. That function only handles *private* spaces — a public one is a direct client insert guarded by RLS — so a check in the function would have missed the larger path. Superadmins, allowlisted addresses, anyone who already owns a space, and any caller with no `auth.uid()` (the service role, the SQL editor, migrations) all pass through. `npm run check:pools` covers each exemption.
+
 ## Board lifecycle
 
 A board is active while it is **neither archived nor past `pools.expires_at`**. Anything else is "completed" — closed to entries but still viewable via Past Boards. `src/utils/poolStatus.js` is the single definition; don't re-derive it with `!p.archived`, which misses expired boards.
