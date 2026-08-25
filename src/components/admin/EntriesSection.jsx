@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { adminSectionStyle, btnSecondary, radii } from "../../styles";
+import { CollapsibleSection } from "./CollapsibleSection";
+import { btnSecondary, radii } from "../../styles";
 import { colors } from "../../styles";
 
 /**
@@ -11,35 +12,7 @@ export function EntriesSection({ participants, contacts = {}, onRemove }) {
   const [confirming, setConfirming] = useState(null);
 
   return (
-    <div style={adminSectionStyle}>
-      <h3
-        style={{
-          margin: "0 0 8px",
-          fontSize: 15,
-          fontWeight: 700,
-          color: colors.textSecondary,
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-        }}
-      >
-        <span style={{ fontSize: 18 }}>📋</span>
-        Entries
-        {participants.length > 0 && (
-          <span
-            style={{
-              background: colors.surface6,
-              color: colors.textMuted,
-              borderRadius: radii.pill,
-              padding: "1px 9px",
-              fontSize: 12,
-              fontWeight: 800,
-            }}
-          >
-            {participants.length}
-          </span>
-        )}
-      </h3>
+    <CollapsibleSection icon="📋" title="Entries" count={participants.length}>
       <p style={{ color: colors.textDim, fontSize: 12, margin: "0 0 14px" }}>
         Removing an entry frees that person's squares on the board and drops them from Recent
         Entries.
@@ -162,6 +135,6 @@ export function EntriesSection({ participants, contacts = {}, onRemove }) {
           })}
         </div>
       )}
-    </div>
+    </CollapsibleSection>
   );
 }

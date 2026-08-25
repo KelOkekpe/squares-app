@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-import { adminSectionStyle, btnPrimary, btnSecondary, radii } from "../../styles";
+import { CollapsibleSection } from "./CollapsibleSection";
+import { btnPrimary, btnSecondary, radii } from "../../styles";
 import { colors, fonts } from "../../styles";
 
 function timeAgo(ts) {
@@ -20,35 +21,13 @@ export function PendingEntriesSection({ pending, emptyCount, onApprove, onReject
   const [confirmReject, setConfirmReject] = useState(null);
 
   return (
-    <div style={adminSectionStyle}>
-      <h3
-        style={{
-          margin: "0 0 8px",
-          fontSize: 15,
-          fontWeight: 700,
-          color: colors.textSecondary,
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-        }}
-      >
-        <span style={{ fontSize: 18 }}>💵</span>
-        Pending Entries
-        {pending.length > 0 && (
-          <span
-            style={{
-              background: colors.accentOrange,
-              color: "#1a1a2e",
-              borderRadius: radii.pill,
-              padding: "1px 9px",
-              fontSize: 12,
-              fontWeight: 800,
-            }}
-          >
-            {pending.length}
-          </span>
-        )}
-      </h3>
+    <CollapsibleSection
+      icon="💵"
+      title="Pending Entries"
+      count={pending.length}
+      countTone={colors.accentOrange}
+      defaultOpen={pending.length > 0}
+    >
       <p style={{ color: colors.textDim, fontSize: 12, margin: "0 0 14px" }}>
         Check that the money actually arrived before approving. Approving assigns the squares;
         rejecting discards the request.
@@ -208,6 +187,6 @@ export function PendingEntriesSection({ pending, emptyCount, onApprove, onReject
           })}
         </div>
       )}
-    </div>
+    </CollapsibleSection>
   );
 }

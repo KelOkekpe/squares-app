@@ -120,3 +120,36 @@ export function formatDate(iso) {
   const d = new Date(`${iso}T00:00:00`);
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 }
+
+/**
+ * How many submissions are waiting on each board, with the board currently
+ * open in the admin console counted from live state rather than the snapshot.
+ *
+ * The snapshot (`pendingCounts`) is fetched once when the console mounts, so
+ * approving an entry used to leave both the tab badge and the board picker's
+ * "PENDING SUBMISSIONS" tag stale until the admin navigated away and back.
+ *
+ * Only the open board can change while the console is open, and its queue is
+ * already held in component state — so that is the one entry worth overriding.
+ * Every other board keeps its fetched count, which stays correct precisely
+ * because nothing the admin does here can alter it.
+ *
+ * Pick'em counts sheets whose fee is unconfirmed, and only when the contest
+ * charges — a free contest confirms itself, so the flag would never clear.
+ */
+export function livePendingCounts({
+  pendingCounts = {},
+  activePoolId,
+  isPickem = false,
+  entryFee = 0,
+  pending = [],
+  picks = [],
+} = {}) {
+  if (!activePoolId) return pendingCounts;
+  const live = isPickem
+    ? Number(entryFee) > 0
+      ? picks.filter((e) => !e?.paid).length
+      : 0
+    : pending.length;
+  return { ...pendingCounts, [activePoolId]: live };
+}

@@ -18,3 +18,4 @@ export { NewBoardModal } from "./NewBoardModal";
 export { PickemSettingsSection } from "./PickemSettingsSection";
 export { PaymentDetailsSection } from "./PaymentDetailsSection";
 export { ResetPasswordScreen } from "./ResetPasswordScreen";
+export { CollapsibleSection } from "./CollapsibleSection";

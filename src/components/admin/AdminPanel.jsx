@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { spaceUrl, PAYMENT_PROVIDERS } from "../../utils";
+import { spaceUrl, PAYMENT_PROVIDERS, livePendingCounts } from "../../utils";
 import { colors, radii, adminSectionStyle, adminInputStyle, labelStyle } from "../../styles";
 import { useAuth } from "../../hooks/useAuth";
 import { TeamColorSection } from "./TeamColorSection";
@@ -52,7 +52,7 @@ export function AdminPanel({
   isPickem,
   slate,
   setSlate,
-  picks,
+  picks = [],
   onSetPickPaid,
   onRemovePickEntry,
   onActivateBoard,
@@ -74,8 +74,17 @@ export function AdminPanel({
 
   // Entries waiting anywhere in the space, and how many are on a board other
   // than the one being viewed — the case that reads as "pending is broken".
-  const totalPending = Object.values(pendingCounts).reduce((n, v) => n + (v || 0), 0);
-  const otherPending = totalPending - (pendingCounts[activePoolId] || 0);
+  // The open board is counted live so approvals clear the badge immediately.
+  const liveCounts = livePendingCounts({
+    pendingCounts,
+    activePoolId,
+    isPickem,
+    entryFee: config?.entryFee,
+    pending,
+    picks,
+  });
+  const totalPending = Object.values(liveCounts).reduce((n, v) => n + (v || 0), 0);
+  const otherPending = totalPending - (liveCounts[activePoolId] || 0);
   const [canManageAdmins, setCanManageAdmins] = useState(false);
   const { isSpaceOwner } = useAuth();
 
@@ -315,7 +324,7 @@ export function AdminPanel({
                   {pools
                     .filter((p) => !p.archived)
                     .map((p) => {
-                      const waiting = pendingCounts?.[p.id] || 0;
+                      const waiting = liveCounts?.[p.id] || 0;
                       return (
                         <option key={p.id} value={p.id}>
                           {p.name}
