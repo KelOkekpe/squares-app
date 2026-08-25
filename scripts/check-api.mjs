@@ -250,7 +250,7 @@ check(
   /sent: false, reason: "provider_error"/.test(sendConf) && !/status\(500\)/.test(sendConf)
 );
 // A player with no stored address is ordinary, not an error.
-check("a missing address is a normal outcome", /reason: "no_email"/.test(sendConf));
+check("a missing contact row is a normal outcome", /reason: "no_contact_row"/.test(sendConf));
 
 console.log(failed === 0 ? "\nAll API safety cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

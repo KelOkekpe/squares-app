@@ -51,9 +51,12 @@ export default async function handler(req, res) {
       supabase.from("pools").select("name").eq("id", poolId).maybeSingle(),
     ]);
 
-    // No stored address is an ordinary outcome, not a failure: contact details
-    // are optional on a squares entry and the player may simply not have left one.
-    if (!contact?.email) return res.status(200).json({ sent: false, reason: "no_email" });
+    // An email is required to enter, so a missing row is not a player who
+    // declined to leave one — it is an entry that never went through the
+    // approval path that writes contacts, or one that predates
+    // migration_entry_privacy.sql and had nothing for its backfill to move.
+    // Either way there is nobody to write to, which is not a failure.
+    if (!contact?.email) return res.status(200).json({ sent: false, reason: "no_contact_row" });
 
     const parts = {
       kind,
