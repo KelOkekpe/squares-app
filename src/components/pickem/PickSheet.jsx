@@ -11,6 +11,7 @@ import {
 import { isValidEmail } from "../join/NameStep";
 import { TeamLogo } from "../common";
 import { PayoutPicker } from "../join/PayoutPicker";
+import { loadProfile, saveProfile, loadSheet, saveSheet } from "../../utils";
 import { PicksSubmitted } from "./PicksSubmitted";
 import { PickemPaymentStep } from "./PickemPaymentStep";
 
@@ -55,20 +56,26 @@ function TeamButton({ team, label, selected, onClick, disabled }) {
  */
 export function PickSheet({
   slate,
+  poolId,
   config = {},
   onSubmit,
   submitting,
   onViewStandings,
   defaultOpen = false,
 }) {
-  const [sheet, setSheet] = useState({});
-  const [tiebreak, setTiebreak] = useState("");
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
+  // What this browser last submitted for this contest, and who submitted it.
+  // Players have no account, so this is the only thing standing between them
+  // and retyping everything each week.
+  const [remembered] = useState(() => ({ ...loadProfile(), sheet: loadSheet(poolId) }));
+
+  const [sheet, setSheet] = useState(() => remembered.sheet?.picks || {});
+  const [tiebreak, setTiebreak] = useState(() => remembered.sheet?.tiebreak ?? "");
+  const [name, setName] = useState(remembered.name || "");
+  const [email, setEmail] = useState(remembered.email || "");
   const [error, setError] = useState("");
   const [done, setDone] = useState(null);
-  const [payoutMethod, setPayoutMethod] = useState("");
-  const [payoutHandles, setPayoutHandles] = useState({});
+  const [payoutMethod, setPayoutMethod] = useState(remembered.payoutMethod || "");
+  const [payoutHandles, setPayoutHandles] = useState(remembered.payoutHandles || {});
   // Generated once per sheet, before payment, so the code printed on screen is
   // the same one that reaches the admin. Regenerating on submit would leave the
   // player quoting a reference nobody can match.
@@ -96,6 +103,18 @@ export function PickSheet({
       paymentRef,
     });
     if (result.error) return setError(result.error);
+
+    // Kept locally because the server will not give it back: everyone's picks
+    // stay hidden until the first kickoff, so this and the email are the only
+    // ways someone can see their own sheet before then.
+    saveProfile({
+      name: name.trim(),
+      email: email.trim(),
+      payoutMethod,
+      payoutHandles,
+    });
+    saveSheet(poolId, { picks: sheet, tiebreak });
+
     setOpen(false);
     setDone(result.entry);
   };

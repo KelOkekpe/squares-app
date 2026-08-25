@@ -140,6 +140,16 @@ Players pay the organiser through **prefilled deep links** into Venmo, Cash App 
 - Functions using `crypt`/`gen_salt` need `SET search_path = public, extensions` — pgcrypto lives in the `extensions` schema on Supabase, not `public`.
 - Policies on `space_admins` must not query `space_admins` directly (infinite RLS recursion). Use the `SECURITY DEFINER` helpers `is_space_admin()` / `is_space_owner()`.
 
+## What the browser remembers about a player
+
+`src/utils/playerStore.js` keeps a player's name, email and payout details, the private spaces this browser has unlocked, and the pick'em sheet it last submitted — all in `localStorage`, keyed `sp:*`.
+
+**None of it is authoritative and none of it is trusted by the server.** It exists so forms arrive filled in; if it is missing or wrong the app behaves exactly as it did before. Details are saved only after the server accepts a submission, so a rejected attempt doesn't prefill something that was refused.
+
+Two things are easy to get wrong here. `saveProfile` merges by filtering empties out of the **patch**, not the result — pruning the merged object deleted keys `loadProfile()` had defaulted to `""`, so submitting the pick'em sheet wiped the squares name and email. And the submitted **picks** are stored, not just an entry id: everyone's picks are hidden until the first kickoff, so the server won't return them, and this plus the email are the only ways someone sees their own sheet before then.
+
+A player's private-space unlock lives here too. It was `sessionStorage`, which meant retyping the password every time the tab closed.
+
 ## RLS: players are anonymous and cannot write
 
 Players never sign up or sign in. They have **no write access** to `spaces` — entry submission goes through the `submit_entry_request()` RPC, and private-space unlock through `unlock_space()`. Don't add a client-side table write on a player code path; RLS will reject it. Admin writes require space membership.

@@ -2,33 +2,22 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase, isSupabaseEnabled } from "../lib/supabase";
 import { withTimeout } from "../utils/async";
 import { useAuth } from "./useAuth";
-
-const SESSION_ACCESS_KEY = "fb-space-access-guest";
-
-function loadSessionAccess() {
-  try {
-    const raw = sessionStorage.getItem(SESSION_ACCESS_KEY);
-    return raw ? new Set(JSON.parse(raw)) : new Set();
-  } catch {
-    return new Set();
-  }
-}
-
-function saveSessionAccess(set) {
-  try {
-    sessionStorage.setItem(SESSION_ACCESS_KEY, JSON.stringify([...set]));
-  } catch {}
-}
+import { loadUnlocked, rememberUnlocked } from "../utils/playerStore";
 
 /**
- * Manages access to private spaces. Registered users who have entered the
- * correct password get a user_space_access record and skip the prompt next time.
- * Guests must enter the password every time (session-only, shared via sessionStorage).
+ * Access to private spaces.
+ *
+ * A signed-in admin gets a user_space_access row and skips the prompt on any
+ * device. A player has no account, so their unlock is remembered in this
+ * browser instead — it used to be sessionStorage, which meant retyping the
+ * password every time the tab was closed. It is a pool password on someone's
+ * own device; asking again on every visit bought nothing.
  */
 export function useSpaceAccess() {
   const { user, isLoggedIn } = useAuth();
   const [accessCache, setAccessCache] = useState(new Set());
-  const [sessionAccess, setSessionAccess] = useState(loadSessionAccess); // guests only, shared across PlayerLanding/GameBoard
+  // Players only. Shared across PlayerLanding and GameBoard.
+  const [sessionAccess, setSessionAccess] = useState(() => new Set(loadUnlocked()));
 
   const loadAccess = useCallback(async () => {
     if (!isLoggedIn || !user || !isSupabaseEnabled()) return;
@@ -77,11 +66,8 @@ export function useSpaceAccess() {
         if (user) {
           setAccessCache((prev) => new Set([...prev, spaceCode]));
         } else {
-          setSessionAccess((prev) => {
-            const next = new Set([...prev, spaceCode]);
-            saveSessionAccess(next);
-            return next;
-          });
+          rememberUnlocked(spaceCode);
+          setSessionAccess((prev) => new Set([...prev, spaceCode]));
         }
         return { ok: true };
       } catch (err) {

@@ -4,6 +4,8 @@ import {
   isPoolCompleted,
   isPastDeadline,
   invitedPoolId,
+  loadProfile,
+  saveProfile,
   inviteUrl,
   inviteMessage,
   generatePaymentRef,
@@ -212,12 +214,15 @@ export function GameBoard({ spaceCode, onExit }) {
   const [showInvite, setShowInvite] = useState(false);
   // Which half of the pick'em screen they asked for.
   const [pickemIntent, setPickemIntent] = useState("standings");
-  const [firstName, setFirstName] = useState("");
-  const [middleInitial, setMiddleInitial] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [email, setEmail] = useState("");
-  const [payoutMethod, setPayoutMethod] = useState("");
-  const [payoutHandles, setPayoutHandles] = useState({});
+  // Prefilled from whatever this browser last submitted. Players have no
+  // account, so without this they retype all of it for every board they join.
+  const remembered = useState(loadProfile)[0];
+  const [firstName, setFirstName] = useState(remembered.firstName);
+  const [middleInitial, setMiddleInitial] = useState(remembered.middleInitial);
+  const [lastName, setLastName] = useState(remembered.lastName);
+  const [email, setEmail] = useState(remembered.email);
+  const [payoutMethod, setPayoutMethod] = useState(remembered.payoutMethod);
+  const [payoutHandles, setPayoutHandles] = useState(remembered.payoutHandles);
   // Generated up front: the player pays before submitting, so the reference has
   // to exist at payment time to appear in the note the admin reconciles against.
   const [paymentRef] = useState(generatePaymentRef);
@@ -352,13 +357,16 @@ export function GameBoard({ spaceCode, onExit }) {
     viewingCompleted || pastDeadline ? { ...config, submissionsDisabled: true } : config;
 
   // ── handlers ──────────────────────────────────────────
+  // Back to what this browser knows, not to blank — clearing the form on every
+  // exit is what made re-entry tedious in the first place.
   const resetJoinFlow = () => {
-    setFirstName("");
-    setMiddleInitial("");
-    setLastName("");
-    setEmail("");
-    setPayoutMethod("");
-    setPayoutHandles({});
+    const known = loadProfile();
+    setFirstName(known.firstName);
+    setMiddleInitial(known.middleInitial);
+    setLastName(known.lastName);
+    setEmail(known.email);
+    setPayoutMethod(known.payoutMethod);
+    setPayoutHandles(known.payoutHandles);
     setNameSubmitted(false);
     setAmount("");
     setRequestSubmitted(false);
@@ -397,6 +405,17 @@ export function GameBoard({ spaceCode, onExit }) {
       setSubmitError(playerFacingError(error, "Could not submit your request. Try again."));
       return;
     }
+    // Only after it was accepted — remembering details from a rejected attempt
+    // would prefill something the server just refused.
+    saveProfile({
+      firstName: firstName.trim(),
+      middleInitial,
+      lastName: lastName.trim(),
+      name: fullName,
+      email: email.trim(),
+      payoutMethod,
+      payoutHandles,
+    });
     setRequestedCount(requested);
     setRequestSubmitted(true);
   }, [

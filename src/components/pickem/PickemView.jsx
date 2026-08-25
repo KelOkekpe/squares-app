@@ -90,6 +90,7 @@ export function PickemView({
             <div style={{ marginTop: 16 }}>
               <PickSheet
                 slate={slate}
+                poolId={poolId}
                 config={config}
                 onSubmit={handleSubmit}
                 submitting={submitting}
@@ -102,6 +103,7 @@ export function PickemView({
           <>
             <PickSheet
               slate={slate}
+              poolId={poolId}
               config={config}
               onSubmit={handleSubmit}
               submitting={submitting}

@@ -480,5 +480,49 @@ check(
 // Otherwise "why can't I see my own picks?" is the first support message.
 check("the modal explains why the picks are hidden", /hidden[\s\S]{0,60}kickoff/.test(modalSrc));
 
+// ── what the browser remembers ──
+// Players have no account, so without this a pick'em player retypes their name,
+// email and payout details every week of the season.
+const store = readFile("../src/utils/playerStore.js");
+const access = readFile("../src/hooks/useSpaceAccess.js");
+const board = readFile("../src/GameBoard.jsx");
+
+// localStorage throws outright in Safari private mode.
+check("every read and write is guarded", /try \{[\s\S]{0,200}localStorage/.test(store));
+// The squares form knows first/last, the pick'em sheet knows one display name.
+// Pruning empties from the merged result deleted keys loadProfile() had
+// defaulted to "", so submitting one form wiped what the other had learned.
+check(
+  "a partial save cannot wipe what the other form stored",
+  /Object\.entries\(patch \|\| \{\}\)\.filter\(meaningful\)/.test(store)
+);
+// Remembering a rejected attempt would prefill something the server refused.
+check(
+  "details are only remembered after the server accepts",
+  /saveProfile\([\s\S]{0,300}setRequestSubmitted\(true\)/.test(board)
+);
+
+// The picks themselves, not just an id: everyone's stay hidden until kickoff,
+// so the server will not return them.
+check(
+  "a submitted sheet is kept locally",
+  /saveSheet\(poolId, \{ picks: sheet, tiebreak \}\)/.test(sheet)
+);
+check("and is used to prefill", /loadSheet\(poolId\)/.test(sheet));
+
+// Was sessionStorage, so the password came back every time the tab closed.
+check(
+  "a private-space unlock survives closing the tab",
+  /rememberUnlocked\(spaceCode\)/.test(access)
+);
+check("it is no longer session-only", !/sessionStorage/.test(access));
+
+// None of this may be load-bearing: it is a convenience, and the database
+// remains the only thing that decides anything.
+check(
+  "nothing local is sent to the server as truth",
+  !/loadProfile\(\)[\s\S]{0,80}rpc\(/.test(board)
+);
+
 console.log(failed === 0 ? "\nAll pick'em cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);
