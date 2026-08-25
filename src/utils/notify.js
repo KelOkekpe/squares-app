@@ -26,7 +26,10 @@ export async function sendConfirmationEmail(payload) {
   try {
     const { data } = await import("../lib/supabase.js").then((m) => m.supabase.auth.getSession());
     const token = data?.session?.access_token;
-    if (!token) return { sent: false, reason: "no_session" };
+    if (!token) {
+      console.warn("Confirmation email skipped: no admin session to authenticate with");
+      return { sent: false, reason: "no_session" };
+    }
 
     const res = await fetch("/api/send-confirmation", {
       method: "POST",
@@ -36,7 +39,11 @@ export async function sendConfirmationEmail(payload) {
     // Reported back rather than swallowed: the admin panel offers a manual
     // fallback, and it should appear only when the automatic send actually
     // failed. Guessing either way leaves someone either lied to or nagged.
-    return (await res.json().catch(() => ({ sent: false, reason: "unreadable" }))) || {};
+    const result = (await res.json().catch(() => ({ sent: false, reason: "unreadable" }))) || {};
+    if (!result.sent) {
+      console.warn(`Confirmation email not sent (${res.status}): ${result.reason || result.error}`);
+    }
+    return result;
   } catch (err) {
     console.warn("Could not send the confirmation email:", err?.message || err);
     return { sent: false, reason: "error" };

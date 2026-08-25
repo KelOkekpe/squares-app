@@ -490,8 +490,11 @@ export function GameBoard({ spaceCode, onExit }) {
 
       // The coordinates only exist here: the grid stores names, so which
       // squares this player owns is knowable at this moment and nowhere after.
+      if (saved?.error) {
+        console.warn(`Confirmation email skipped: contact row not saved — ${saved.error}`);
+      }
       const emailed = saved?.error
-        ? { sent: false, reason: "no_contact_row" }
+        ? { sent: false, reason: `contact not saved: ${saved.error}` }
         : await sendConfirmationEmail({
             spaceCode,
             poolId: activePoolId,
@@ -503,7 +506,9 @@ export function GameBoard({ spaceCode, onExit }) {
 
       // The notice keeps its manual fallback only when the automatic send
       // failed, so an admin is never asked to do by hand something already done.
-      setApprovalNotice((n) => (n ? { ...n, emailed: !!emailed?.sent } : n));
+      setApprovalNotice((n) =>
+        n ? { ...n, emailed: !!emailed?.sent, emailError: emailed?.reason } : n
+      );
 
       setPending((list) => list.filter((p) => p.id !== id));
     },

@@ -97,6 +97,14 @@ export function ApprovalNotice({ notice, onDismiss }) {
         ))}
       </div>
 
+      {/* Says why, because "it didn't send" with no reason is what made this
+          take three rounds to diagnose. */}
+      {!notice.emailed && notice.emailError && (
+        <p style={{ color: colors.accentOrange, fontSize: 11, margin: "0 0 10px" }}>
+          Couldn't email them automatically ({notice.emailError}) — send it yourself below.
+        </p>
+      )}
+
       {/* Only when the automatic send didn't happen. Approval emails the
           player their coordinates now, so leaving this here permanently asked
           an admin to do by hand something already done — and if they did, the
