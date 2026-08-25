@@ -1,12 +1,12 @@
 import { useCallback } from "react";
 import { supabase } from "../lib/supabase";
-import { DEFAULT_CONFIG, addDaysISO } from "../utils";
 import { useAuth } from "./useAuth";
 import { useSpacesRegistry } from "./useSpacesRegistry";
 
 /**
- * Creates a space, its first pool, and its initial config, then links the
- * signed-in user to it as owner so it shows up in "My Spaces".
+ * Creates a space and links the signed-in user to it as owner, so it shows up
+ * in "My Spaces". It deliberately arrives with no board — the owner chooses
+ * squares or pick'em on the way in.
  */
 export function useCreateSpace() {
   const { user, profile } = useAuth();
@@ -34,39 +34,18 @@ export function useCreateSpace() {
         if (error) console.warn("Could not link space to owner:", error);
       }
 
-      // Create first pool and initialize space meta + config in Supabase (spaces table)
+      // No board is created here on purpose. A space used to arrive with a
+      // "Pool 1" already in it — an empty Seahawks-vs-Patriots grid nobody
+      // asked for, which the owner then had to notice was a placeholder and
+      // rename or archive. The space now starts empty and asks what they want
+      // to run.
       try {
-        const { data: pool, error: poolErr } = await supabase
-          .from("pools")
-          .insert({
-            space_code: code,
-            name: "Pool 1",
-            archived: false,
-            // Boards require an end date; the first one gets a 90-day default
-            // the owner can change in the admin panel.
-            expires_at: addDaysISO(90),
-          })
-          .select("id")
-          .single();
-        if (poolErr || !pool) {
-          console.error("Could not create default pool:", poolErr?.message || poolErr);
-        } else {
-          const meta = { activePoolId: pool.id };
-          const metaKey = `fb-${code}-meta`;
-          const adminKey = `fb-${code}-${pool.id}-admin`;
-          const { error: spacesErr } = await supabase.from("spaces").insert([
-            { key: metaKey, space_code: code, pool_id: "", type: "meta", value: meta },
-            {
-              key: adminKey,
-              space_code: code,
-              pool_id: pool.id,
-              type: "admin",
-              value: { ...DEFAULT_CONFIG },
-            },
-          ]);
-          if (spacesErr) {
-            console.error("Could not initialize space data (spaces table):", spacesErr.message);
-          }
+        const metaKey = `fb-${code}-meta`;
+        const { error: spacesErr } = await supabase
+          .from("spaces")
+          .insert([{ key: metaKey, space_code: code, pool_id: "", type: "meta", value: {} }]);
+        if (spacesErr) {
+          console.error("Could not initialize space data (spaces table):", spacesErr.message);
         }
       } catch (e) {
         console.error("Could not initialize space:", e);

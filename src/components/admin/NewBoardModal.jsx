@@ -8,7 +8,14 @@ import {
   btnPrimary,
   btnSecondary,
 } from "../../styles";
-import { MAX_ACTIVE_POOLS, todayISO, addDaysISO, isPoolActive } from "../../utils";
+import {
+  MAX_ACTIVE_POOLS,
+  todayISO,
+  addDaysISO,
+  isPoolActive,
+  DEADLINE_LEAD_MS,
+  localDateISO,
+} from "../../utils";
 import { withTimeout } from "../../utils/async";
 
 /**
@@ -19,12 +26,12 @@ import { withTimeout } from "../../utils/async";
  * selections, and removes the chance of naming a board for one game while
  * linking it to another.
  */
-export function NewBoardModal({ pools, onCreate, onClose }) {
+export function NewBoardModal({ pools, onCreate, onClose, initialGameType = "squares" }) {
   const [blocks, setBlocks] = useState([]);
   const [weekKey, setWeekKey] = useState("");
   const [games, setGames] = useState([]);
   const [gameId, setGameId] = useState("");
-  const [gameType, setGameType] = useState("squares");
+  const [gameType, setGameType] = useState(initialGameType);
   const [name, setName] = useState("");
   const [expiry, setExpiry] = useState("");
   const [loadingWeeks, setLoadingWeeks] = useState(true);
@@ -35,6 +42,19 @@ export function NewBoardModal({ pools, onCreate, onClose }) {
   const activeCount = pools.filter(isPoolActive).length;
   const atLimit = activeCount >= MAX_ACTIVE_POOLS;
   const game = games.find((g) => g.id === gameId);
+
+  // A pick'em contest closes before the first game of its week; a squares board
+  // closes before the game it is attached to. Either way the admin has already
+  // told us which games are involved, so asking them for a date as well is
+  // asking twice — and lets the two disagree.
+  const kickoff =
+    gameType === "pickem"
+      ? games
+          .map((g) => g.startsAt)
+          .filter(Boolean)
+          .sort()[0]
+      : game?.startsAt;
+  const derivedExpiry = kickoff ? localDateISO(kickoff) : null;
 
   const get = useCallback(async (url, label) => {
     const res = await withTimeout(fetch(url), 15000, label);
@@ -118,7 +138,10 @@ export function NewBoardModal({ pools, onCreate, onClose }) {
     if (atLimit) {
       return setError(`This space already has ${MAX_ACTIVE_POOLS} active boards.`);
     }
-    const endsOn = expiry || addDaysISO(30);
+    // The derived date wins when there is one — it is the day the games are
+    // actually played. The manual field only survives for a squares board with
+    // no game linked, which has no kickoff to work from.
+    const endsOn = derivedExpiry || expiry || addDaysISO(30);
     if (endsOn < todayISO()) return setError("The end date can't be in the past");
 
     setCreating(true);
@@ -319,19 +342,49 @@ export function NewBoardModal({ pools, onCreate, onClose }) {
           style={{ ...inputStyle, marginBottom: 14 }}
         />
 
-        <label style={labelStyle}>Ends on (optional)</label>
-        <input
-          type="date"
-          value={expiry}
-          min={todayISO()}
-          onChange={(e) => setExpiry(e.target.value)}
-          style={inputStyle}
-        />
-        <p style={{ color: colors.textDim, fontSize: 11, margin: "6px 0 0" }}>
-          {game
-            ? "Set from game day. After this the board stops taking entries and moves to Past Boards, still viewable."
-            : "Leave blank for 30 days from today."}
-        </p>
+        {/* Only asked for when there is no kickoff to derive it from — a
+            squares board with no game linked. Otherwise the deadline comes
+            from the game itself, and offering a second date invites the two
+            to disagree. */}
+        {derivedExpiry ? (
+          <div
+            style={{
+              padding: "10px 14px",
+              background: colors.surface3,
+              border: `1px solid ${colors.border}`,
+              borderRadius: radii.lg,
+              fontSize: 12,
+              color: colors.textMuted,
+            }}
+          >
+            <strong style={{ color: colors.textSecondary }}>Entries close</strong>{" "}
+            {new Date(new Date(kickoff).getTime() - DEADLINE_LEAD_MS).toLocaleString([], {
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+              hour: "numeric",
+              minute: "2-digit",
+            })}
+            {" — "}
+            {gameType === "pickem"
+              ? "ten minutes before the first game of the week."
+              : "ten minutes before kickoff."}
+          </div>
+        ) : (
+          <>
+            <label style={labelStyle}>Ends on (optional)</label>
+            <input
+              type="date"
+              value={expiry}
+              min={todayISO()}
+              onChange={(e) => setExpiry(e.target.value)}
+              style={inputStyle}
+            />
+            <p style={{ color: colors.textDim, fontSize: 11, margin: "6px 0 0" }}>
+              Link a game above and this is set for you. Otherwise, leave blank for 30 days.
+            </p>
+          </>
+        )}
 
         {gameType === "squares" && game && (
           <div

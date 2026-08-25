@@ -9,10 +9,61 @@
 
 export const MAX_ACTIVE_POOLS = 16;
 
+/**
+ * Entries close this long before kickoff.
+ *
+ * Not at kickoff: someone paying at the whistle can't have their entry
+ * confirmed and their squares drawn before the first score, and a board whose
+ * numbers move after play started isn't a board anyone trusts.
+ */
+export const DEADLINE_LEAD_MS = 10 * 60 * 1000;
+
+/**
+ * The moment a board stops taking entries, from the game it is attached to.
+ *
+ * Derived rather than stored. Both kickoff times are already in the database —
+ * `config.game.startsAt` for a squares board, the frozen slate for a pick'em
+ * contest — and a second copy would be one more thing to keep in step when a
+ * game is rescheduled.
+ *
+ * A squares board with no game linked has no kickoff to work from and falls
+ * back to the end of its expiry date, which is the admin's own choice.
+ */
+export function deadlineAt({ config, slate, pool } = {}) {
+  const kickoffs = [];
+
+  if (config?.game?.startsAt) kickoffs.push(new Date(config.game.startsAt).getTime());
+
+  for (const game of slate?.games || []) {
+    if (game.startsAt) kickoffs.push(new Date(game.startsAt).getTime());
+  }
+
+  const valid = kickoffs.filter((t) => Number.isFinite(t));
+  // The first kickoff, so a pick'em week closes before any of it has happened.
+  if (valid.length) return Math.min(...valid) - DEADLINE_LEAD_MS;
+
+  if (pool?.expiresAt) return new Date(`${pool.expiresAt}T23:59:59`).getTime();
+  return null;
+}
+
+/** True once entries are closed for the game this board is attached to. */
+export function isPastDeadline(args, now = Date.now()) {
+  const at = deadlineAt(args);
+  return at !== null && now >= at;
+}
+
 /** Local calendar day as YYYY-MM-DD, which is what <input type="date"> speaks. */
 export function todayISO() {
   const now = new Date();
   const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+  return local.toISOString().slice(0, 10);
+}
+
+/** The local calendar day an instant falls on, as YYYY-MM-DD. */
+export function localDateISO(when) {
+  const d = new Date(when);
+  if (Number.isNaN(d.getTime())) return null;
+  const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
   return local.toISOString().slice(0, 10);
 }
 
@@ -54,14 +105,14 @@ export function daysUntilExpiry(pool) {
 export function poolStatus(pool) {
   if (!pool) return { label: "", tone: null };
   if (pool.archived) return { label: "Archived", tone: "textDim" };
-  if (isExpired(pool)) return { label: `Ended ${formatDate(pool.expiresAt)}`, tone: "textDim" };
+  if (isExpired(pool)) return { label: `Closed ${formatDate(pool.expiresAt)}`, tone: "textDim" };
 
   const days = daysUntilExpiry(pool);
-  if (days === null) return { label: "No end date", tone: "textDim" };
-  if (days === 0) return { label: "Ends today", tone: "accentRed" };
-  if (days === 1) return { label: "Ends tomorrow", tone: "accentOrange" };
-  if (days <= 7) return { label: `Ends in ${days} days`, tone: "accentOrange" };
-  return { label: `Ends ${formatDate(pool.expiresAt)}`, tone: "textDim" };
+  if (days === null) return { label: "No deadline", tone: "textDim" };
+  if (days === 0) return { label: "Deadline today", tone: "accentRed" };
+  if (days === 1) return { label: "Deadline tomorrow", tone: "accentOrange" };
+  if (days <= 7) return { label: `Deadline in ${days} days`, tone: "accentOrange" };
+  return { label: `Deadline ${formatDate(pool.expiresAt)}`, tone: "textDim" };
 }
 
 export function formatDate(iso) {

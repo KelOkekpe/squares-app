@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect } from "react";
 import {
   splitPools,
   isPoolCompleted,
+  isPastDeadline,
   invitedPoolId,
   inviteUrl,
   inviteMessage,
@@ -48,6 +49,7 @@ import {
 import { AdminPanel, NewBoardModal } from "./components/admin";
 import { PasswordInput } from "./components/common";
 import { PickemView } from "./components/pickem";
+import { EmptySpace } from "./components/layout";
 import { InviteModal, GameTicker, TICKER_HEIGHT } from "./components/common";
 
 export function GameBoard({ spaceCode, onExit }) {
@@ -313,6 +315,8 @@ export function GameBoard({ spaceCode, onExit }) {
   const [showPastBoards, setShowPastBoards] = useState(false);
   // Set when the header's + Board is used, so the panel opens ready to type
   const [showNewBoard, setShowNewBoard] = useState(false);
+  // Preselects the contest type when the choice was already made on the way in.
+  const [newBoardType, setNewBoardType] = useState("squares");
 
   // Both header buttons open the same panel, so the access check lives once here
   const openAdmin = useCallback(
@@ -335,7 +339,12 @@ export function GameBoard({ spaceCode, onExit }) {
   const squaresForAmount = calculateSquares(Number(amount), config.pricePerSquare);
   const emptyCount = getEmptySquares(board).length;
   // A completed board is closed to entries for the same reason a disabled one is
-  const effectiveConfig = viewingCompleted ? { ...config, submissionsDisabled: true } : config;
+  // Entries close ten minutes before kickoff, on top of the admin's own switch
+  // and the board's expiry. Derived from the linked game rather than stored, so
+  // a rescheduled game moves the deadline with it.
+  const pastDeadline = isPastDeadline({ config, slate, pool: currentPool });
+  const effectiveConfig =
+    viewingCompleted || pastDeadline ? { ...config, submissionsDisabled: true } : config;
 
   // ── handlers ──────────────────────────────────────────
   const resetJoinFlow = () => {
@@ -695,7 +704,21 @@ export function GameBoard({ spaceCode, onExit }) {
         />
       ) : (
         <main style={{ ...containerStyle, paddingTop: 40, paddingBottom: 60 }}>
-          {view === "home" && (
+          {/* A space with nothing in it asks what to run rather than showing a
+              board that doesn't exist. Checked before the view switch, since
+              every view below assumes a pool. */}
+          {view === "home" && !pools.length && (
+            <EmptySpace
+              spaceCode={spaceCode}
+              canCreate={isOwnerOrAdmin}
+              onCreate={(gameType) => {
+                setNewBoardType(gameType);
+                setShowNewBoard(true);
+              }}
+            />
+          )}
+
+          {view === "home" && pools.length > 0 && (
             <HomeView
               config={effectiveConfig}
               emptyCount={emptyCount}
@@ -777,6 +800,7 @@ export function GameBoard({ spaceCode, onExit }) {
       {showNewBoard && (
         <NewBoardModal
           pools={pools}
+          initialGameType={newBoardType}
           onClose={() => setShowNewBoard(false)}
           onCreate={async ({ name, expiresAt, game, gameType, slate }) => {
             // Linking at creation means the board is wired for live scores and

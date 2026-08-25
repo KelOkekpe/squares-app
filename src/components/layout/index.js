@@ -6,3 +6,4 @@ export { HomeView } from "./HomeView";
 export { JoinView } from "./JoinView";
 export { BoardView } from "./BoardView";
 export { PastBoardsModal } from "./PastBoardsModal";
+export { EmptySpace } from "./EmptySpace";

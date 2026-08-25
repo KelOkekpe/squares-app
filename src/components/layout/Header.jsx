@@ -183,6 +183,19 @@ export function Header({ view, spaceCode, onHome, onAdmin, onNewBoard, onExit })
               </button>
             )}
 
+            {/* Back to the list of every space you run. The logo already did
+                this, but nothing said so — an admin inside a space had no
+                visible way out of it. */}
+            {canAccessAdmin && onExit && (
+              <button
+                onClick={onExit}
+                style={{ ...navButton, color: colors.textMuted }}
+                title="Back to all your spaces"
+              >
+                {isMobile ? "←" : "← Spaces"}
+              </button>
+            )}
+
             {/* New board — admins only, opens the panel with the name field ready */}
             {canAccessAdmin && (
               <button

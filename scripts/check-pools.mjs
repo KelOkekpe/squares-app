@@ -10,6 +10,9 @@ import {
   todayISO,
   addDaysISO,
   MAX_ACTIVE_POOLS,
+  deadlineAt,
+  isPastDeadline,
+  DEADLINE_LEAD_MS,
 } from "../src/utils/poolStatus.js";
 
 let failed = 0;
@@ -227,6 +230,61 @@ check("the refusal explains itself in plain language", !!capMessage && capMessag
 check(
   "the refusal tells them what they can still do",
   !!capMessage && /admin|invite|ask/i.test(capMessage[1])
+);
+
+// ── deadlines come from the game, not a second date field ──
+// Both kickoff times are already stored: config.game.startsAt for a squares
+// board, the frozen slate for pick'em. A stored deadline would be a second
+// copy to keep in step when a game is rescheduled.
+const soon = new Date(Date.now() + 3600e3).toISOString();
+const later = new Date(Date.now() + 5 * 3600e3).toISOString();
+const gone = new Date(Date.now() - 3600e3).toISOString();
+
+check(
+  "a squares deadline is ten minutes before its game",
+  deadlineAt({ config: { game: { startsAt: soon } } }) ===
+    new Date(soon).getTime() - DEADLINE_LEAD_MS
+);
+// The whole week closes together, before any of it has been played.
+check(
+  "a pick'em deadline is the FIRST kickoff of the week",
+  deadlineAt({ slate: { games: [{ startsAt: later }, { startsAt: soon }] } }) ===
+    new Date(soon).getTime() - DEADLINE_LEAD_MS
+);
+check(
+  "entries close once the deadline passes",
+  isPastDeadline({ config: { game: { startsAt: gone } } })
+);
+check("entries are open before it", !isPastDeadline({ config: { game: { startsAt: soon } } }));
+// A squares board with no game linked has no kickoff to work from.
+check(
+  "with no game, the expiry date is the fallback",
+  deadlineAt({ pool: { expiresAt: "2030-01-01" } }) === new Date("2030-01-01T23:59:59").getTime()
+);
+check("with nothing at all there is no deadline", deadlineAt({}) === null);
+check("a board with no deadline never closes itself", !isPastDeadline({}));
+
+const board = readFileSync(new URL("../src/GameBoard.jsx", import.meta.url), "utf8");
+check(
+  "the board honours the deadline",
+  /isPastDeadline\(\{ config, slate, pool: currentPool \}\)/.test(board)
+);
+
+// A space used to arrive with an unasked-for Seahawks/Patriots board in it.
+const createSpace = readFileSync(
+  new URL("../src/hooks/useCreateSpace.js", import.meta.url),
+  "utf8"
+);
+check("a new space creates no board", !/from\("pools"\)[\s\S]{0,80}\.insert/.test(createSpace));
+check("an empty space asks what to run", /<EmptySpace/.test(board));
+
+// The label was "Ends in 3 days", which reads as when the board disappears
+// rather than when entries stop.
+check(
+  "the status says deadline, not ends",
+  /Deadline in \$\{days\} days/.test(
+    readFileSync(new URL("../src/utils/poolStatus.js", import.meta.url), "utf8")
+  )
 );
 
 console.log(failed === 0 ? "\nAll pool-lifecycle cases pass." : `\n${failed} failed.`);
