@@ -163,6 +163,8 @@ Entrant **contact and payout details are never written into the `participants` b
 
 `placeParticipant` returns the cells it filled, because the grid stores only names — approval is the one moment a player's actual squares are knowable. That is also why `api/send-confirmation.js` accepts the coordinates from the caller rather than looking them up: there is nowhere to look them up from afterwards.
 
+**The contact row must be written before the confirmation email is sent.** `send-confirmation` looks the recipient up by entry id rather than trusting the caller, so firing the send alongside `saveContact` races the lookup — the server finds no row, returns `no_contact_row`, and says so only in a log. `approveEntry` awaits the write and skips the email if it failed.
+
 **Confirming a payment emails the player**, for both game types — squares get their coordinates, pick'em get "your sheet now counts". Unlike `send-picks` this is admin-initiated, so it takes the real guard (`requireSpaceAdmin`) rather than the bounded-anonymous treatment. The recipient is still looked up from the contacts table, never supplied. Un-marking someone sends nothing: that is a correction, and "your entry no longer counts" is a conversation for the admin to have. `src/utils/notify.js` turns those into grid coordinates and an approval message.
 
 Entries are gated by admin confirmation: a submission lands in a pending queue and only reaches the board when an admin approves it.

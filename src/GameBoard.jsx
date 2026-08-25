@@ -441,7 +441,7 @@ export function GameBoard({ spaceCode, onExit }) {
 
   // Admin confirmed the money arrived — assign squares and record the entry.
   const approveEntry = useCallback(
-    (id) => {
+    async (id) => {
       const entry = pending.find((p) => p.id === id);
       if (!entry) return;
       const { board: newBoard, placed, cells } = placeParticipant(board, entry.name, entry.squares);
@@ -472,17 +472,6 @@ export function GameBoard({ spaceCode, onExit }) {
           ? crypto.randomUUID()
           : `e${Date.now()}${Math.round(Math.random() * 1e6)}`;
 
-      // The coordinates only exist here — the grid stores names, so this is the
-      // one moment they are knowable.
-      sendConfirmationEmail({
-        spaceCode,
-        poolId: activePoolId,
-        entryId,
-        kind: "squares",
-        amount: entry.amount,
-        coords: formatCoordinates(cellsToCoordinates(cells, headers), config),
-      });
-
       setParticipants((p) => [
         ...p,
         {
@@ -493,7 +482,25 @@ export function GameBoard({ spaceCode, onExit }) {
           time: Date.now(),
         },
       ]);
-      saveContact(entryId, entry);
+      // Awaited before the email, not fired alongside it. send-confirmation
+      // looks the recipient up by entry id rather than trusting the caller, so
+      // sending first raced the write and the server found no contact row —
+      // and said so only in a log nobody was reading.
+      const saved = await saveContact(entryId, entry);
+
+      // The coordinates only exist here: the grid stores names, so which
+      // squares this player owns is knowable at this moment and nowhere after.
+      if (!saved?.error) {
+        sendConfirmationEmail({
+          spaceCode,
+          poolId: activePoolId,
+          entryId,
+          kind: "squares",
+          amount: entry.amount,
+          coords: formatCoordinates(cellsToCoordinates(cells, headers), config),
+        });
+      }
+
       setPending((list) => list.filter((p) => p.id !== id));
     },
     [

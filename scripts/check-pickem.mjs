@@ -557,7 +557,29 @@ check("un-marking someone sends nothing", /!result\?\.error && paid/.test(entrie
 // approval — the email has to carry them or they are lost.
 check(
   "a squares approval emails the coordinates",
-  /kind: "squares"[\s\S]{0,120}coords: formatCoordinates/.test(board)
+  /kind: "squares"[\s\S]{0,140}coords: formatCoordinates/.test(board)
+);
+
+// send-confirmation looks the recipient up by entry id rather than trusting the
+// caller, so sending before the contact row is written races the lookup — the
+// server finds nothing and gives up silently. The write has to land first.
+const approveBody = board.slice(
+  board.indexOf("const approveEntry"),
+  board.indexOf("const smartFill")
+);
+check(
+  "the contact row is written before the email is sent",
+  approveBody.includes("await saveContact(") &&
+    approveBody.indexOf("await saveContact(") < approveBody.indexOf("sendConfirmationEmail(")
+);
+check(
+  "and no email is attempted if that write failed",
+  /if \(!saved\?\.error\) \{\s*sendConfirmationEmail/.test(approveBody)
+);
+// Same ordering on the pick'em side: the RPC is awaited before the send.
+check(
+  "confirming a pick'em entry awaits the write too",
+  /const result = await mutate\([\s\S]{0,400}sendConfirmationEmail/.test(entriesHook)
 );
 
 // ── the admin needs to see work waiting on a board they are not looking at ──
