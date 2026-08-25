@@ -19,7 +19,13 @@ import { ThemeToggle } from "../common";
  * Players never see this page.
  */
 export function AdminLanding() {
-  const { signUpWithEmail, signInWithEmail, signInWithGoogle, requestPasswordReset } = useAuth();
+  const {
+    signUpWithEmail,
+    signInWithEmail,
+    signInWithGoogle,
+    requestPasswordReset,
+    resendConfirmation,
+  } = useAuth();
 
   const [mode, setMode] = useState("login"); // 'login' | 'register' | 'forgot'
   const [email, setEmail] = useState("");
@@ -28,11 +34,26 @@ export function AdminLanding() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [loading, setLoading] = useState(false);
+  // The address just submitted, so the confirmation can be sent again.
+  const [pendingConfirm, setPendingConfirm] = useState("");
 
   const switchMode = (next) => {
     setMode(next);
     setError("");
     setSuccess("");
+    setPendingConfirm("");
+  };
+
+  const handleResend = async () => {
+    setError("");
+    setLoading(true);
+    const { error: resendError } = await resendConfirmation(pendingConfirm);
+    setLoading(false);
+    setSuccess(
+      resendError
+        ? `Couldn't resend it: ${resendError.message}`
+        : `Sent again to ${pendingConfirm}. It can take a minute to arrive.`
+    );
   };
 
   const handleGoogle = async () => {
@@ -106,9 +127,20 @@ export function AdminLanding() {
           // If email confirmation is on there's no session yet, so land them
           // back on Sign In with an explanation. Otherwise AuthProvider will
           // flip straight through to the dashboard.
+          //
+          // The wording covers both outcomes deliberately. Supabase returns the
+          // same success shape whether the account was created or the address
+          // was already taken, and naming which one happened would turn this
+          // form into a way to check who has an account. "Account created" was
+          // worse than vague: someone re-signing-up an existing address was
+          // told it had worked, then waited for an email that never came.
+          const submitted = email.trim();
           setMode("login");
           setPassword("");
-          setSuccess("Account created. Confirm your email if prompted, then sign in.");
+          setPendingConfirm(submitted);
+          setSuccess(
+            "Check your inbox for a confirmation link. If you already have an account, sign in instead."
+          );
         }
       } else {
         const { error: signInError } = await signInWithEmail(email.trim(), password);
@@ -364,6 +396,31 @@ export function AdminLanding() {
 
             {/* Only on sign-in: there is nothing to recover mid-signup, and the
                 recovery screen is where you land coming back from the email. */}
+            {/* Only after a signup attempt, and only on sign-in: this is the
+                one moment the address is known and the email may be missing. */}
+            {mode === "login" && pendingConfirm && (
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={loading}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: colors.accentViolet,
+                  fontSize: 13,
+                  fontWeight: 600,
+                  fontFamily: "inherit",
+                  cursor: "pointer",
+                  marginTop: 14,
+                  padding: 0,
+                  display: "block",
+                  width: "100%",
+                }}
+              >
+                Didn't get the email? Send it again
+              </button>
+            )}
+
             {mode === "login" && (
               <button
                 type="button"

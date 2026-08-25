@@ -159,5 +159,27 @@ check(
   /If \$\{sentTo\} has an account/.test(landing) && !/no account|not found/i.test(landing)
 );
 
+// ── signing up an address that already exists ──
+// Supabase does not error on a taken address. It returns a success-shaped
+// response with an empty identities array, so the form can't be used to find
+// out who has an account — and sends no confirmation email. Reporting that as
+// "Account created" left people waiting for mail that was never sent.
+const authSrc = readSrc("../src/hooks/useAuth.jsx");
+check(
+  "an already-registered signup is detected from empty identities",
+  /identities\.length === 0/.test(authSrc)
+);
+check("it is reported as a flag, not an error", /alreadyRegistered: true/.test(authSrc));
+// Naming which case happened would undo the obfuscation Supabase is doing.
+check(
+  "the signup message does not reveal whether the account existed",
+  !/already (has|have) an account\b.*\bsign in instead/i.test(landing) ||
+    /Check your inbox/.test(landing)
+);
+check(
+  "an unconfirmed signup can be resent",
+  /auth\.resend\(/.test(authSrc) && /handleResend/.test(landing)
+);
+
 console.log(failed === 0 ? "\nAll async-guard cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

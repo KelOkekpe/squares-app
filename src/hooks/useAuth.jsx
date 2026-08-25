@@ -146,6 +146,18 @@ export function AuthProvider({ children }) {
 
     if (error) return { user: null, error };
 
+    // Supabase does not error when the address is already registered — it
+    // returns a success-shaped response with an empty `identities` array, so
+    // the signup form can't be used to discover who has an account. Nothing is
+    // created and, in that case, no confirmation email goes out either.
+    //
+    // Reported as a flag rather than an error: saying "that email is taken"
+    // would give away exactly what the obfuscation exists to hide.
+    const alreadyRegistered = Array.isArray(data?.user?.identities)
+      ? data.user.identities.length === 0
+      : false;
+    if (alreadyRegistered) return { user: data.user, error: null, alreadyRegistered: true };
+
     // The profile is auto-created by the database trigger; ensure role is persisted
     // (trigger may not receive metadata in some flows, so we explicitly upsert)
     if (data.user) {
@@ -193,6 +205,25 @@ export function AuthProvider({ children }) {
     },
     [loadProfile]
   );
+
+  /**
+   * Send the confirmation email again.
+   *
+   * The single most common alpha support request: the first one is lost,
+   * filtered, or clicked after it expired, and without this the only way out is
+   * an admin deleting the half-created account by hand.
+   */
+  const resendConfirmation = useCallback(async (email) => {
+    if (!isSupabaseEnabled()) {
+      return { error: { message: "Supabase is required" } };
+    }
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: { emailRedirectTo: `${window.location.origin}/admin` },
+    });
+    return { error };
+  }, []);
 
   // ── Password reset ──
   // Supabase returns the recovery session in the URL fragment, same as a
@@ -364,6 +395,7 @@ export function AuthProvider({ children }) {
     signUpWithEmail,
     signInWithEmail,
     signInWithGoogle,
+    resendConfirmation,
     requestPasswordReset,
     updatePassword,
     recovering,
