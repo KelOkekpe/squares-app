@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { requireEnv, BOARD_PRICE_CENTS, STRIPE_PRICE_ID } from "./_lib/env.js";
+import { requireEnv, BOARD_PRICE_CENTS, STRIPE_PRICE_ID, stripeMode } from "./_lib/env.js";
 import { requireSpaceAdmin } from "./_lib/supabaseAdmin.js";
 
 /**
@@ -37,6 +37,11 @@ export default async function handler(req, res) {
     if (pool.paid) return res.status(409).json({ error: "This board is already active" });
 
     const stripe = new Stripe(requireEnv("STRIPE_SECRET_KEY"));
+    // Recorded on every session so the logs answer "which mode was this
+    // deployment in" without anyone having to recall what they pasted into
+    // Vercel. A board that took a real payment and never activated is almost
+    // always this.
+    console.log(`checkout: creating session in Stripe ${stripeMode()} mode for pool ${poolId}`);
     const origin = req.headers.origin || `https://${req.headers.host}`;
     const back = returnTo || `${origin}/admin`;
 

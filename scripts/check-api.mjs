@@ -150,5 +150,41 @@ check("previews are cached for messaging apps", /s-maxage/.test(og) && /s-maxage
 // A preview is fetched by an anonymous crawler; it must never mutate.
 check("preview endpoints only read", !/\.(insert|update|upsert|delete)\(/.test(invite + og));
 
+// ── Stripe mode ──
+// Switching sandbox to live touches three separate settings: the secret key,
+// the webhook endpoint, and that endpoint's signing secret. Getting one wrong
+// produces the worst possible failure — a real payment that succeeds while the
+// board it paid for never activates.
+const envSrc = read("api/_lib/env.js");
+check(
+  "the deployed Stripe mode is derivable from the key",
+  /export function stripeMode/.test(envSrc)
+);
+check(
+  "both live and test key prefixes are recognised, including restricted keys",
+  /\(sk\|rk\)_live_/.test(envSrc) && /\(sk\|rk\)_test_/.test(envSrc)
+);
+
+// A signature only proves which endpoint sent the event, not that the endpoint
+// matches the key the rest of the app runs on.
+check(
+  "the webhook refuses an event from the other mode",
+  /event\.livemode !== \(mode === "live"\)/.test(webhook)
+);
+check(
+  "a mode mismatch is refused, not merely logged",
+  /Stripe mode mismatch[\s\S]{0,200}status\(400\)/.test(webhook)
+);
+// Unknown means we cannot tell; asserting a mismatch on a key we do not
+// recognise would break a working deployment.
+check(
+  "an unrecognised key disables the check rather than blocking payments",
+  /mode !== "unknown" &&/.test(webhook)
+);
+check(
+  "the mode is recorded when a session is created",
+  /Stripe \$\{stripeMode\(\)\} mode/.test(checkout)
+);
+
 console.log(failed === 0 ? "\nAll API safety cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

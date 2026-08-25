@@ -1,5 +1,5 @@
 import Stripe from "stripe";
-import { requireEnv } from "./_lib/env.js";
+import { requireEnv, stripeMode } from "./_lib/env.js";
 import { adminClient } from "./_lib/supabaseAdmin.js";
 
 // Stripe signs the exact bytes it sent, so the body must not be parsed before
@@ -37,6 +37,21 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error("webhook signature verification failed:", err.message);
     return res.status(400).send(`Webhook Error: ${err.message}`);
+  }
+
+  // The signature only proves the event came from the endpoint whose secret we
+  // hold. It says nothing about whether that endpoint matches the key we use
+  // everywhere else — and a live event processed by a test-mode deployment (or
+  // the reverse) would mark a board paid against a payment that doesn't exist
+  // in the mode the app is actually running in. Refused loudly rather than
+  // silently, so it shows up red in Stripe's webhook attempts.
+  const mode = stripeMode();
+  if (mode !== "unknown" && event.livemode !== (mode === "live")) {
+    console.error(
+      `Stripe mode mismatch: ${mode}-mode key received a ${event.livemode ? "live" : "test"} event. ` +
+        `STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET are from different modes.`
+    );
+    return res.status(400).send("Stripe mode mismatch between secret key and webhook endpoint");
   }
 
   if (event.type !== "checkout.session.completed") {

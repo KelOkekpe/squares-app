@@ -13,6 +13,21 @@ export function requireEnv(name) {
 export const BOARD_PRICE_CENTS = Number(process.env.BOARD_PRICE_CENTS || 1200);
 
 /**
+ * Which Stripe mode the deployed key belongs to, from its prefix.
+ *
+ * Worth knowing at a glance: a mode switch touches three separate settings —
+ * the secret key, the webhook endpoint and its signing secret — and getting one
+ * of them wrong produces a payment that succeeds while the board it paid for
+ * never activates. Logged on both paths so the answer is in the function logs
+ * rather than in someone's memory of what they pasted.
+ */
+export function stripeMode(key = process.env.STRIPE_SECRET_KEY || "") {
+  if (/^(sk|rk)_live_/.test(key)) return "live";
+  if (/^(sk|rk)_test_/.test(key)) return "test";
+  return "unknown";
+}
+
+/**
  * A Stripe price ID, or null to price the line item inline.
  *
  * Only accepted when it actually looks like a price ID. Setting this to an
