@@ -19,6 +19,10 @@ export function HomeView({
   onInvite,
 }) {
   const activePools = pools.filter(isPoolActive);
+  // GameBoard already folds the kickoff deadline and the admin's own switch
+  // into config, so this is the same signal squares uses for "Submissions
+  // Closed".
+  const picksClosed = !!config.submissionsDisabled;
   const currentPool = pools.find((p) => p.id === activePoolId);
 
   return (
@@ -152,12 +156,42 @@ export function HomeView({
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
         {isPickem ? (
-          <button
-            onClick={onOpenPickem}
-            style={{ ...btnPrimary, width: "100%", padding: "18px", fontSize: 16 }}
-          >
-            Picks &amp; standings
-          </button>
+          /* Two buttons, mirroring squares. One that said "Picks & standings"
+             asked people to work out that the thing they came to do was inside
+             it — the primary action is making picks, and it should say so. */
+          <>
+            {/* Once the week locks there is nothing to make, so standings
+                become the primary action rather than a dead button above
+                them. */}
+            {picksClosed ? (
+              <button
+                onClick={() => onOpenPickem("standings")}
+                style={{ ...btnPrimary, width: "100%", padding: "18px", fontSize: 16 }}
+              >
+                Standings
+              </button>
+            ) : (
+              <>
+                <button
+                  onClick={() => onOpenPickem("picks")}
+                  style={{ ...btnPrimary, width: "100%", padding: "18px", fontSize: 16 }}
+                >
+                  Make Your Picks
+                </button>
+                <button
+                  onClick={() => onOpenPickem("standings")}
+                  style={{
+                    ...btnSecondary,
+                    width: "100%",
+                    padding: "16px",
+                    color: colors.accentViolet,
+                  }}
+                >
+                  Standings
+                </button>
+              </>
+            )}
+          </>
         ) : (
           <>
             <button
@@ -177,9 +211,16 @@ export function HomeView({
                   ? "Pool Full"
                   : "Join the Pool"}
             </button>
+            {/* btnSecondary's own colour is dim enough to read as disabled
+                next to the filled primary. Matched to Invite friends. */}
             <button
               onClick={onViewBoard}
-              style={{ ...btnSecondary, width: "100%", padding: "16px" }}
+              style={{
+                ...btnSecondary,
+                width: "100%",
+                padding: "16px",
+                color: colors.accentViolet,
+              }}
             >
               View Board
             </button>

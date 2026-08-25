@@ -46,7 +46,14 @@ function TeamButton({ team, label, selected, onClick, disabled }) {
  * The weekly sheet. Every game must be picked before it can be submitted —
  * a partial sheet just scores lower, which nobody intends.
  */
-export function PickSheet({ slate, config = {}, onSubmit, submitting, onViewStandings }) {
+export function PickSheet({
+  slate,
+  config = {},
+  onSubmit,
+  submitting,
+  onViewStandings,
+  defaultOpen = false,
+}) {
   const [sheet, setSheet] = useState({});
   const [tiebreak, setTiebreak] = useState("");
   const [name, setName] = useState("");
@@ -56,8 +63,9 @@ export function PickSheet({ slate, config = {}, onSubmit, submitting, onViewStan
   const [payoutMethod, setPayoutMethod] = useState("");
   const [payoutHandles, setPayoutHandles] = useState({});
   // Collapsed by default: sixteen games and four fields buried the standings,
-  // which is what people come back to look at.
-  const [open, setOpen] = useState(false);
+  // which is what people come back to look at. Opened straight away when they
+  // arrived by pressing "Make Your Picks", since that is the whole intent.
+  const [open, setOpen] = useState(defaultOpen);
 
   const locked = isSlateLocked(slate);
   const tb = tiebreakGame(slate);

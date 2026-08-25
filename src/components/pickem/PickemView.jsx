@@ -11,6 +11,7 @@ export function PickemView({
   poolId,
   poolName,
   config = {},
+  intent = "standings",
   entries,
   onEntriesChanged,
   onBack,
@@ -79,6 +80,7 @@ export function PickemView({
                 config={config}
                 onSubmit={handleSubmit}
                 submitting={submitting}
+                defaultOpen={intent === "picks"}
                 onViewStandings={showStandings}
               />
             </div>
@@ -90,6 +92,7 @@ export function PickemView({
               config={config}
               onSubmit={handleSubmit}
               submitting={submitting}
+              defaultOpen={intent === "picks"}
               onViewStandings={showStandings}
             />
             <div style={{ marginTop: 16 }}>

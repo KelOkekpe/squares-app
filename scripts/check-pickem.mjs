@@ -289,5 +289,32 @@ const pickemAdmin = readFile("../src/components/admin/PickemSettingsSection.jsx"
 check("pick'em admins can set payment details", /<PaymentDetailsSection/.test(pickemAdmin));
 check("pick'em admins can set an entry fee", /entryFee/.test(pickemAdmin));
 
+// ── getting to the picks ──
+// A single "Picks & standings" button asked people to work out that the thing
+// they came to do was inside it.
+const home = readFile("../src/components/layout/HomeView.jsx");
+check("making picks is its own primary action", /Make Your Picks/.test(home));
+check("standings is a separate button", /onOpenPickem\("standings"\)/.test(home));
+check("the old combined button is gone", !/Picks &amp; standings|Picks & standings/.test(home));
+// Once locked there is nothing to make, so standings takes the primary slot
+// rather than leaving a dead button above them.
+check("a locked week promotes standings to primary", /picksClosed \?/.test(home));
+
+// Arriving via "Make Your Picks" should land on the sheet already open,
+// otherwise it is the same one-bar screen as before with an extra tap.
+const view = readFile("../src/components/pickem/PickemView.jsx");
+check("the intent reaches the sheet", /defaultOpen=\{intent === "picks"\}/.test(view));
+check("the sheet honours it", /useState\(defaultOpen\)/.test(sheet));
+
+// btnSecondary alone reads as disabled beside a filled primary.
+// Counting occurrences was too loose — the file has others, so removing one
+// still cleared the threshold. Tied to the two buttons that were dim.
+for (const label of ["View Board", "Standings"]) {
+  check(
+    `"${label}" is not dimmed to look disabled`,
+    new RegExp(`color: colors\\.accentViolet,?[\\s\\S]{0,120}${label}`).test(home)
+  );
+}
+
 console.log(failed === 0 ? "\nAll pick'em cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

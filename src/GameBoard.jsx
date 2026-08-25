@@ -210,6 +210,8 @@ export function GameBoard({ spaceCode, onExit }) {
   // ── ephemeral UI state ────────────────────────────────
   const [view, setView] = useState("home");
   const [showInvite, setShowInvite] = useState(false);
+  // Which half of the pick'em screen they asked for.
+  const [pickemIntent, setPickemIntent] = useState("standings");
   const [firstName, setFirstName] = useState("");
   const [middleInitial, setMiddleInitial] = useState("");
   const [lastName, setLastName] = useState("");
@@ -702,6 +704,7 @@ export function GameBoard({ spaceCode, onExit }) {
           poolId={activePoolId}
           poolName={currentPool.name}
           config={effectiveConfig}
+          intent={pickemIntent}
           entries={picks}
           onEntriesChanged={refreshPicks}
           onBack={() => setView("home")}
@@ -733,7 +736,10 @@ export function GameBoard({ spaceCode, onExit }) {
               completedPools={completedPools}
               onOpenPastBoards={() => setShowPastBoards(true)}
               isPickem={isPickem}
-              onOpenPickem={() => setView("pickem")}
+              onOpenPickem={(intent) => {
+                setPickemIntent(intent === "picks" ? "picks" : "standings");
+                setView("pickem");
+              }}
               onInvite={currentPool ? () => setShowInvite(true) : undefined}
               onJoin={() => setView("join")}
               onViewBoard={() => setView("board")}
