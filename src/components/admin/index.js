@@ -16,4 +16,5 @@ export { GameLinkSection } from "./GameLinkSection";
 export { SmartFillSection } from "./SmartFillSection";
 export { NewBoardModal } from "./NewBoardModal";
 export { PickemSettingsSection } from "./PickemSettingsSection";
+export { PaymentDetailsSection } from "./PaymentDetailsSection";
 export { ResetPasswordScreen } from "./ResetPasswordScreen";

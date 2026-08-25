@@ -3,6 +3,9 @@ import { colors, radii, cardStyle, inputStyle, labelStyle, btnPrimary } from "..
 import { isSlateLocked, tiebreakGame, missingPicks, PICK_AWAY, PICK_HOME } from "../../utils";
 import { isValidEmail } from "../join/NameStep";
 import { TeamLogo } from "../common";
+import { PayoutPicker } from "../join/PayoutPicker";
+import { PicksSubmitted } from "./PicksSubmitted";
+import { PickemPaymentStep } from "./PickemPaymentStep";
 
 function TeamButton({ team, label, selected, onClick, disabled }) {
   return (
@@ -43,13 +46,15 @@ function TeamButton({ team, label, selected, onClick, disabled }) {
  * The weekly sheet. Every game must be picked before it can be submitted —
  * a partial sheet just scores lower, which nobody intends.
  */
-export function PickSheet({ slate, onSubmit, submitting }) {
+export function PickSheet({ slate, config = {}, onSubmit, submitting, onViewStandings }) {
   const [sheet, setSheet] = useState({});
   const [tiebreak, setTiebreak] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [done, setDone] = useState(null);
+  const [payoutMethod, setPayoutMethod] = useState("");
+  const [payoutHandles, setPayoutHandles] = useState({});
   // Collapsed by default: sixteen games and four fields buried the standings,
   // which is what people come back to look at.
   const [open, setOpen] = useState(false);
@@ -67,6 +72,8 @@ export function PickSheet({ slate, onSubmit, submitting }) {
       email: email.trim(),
       picks: sheet,
       tiebreak,
+      payoutMethod,
+      payoutHandles,
     });
     if (result.error) return setError(result.error);
     setDone(result.entry);
@@ -74,14 +81,14 @@ export function PickSheet({ slate, onSubmit, submitting }) {
 
   if (done) {
     return (
-      <div style={{ ...cardStyle, textAlign: "center" }}>
-        <div style={{ fontSize: 34, marginBottom: 10 }}>✅</div>
-        <h3 style={{ margin: "0 0 8px", fontSize: 20, fontWeight: 800 }}>Picks are in</h3>
-        <p style={{ color: colors.textMuted, fontSize: 14, margin: 0 }}>
-          Standings update automatically as games finish. Submitting again with the same email
-          replaces this sheet, right up until kickoff.
-        </p>
-      </div>
+      <PicksSubmitted
+        name={done.name || name.trim()}
+        gameCount={slate?.games?.length || 0}
+        tiebreak={done.tiebreak ?? tiebreak}
+        entryFee={config.entryFee}
+        onViewStandings={onViewStandings}
+        onDone={() => setDone(null)}
+      />
     );
   }
 
@@ -265,6 +272,21 @@ export function PickSheet({ slate, onSubmit, submitting }) {
               />
             </div>
           </div>
+
+          {/* Where the winnings go, if they win. */}
+          <PayoutPicker
+            compact
+            method={payoutMethod}
+            setMethod={setPayoutMethod}
+            handles={payoutHandles}
+            setHandles={setPayoutHandles}
+          />
+
+          {/* Only when the contest charges. A free contest shows nothing. */}
+          <PickemPaymentStep
+            config={config}
+            note={`${slate?.label || "Pick'em"} entry — ${name.trim() || "your name"}`}
+          />
 
           {error && (
             <p style={{ color: colors.accentRed, fontSize: 13, margin: "0 0 12px" }}>{error}</p>

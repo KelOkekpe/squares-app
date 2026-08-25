@@ -13,6 +13,7 @@ import {
   todayISO,
   addDaysISO,
   isPoolActive,
+  PAYMENT_PROVIDERS,
   DEADLINE_LEAD_MS,
   localDateISO,
 } from "../../utils";
@@ -26,7 +27,13 @@ import { withTimeout } from "../../utils/async";
  * selections, and removes the chance of naming a board for one game while
  * linking it to another.
  */
-export function NewBoardModal({ pools, onCreate, onClose, initialGameType = "squares" }) {
+export function NewBoardModal({
+  pools,
+  onCreate,
+  onClose,
+  initialGameType = "squares",
+  lastPayment,
+}) {
   const [blocks, setBlocks] = useState([]);
   const [weekKey, setWeekKey] = useState("");
   const [games, setGames] = useState([]);
@@ -34,6 +41,10 @@ export function NewBoardModal({ pools, onCreate, onClose, initialGameType = "squ
   const [gameType, setGameType] = useState(initialGameType);
   const [name, setName] = useState("");
   const [expiry, setExpiry] = useState("");
+  // Prefilled from whatever this space last used, so an organiser types their
+  // handle once rather than on every board.
+  const [payMethod, setPayMethod] = useState(() => lastPayment?.method || "");
+  const [payHandle, setPayHandle] = useState(() => lastPayment?.handle || "");
   const [loadingWeeks, setLoadingWeeks] = useState(true);
   const [loadingGames, setLoadingGames] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -134,6 +145,11 @@ export function NewBoardModal({ pools, onCreate, onClose, initialGameType = "squ
   const submit = async () => {
     setError("");
     if (!name.trim()) return setError("Give it a name");
+    // Required, because the alternative is a player reaching the payment step
+    // and being told to go and ask — which is where entries get abandoned.
+    if (!payMethod || !payHandle.trim()) {
+      return setError("Add where players should send payment");
+    }
     if (gameType === "pickem" && !games.length) return setError("Pick a week that has games in it");
     if (atLimit) {
       return setError(`This space already has ${MAX_ACTIVE_POOLS} active boards.`);
@@ -149,6 +165,7 @@ export function NewBoardModal({ pools, onCreate, onClose, initialGameType = "squ
       name: name.trim(),
       expiresAt: endsOn,
       gameType,
+      payment: { method: payMethod, handle: payHandle.trim() },
       game: gameType === "squares" ? game : null,
       // The slate is frozen at creation so a rescheduled game can't move
       // under picks that were already made against it.
@@ -341,6 +358,34 @@ export function NewBoardModal({ pools, onCreate, onClose, initialGameType = "squ
           placeholder="Week 5 — PHI @ DAL"
           style={{ ...inputStyle, marginBottom: 14 }}
         />
+
+        <label style={labelStyle}>Where players send payment *</label>
+        <div style={{ display: "flex", gap: 8, marginBottom: 6 }}>
+          <select
+            value={payMethod}
+            onChange={(e) => setPayMethod(e.target.value)}
+            style={{ ...inputStyle, width: 130, marginBottom: 0 }}
+          >
+            <option value="">Method…</option>
+            {PAYMENT_PROVIDERS.map((pv) => (
+              <option key={pv.key} value={pv.key}>
+                {pv.label}
+              </option>
+            ))}
+          </select>
+          <input
+            value={payHandle}
+            onChange={(e) => setPayHandle(e.target.value)}
+            style={{ ...inputStyle, marginBottom: 0 }}
+            placeholder={
+              PAYMENT_PROVIDERS.find((pv) => pv.key === payMethod)?.placeholder || "your handle"
+            }
+          />
+        </div>
+        <p style={{ color: colors.textDim, fontSize: 11, margin: "0 0 14px" }}>
+          Players pay you directly — this never goes through SquarePool. You can add more methods
+          later in the admin panel.
+        </p>
 
         {/* Only asked for when there is no kickoff to derive it from — a
             squares board with no game linked. Otherwise the deadline comes

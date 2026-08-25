@@ -123,6 +123,10 @@ Boards are sold individually at a flat fee — never a share of the pot, which w
 
 `api/` holds the only server-side code: `checkout.js` creates a Stripe session, `stripe-webhook.js` marks the board paid. `api/_lib/*` is `_`-prefixed so Vercel doesn't route it. Secrets (`SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`) must **never** carry a `VITE_` prefix — Vite inlines those into the client bundle, and the service-role key bypasses every RLS policy. `npm run check:api` enforces that plus signature verification, server-side pricing, and replay-safety.
 
+**Both contest types charge, and both collect payout details.** `PayoutPicker` (one method at a time, in `components/join/`) is shared by the squares join step and the pick'em sheet; `PaymentDetailsSection` is shared by both admin panels — it used to sit inside the squares-only branch, so a pick'em admin literally could not say where to pay. A pick'em contest's price is `config.entryFee`; at 0 the payment step doesn't render at all. Payout details go to the admin-only contacts tables, never the readable blob.
+
+**A new board requires a payment handle at creation**, prefilled from whatever the space last used. Without it the first player reaching the payment step is told to go and ask their admin, which is where entries get abandoned.
+
 Players pay the organiser through **prefilled deep links** into Venmo, Cash App or PayPal (`src/utils/paymentLinks.js`). The link opens their app with recipient, amount and a reference note filled in; the payment happens there, between two people. **Never route entry fees through this platform** — doing so would make it the rail carrying wagers into a game of chance, which changes both the legal posture and Stripe's classification. `npm run check:payments` asserts every generated link leaves this domain.
 
 `submit_entry_request` has been redefined three times. **`migration_payment_ref.sql` holds the live version**; the copies in `migration_entry_contact.sql` and `migration_billing.sql` are historical. Worth consolidating into one canonical file.

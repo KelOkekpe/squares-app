@@ -1,12 +1,7 @@
 import React from "react";
-import { inputStyle, labelStyle, btnPrimary, radii } from "../../styles";
+import { inputStyle, labelStyle, btnPrimary } from "../../styles";
+import { PayoutPicker } from "./PayoutPicker";
 import { colors } from "../../styles";
-
-const PAYOUT_METHODS = [
-  { key: "zelle", label: "Zelle", placeholder: "email or phone on file" },
-  { key: "venmo", label: "Venmo", placeholder: "@your-handle" },
-  { key: "cashapp", label: "Cash App", placeholder: "$yourcashtag" },
-];
 
 export const isValidEmail = (v) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(v || "").trim());
 /**
@@ -35,8 +30,6 @@ export function NameStep({
 }) {
   const emailOk = isValidEmail(email);
   const isValid = firstName.trim() && lastName.trim() && emailOk;
-
-  const setHandle = (key, value) => setPayoutHandles({ ...payoutHandles, [key]: value });
 
   return (
     <div style={{ marginBottom: nameSubmitted ? 32 : 0 }}>
@@ -122,56 +115,12 @@ export function NameStep({
           </p>
 
           {/* Optional — only relevant if they win */}
-          <div
-            style={{
-              border: `1px solid ${colors.border}`,
-              borderRadius: radii.lg,
-              padding: 14,
-              marginBottom: 18,
-              background: colors.surface2,
-            }}
-          >
-            <label style={{ ...labelStyle, marginBottom: 2 }}>How you'd like to be paid</label>
-            <p style={{ color: colors.textDim, fontSize: 11, margin: "0 0 12px" }}>
-              Optional. Fill in whichever you use, then pick your preferred one.
-            </p>
-
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              {PAYOUT_METHODS.map((m) => {
-                const selected = payoutMethod === m.key;
-                return (
-                  <div key={m.key} style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                    <button
-                      type="button"
-                      onClick={() => setPayoutMethod(selected ? "" : m.key)}
-                      title={selected ? "Preferred" : "Set as preferred"}
-                      style={{
-                        width: 74,
-                        flexShrink: 0,
-                        padding: "8px 0",
-                        borderRadius: radii.md,
-                        border: `1px solid ${selected ? colors.accentPurple : colors.border}`,
-                        background: selected ? colors.accentPurple : "transparent",
-                        color: selected ? colors.white : colors.textMuted,
-                        cursor: "pointer",
-                        fontSize: 11,
-                        fontWeight: 700,
-                        fontFamily: "inherit",
-                      }}
-                    >
-                      {m.label}
-                    </button>
-                    <input
-                      value={payoutHandles?.[m.key] || ""}
-                      onChange={(e) => setHandle(m.key, e.target.value)}
-                      style={{ ...inputStyle, padding: "9px 12px", fontSize: 13 }}
-                      placeholder={m.placeholder}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <PayoutPicker
+            method={payoutMethod}
+            setMethod={setPayoutMethod}
+            handles={payoutHandles}
+            setHandles={setPayoutHandles}
+          />
 
           <button
             onClick={() => {

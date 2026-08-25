@@ -228,5 +228,66 @@ check(
   )
 );
 
+// ── the pick'em entry flow ──
+const readFile = (rel) =>
+  readFileSync(new URL(rel, import.meta.url), "utf8")
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\/\/.*$/gm, "");
+const sheet = readFile("../src/components/pickem/PickSheet.jsx");
+const payoutSql = readFile("../supabase/migration_pickem_payout.sql");
+const picker = readFile("../src/components/join/PayoutPicker.jsx");
+
+// One method at a time. Showing all three handle fields asked people to fill in
+// accounts they would never be paid through.
+// The handle field is rendered only once a method is chosen. Matching on
+// "PAYOUT_METHODS.map ... <input" caught the <option> list instead.
+check(
+  "the payout picker offers one method at a time",
+  /<select/.test(picker) && /\{selected && \(\s*<input/.test(picker)
+);
+check("clearing the method clears the handle", /if \(!next\) setHandles\(\{\}\)/.test(picker));
+
+// A pick'em winner is owed money exactly as a squares winner is.
+check("the pick sheet asks how to pay a winner", /<PayoutPicker/.test(sheet));
+check("payout details are sent with the sheet", /payoutMethod,\s*payoutHandles,/.test(sheet));
+// The blob every player can read is built by jsonb_build_object; payout must
+// not appear there. Testing the whole file for 'payoutMethod' matched the
+// coalesce() that *reads* it from the request, which is the correct usage.
+const entryBlob = payoutSql.slice(
+  payoutSql.indexOf("v_entry := jsonb_build_object("),
+  payoutSql.indexOf("-- One sheet per email")
+);
+check(
+  "payout is stored admin-side, not in the readable blob",
+  /INSERT INTO public\.pickem_contacts[\s\S]{0,200}payout_method/.test(payoutSql) &&
+    !/payout/i.test(entryBlob)
+);
+
+// A free contest must not show a payment step at all.
+const payStep = readFile("../src/components/pickem/PickemPaymentStep.jsx");
+check("a free contest shows no payment step", /if \(fee <= 0\) return null/.test(payStep));
+check("the fee is read from config, not the request", /config\?\.entryFee/.test(payStep));
+
+// The confirmation, matching the squares one.
+const submitted = readFile("../src/components/pickem/PicksSubmitted.jsx");
+check("submitting picks shows a confirmation", /<PicksSubmitted/.test(sheet));
+check(
+  "it offers standings rather than a board",
+  /View Standings/.test(submitted) && !/View Board/.test(submitted)
+);
+
+// The message players used to hit with nothing they could do about it.
+const modal = readFile("../src/components/admin/NewBoardModal.jsx");
+check(
+  "creating a board requires somewhere to send payment",
+  /Add where players should send payment/.test(modal)
+);
+check("the handle is prefilled from the space's last one", /lastPayment/.test(modal));
+
+// Pick'em admins had no way to set payment details at all.
+const pickemAdmin = readFile("../src/components/admin/PickemSettingsSection.jsx");
+check("pick'em admins can set payment details", /<PaymentDetailsSection/.test(pickemAdmin));
+check("pick'em admins can set an entry fee", /entryFee/.test(pickemAdmin));
+
 console.log(failed === 0 ? "\nAll pick'em cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

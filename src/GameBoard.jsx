@@ -317,6 +317,13 @@ export function GameBoard({ spaceCode, onExit }) {
   // Preselects the contest type when the choice was already made on the way in.
   const [newBoardType, setNewBoardType] = useState("squares");
 
+  // Whatever this space paid to last, so a new board starts with it filled in.
+  const lastPayment = (() => {
+    const handles = config?.paymentHandles || {};
+    const method = Object.keys(handles).find((k) => String(handles[k] || "").trim());
+    return method ? { method, handle: handles[method] } : null;
+  })();
+
   // Both header buttons open the same panel, so the access check lives once here
   const openAdmin = useCallback(
     (after) => {
@@ -694,6 +701,7 @@ export function GameBoard({ spaceCode, onExit }) {
           spaceCode={spaceCode}
           poolId={activePoolId}
           poolName={currentPool.name}
+          config={effectiveConfig}
           entries={picks}
           onEntriesChanged={refreshPicks}
           onBack={() => setView("home")}
@@ -795,24 +803,33 @@ export function GameBoard({ spaceCode, onExit }) {
         <NewBoardModal
           pools={pools}
           initialGameType={newBoardType}
+          lastPayment={lastPayment}
           onClose={() => setShowNewBoard(false)}
-          onCreate={async ({ name, expiresAt, game, gameType, slate }) => {
+          onCreate={async ({ name, expiresAt, game, gameType, slate, payment }) => {
             // Linking at creation means the board is wired for live scores and
-            // smart fill before anyone has to open the admin console.
-            const initialConfig = game
-              ? {
-                  teamX: game.away?.name,
-                  teamY: game.home?.name,
-                  game: {
-                    provider: "espn",
-                    id: game.id,
-                    name: game.name,
-                    startsAt: game.startsAt,
-                    xTeamId: game.away?.id,
-                    yTeamId: game.home?.id,
-                  },
-                }
-              : null;
+            // smart fill before anyone has to open the admin console. The
+            // payment handle is required at creation for the same reason —
+            // otherwise the first player to reach the payment step is told to
+            // go and ask, which is where entries get abandoned.
+            const initialConfig = {
+              ...(payment?.method && payment?.handle
+                ? { paymentHandles: { [payment.method]: payment.handle } }
+                : {}),
+              ...(game
+                ? {
+                    teamX: game.away?.name,
+                    teamY: game.home?.name,
+                    game: {
+                      provider: "espn",
+                      id: game.id,
+                      name: game.name,
+                      startsAt: game.startsAt,
+                      xTeamId: game.away?.id,
+                      yTeamId: game.home?.id,
+                    },
+                  }
+                : {}),
+            };
 
             const { pool, error } = await createPoolInDb(name, expiresAt, initialConfig, {
               gameType,

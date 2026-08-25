@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useRef } from "react";
 import { containerStyle, colors } from "../../styles";
 import { usePickem } from "../../hooks/usePickem";
 import { isSlateLocked } from "../../utils";
@@ -6,7 +6,15 @@ import { PickSheet } from "./PickSheet";
 import { Standings } from "./Standings";
 
 /** A pick'em contest: the sheet while it's open, standings once it isn't. */
-export function PickemView({ spaceCode, poolId, poolName, entries, onEntriesChanged, onBack }) {
+export function PickemView({
+  spaceCode,
+  poolId,
+  poolName,
+  config = {},
+  entries,
+  onEntriesChanged,
+  onBack,
+}) {
   const { slate, submit, submitting } = usePickem(spaceCode, poolId);
 
   // A fresh sheet has to come back through the RPC — the response the player
@@ -62,16 +70,32 @@ export function PickemView({ spaceCode, poolId, poolName, entries, onEntriesChan
             picks close it drops below, since there's nothing left to fill in. */}
         {locked ? (
           <>
-            <Standings slate={slate} entries={entries} />
+            <div ref={standingsRef}>
+              <Standings slate={slate} entries={entries} />
+            </div>
             <div style={{ marginTop: 16 }}>
-              <PickSheet slate={slate} onSubmit={handleSubmit} submitting={submitting} />
+              <PickSheet
+                slate={slate}
+                config={config}
+                onSubmit={handleSubmit}
+                submitting={submitting}
+                onViewStandings={showStandings}
+              />
             </div>
           </>
         ) : (
           <>
-            <PickSheet slate={slate} onSubmit={handleSubmit} submitting={submitting} />
+            <PickSheet
+              slate={slate}
+              config={config}
+              onSubmit={handleSubmit}
+              submitting={submitting}
+              onViewStandings={showStandings}
+            />
             <div style={{ marginTop: 16 }}>
-              <Standings slate={slate} entries={entries} />
+              <div ref={standingsRef}>
+                <Standings slate={slate} entries={entries} />
+              </div>
             </div>
           </>
         )}

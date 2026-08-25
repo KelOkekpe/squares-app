@@ -4,6 +4,7 @@ import { colors } from "../../styles";
 import { tiebreakGame, slateLocksAt, isSlateLocked, gradedCount, rankEntries } from "../../utils";
 import { usePickemContacts } from "../../hooks";
 import { TeamLogo } from "../common";
+import { PaymentDetailsSection } from "./PaymentDetailsSection";
 
 /**
  * Managing a pick'em contest.
@@ -18,6 +19,8 @@ export function PickemSettingsSection({
   slate,
   setSlate,
   picks,
+  config,
+  setConfig,
   onSetPaid,
   onRemove,
 }) {
@@ -142,6 +145,28 @@ export function PickemSettingsSection({
         )}
       </div>
 
+      {/* Entry fee and where to send it — a pick'em winner is owed money
+          exactly as a squares winner is. */}
+      <div style={adminSectionStyle}>
+        <label style={labelStyle}>Entry fee</label>
+        <p style={{ color: colors.textDim, fontSize: 12, margin: "0 0 10px" }}>
+          What each sheet costs. Leave at 0 for a free contest — players then see no payment step.
+        </p>
+        <input
+          type="number"
+          min="0"
+          value={config?.entryFee ?? 0}
+          onChange={(e) =>
+            setConfig((c) => ({ ...c, entryFee: Math.max(0, Number(e.target.value)) }))
+          }
+          style={adminInputStyle}
+        />
+      </div>
+
+      {Number(config?.entryFee) > 0 && (
+        <PaymentDetailsSection config={config} setConfig={setConfig} />
+      )}
+
       {/* entries */}
       <div style={adminSectionStyle}>
         <label style={labelStyle}>Entries</label>
@@ -202,6 +227,9 @@ export function PickemSettingsSection({
                         ) : (
                           <span style={{ color: colors.textDimmest }}>contact hidden</span>
                         )}
+                        {contacts[p.id]?.payoutMethod
+                          ? ` · pays via ${contacts[p.id].payoutMethod}`
+                          : ""}
                         {" · "}TB {p.tiebreak ?? "—"}
                       </div>
                     </div>
