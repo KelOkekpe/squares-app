@@ -43,8 +43,12 @@ export function NewBoardModal({
   const [expiry, setExpiry] = useState("");
   // Prefilled from whatever this space last used, so an organiser types their
   // handle once rather than on every board.
-  const [payMethod, setPayMethod] = useState(() => lastPayment?.method || "");
-  const [payHandle, setPayHandle] = useState(() => lastPayment?.handle || "");
+  // All four, prefilled from whatever this space last used. Only one has to be
+  // filled in to create the contest — the rest are here so an organiser who
+  // takes money three ways can say so now instead of coming back to the admin
+  // panel afterwards.
+  const [payHandles, setPayHandles] = useState(() => ({ ...(lastPayment || {}) }));
+  const filledMethods = PAYMENT_PROVIDERS.filter((pv) => String(payHandles[pv.key] || "").trim());
   const [entryFee, setEntryFee] = useState("");
   const [loadingWeeks, setLoadingWeeks] = useState(true);
   const [loadingGames, setLoadingGames] = useState(false);
@@ -148,8 +152,8 @@ export function NewBoardModal({
     if (!name.trim()) return setError("Give it a name");
     // Required, because the alternative is a player reaching the payment step
     // and being told to go and ask — which is where entries get abandoned.
-    if (!payMethod || !payHandle.trim()) {
-      return setError("Add where players should send payment");
+    if (!filledMethods.length) {
+      return setError("Add at least one place for players to send payment");
     }
     // A contest with no price shows players no payment step at all, which is a
     // real choice — but it has to be a deliberate one, so 0 must be typed.
@@ -171,7 +175,9 @@ export function NewBoardModal({
       name: name.trim(),
       expiresAt: endsOn,
       gameType,
-      payment: { method: payMethod, handle: payHandle.trim() },
+      payment: Object.fromEntries(
+        filledMethods.map((pv) => [pv.key, String(payHandles[pv.key]).trim()])
+      ),
       entryFee: gameType === "pickem" ? Math.max(0, Number(entryFee) || 0) : undefined,
       game: gameType === "squares" ? game : null,
       // The slate is frozen at creation so a rescheduled game can't move
@@ -386,31 +392,43 @@ export function NewBoardModal({
         )}
 
         <label style={labelStyle}>Where players send payment *</label>
-        <div style={{ display: "flex", gap: 8, marginBottom: 6 }}>
-          <select
-            value={payMethod}
-            onChange={(e) => setPayMethod(e.target.value)}
-            style={{ ...inputStyle, width: 130, marginBottom: 0 }}
-          >
-            <option value="">Method…</option>
-            {PAYMENT_PROVIDERS.map((pv) => (
-              <option key={pv.key} value={pv.key}>
+        <p style={{ color: colors.textDim, fontSize: 11, margin: "0 0 10px" }}>
+          <strong style={{ color: colors.textMuted }}>Only one is required.</strong> Fill in as many
+          as you take — players see every one you add, so doing it now saves editing the contest
+          later.
+        </p>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 6 }}>
+          {PAYMENT_PROVIDERS.map((pv) => (
+            <div key={pv.key} style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <span
+                style={{
+                  width: 76,
+                  flexShrink: 0,
+                  fontSize: 12,
+                  fontWeight: 700,
+                  color: String(payHandles[pv.key] || "").trim()
+                    ? colors.textSecondary
+                    : colors.textDim,
+                }}
+              >
                 {pv.label}
-              </option>
-            ))}
-          </select>
-          <input
-            value={payHandle}
-            onChange={(e) => setPayHandle(e.target.value)}
-            style={{ ...inputStyle, marginBottom: 0 }}
-            placeholder={
-              PAYMENT_PROVIDERS.find((pv) => pv.key === payMethod)?.placeholder || "your handle"
-            }
-          />
+              </span>
+              <input
+                value={payHandles[pv.key] || ""}
+                onChange={(e) => setPayHandles((h) => ({ ...h, [pv.key]: e.target.value }))}
+                style={{ ...inputStyle, marginBottom: 0 }}
+                placeholder={pv.placeholder}
+                aria-label={`Your ${pv.label} details`}
+              />
+            </div>
+          ))}
         </div>
+
         <p style={{ color: colors.textDim, fontSize: 11, margin: "0 0 14px" }}>
-          Players pay you directly — this never goes through SquarePool. You can add more methods
-          later in the admin panel.
+          {filledMethods.length
+            ? `Players will see ${filledMethods.map((pv) => pv.label).join(", ")}.`
+            : "Players pay you directly — this never goes through SquarePool."}
         </p>
 
         {/* Only asked for when there is no kickoff to derive it from — a

@@ -280,7 +280,7 @@ check(
 const modal = readFile("../src/components/admin/NewBoardModal.jsx");
 check(
   "creating a board requires somewhere to send payment",
-  /Add where players should send payment/.test(modal)
+  /Add at least one place for players to send payment/.test(modal)
 );
 check("the handle is prefilled from the space's last one", /lastPayment/.test(modal));
 
@@ -360,6 +360,27 @@ check(
   /Set an entry fee \(enter 0 for a free contest\)/.test(newBoard)
 );
 check("the fee reaches the new board's config", /entryFee: gameType === "pickem"/.test(newBoard));
+
+// Every provider is offered at creation, but only one has to be filled — an
+// organiser who takes money three ways shouldn't have to return to the admin
+// panel to say so.
+check(
+  "all payment methods are offered at creation",
+  /PAYMENT_PROVIDERS\.map\(\(pv\) => \(/.test(newBoard)
+);
+check("the form says only one is required", /Only one is required/.test(newBoard));
+check(
+  "but at least one is still enforced",
+  /if \(!filledMethods\.length\)[\s\S]{0,140}Add at least one place/.test(newBoard)
+);
+// A blank field must not become an empty handle: configuredProviders() would
+// then offer players a method with nothing behind it.
+check(
+  "blank methods are dropped rather than stored empty",
+  /filledMethods\.map\(\(pv\) => \[pv\.key, String\(payHandles\[pv\.key\]\)\.trim\(\)\]\)/.test(
+    newBoard
+  )
+);
 
 console.log(failed === 0 ? "\nAll pick'em cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

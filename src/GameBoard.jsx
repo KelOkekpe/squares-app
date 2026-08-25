@@ -319,12 +319,9 @@ export function GameBoard({ spaceCode, onExit }) {
   // Preselects the contest type when the choice was already made on the way in.
   const [newBoardType, setNewBoardType] = useState("squares");
 
-  // Whatever this space paid to last, so a new board starts with it filled in.
-  const lastPayment = (() => {
-    const handles = config?.paymentHandles || {};
-    const method = Object.keys(handles).find((k) => String(handles[k] || "").trim());
-    return method ? { method, handle: handles[method] } : null;
-  })();
+  // Every handle this space last used, so a new board starts with all of them
+  // filled in rather than only the first.
+  const lastPayment = config?.paymentHandles || null;
 
   // Both header buttons open the same panel, so the access check lives once here
   const openAdmin = useCallback(
@@ -818,9 +815,7 @@ export function GameBoard({ spaceCode, onExit }) {
             // otherwise the first player to reach the payment step is told to
             // go and ask, which is where entries get abandoned.
             const initialConfig = {
-              ...(payment?.method && payment?.handle
-                ? { paymentHandles: { [payment.method]: payment.handle } }
-                : {}),
+              ...(payment && Object.keys(payment).length ? { paymentHandles: payment } : {}),
               ...(entryFee === undefined ? {} : { entryFee }),
               ...(game
                 ? {
