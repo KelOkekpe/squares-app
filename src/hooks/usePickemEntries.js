@@ -93,7 +93,11 @@ export function usePickemEntries(spaceCode, poolId) {
       // correction, and telling them their entry no longer counts is a
       // conversation for their admin to have, not an automated email.
       if (!result?.error && paid) {
-        sendConfirmationEmail({ spaceCode, poolId, entryId, kind: "pickem" });
+        const { data: session } = await supabase.auth.getSession();
+        sendConfirmationEmail(
+          { spaceCode, poolId, entryId, kind: "pickem" },
+          session?.session?.access_token
+        );
       }
       return result;
     },

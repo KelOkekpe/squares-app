@@ -18,35 +18,43 @@ export function cellsToCoordinates(cells = [], headers) {
 /**
  * Fires the confirmation email an admin's approval triggers.
  *
- * Deliberately not awaited by its callers: the squares are already assigned and
- * the money already confirmed by the time this runs, so a mail failure must not
- * make the approval look like it did not take.
+ * The caller supplies the access token rather than this reaching for the
+ * Supabase client itself. Everything else in this module is pure string
+ * building, and it is imported by a check script that runs in node — where
+ * `import.meta.env` does not exist, so importing the client at all is a build
+ * error waiting to happen. Taking the token as an argument keeps that boundary
+ * where it belongs.
+ *
+ * Not awaited for its side effect by callers that don't need it: the squares
+ * are already assigned and the money confirmed by the time this runs, so a
+ * mail failure must never make the approval look like it did not take.
  */
-export async function sendConfirmationEmail(payload) {
-  try {
-    const { data } = await import("../lib/supabase.js").then((m) => m.supabase.auth.getSession());
-    const token = data?.session?.access_token;
-    if (!token) {
-      console.warn("Confirmation email skipped: no admin session to authenticate with");
-      return { sent: false, reason: "no_session" };
-    }
+export async function sendConfirmationEmail(payload, accessToken) {
+  if (!accessToken) {
+    console.warn("Confirmation email skipped: no admin session to authenticate with");
+    return { sent: false, reason: "no_session" };
+  }
 
+  try {
     const res = await fetch("/api/send-confirmation", {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${accessToken}` },
       body: JSON.stringify(payload),
     });
+
     // Reported back rather than swallowed: the admin panel offers a manual
     // fallback, and it should appear only when the automatic send actually
     // failed. Guessing either way leaves someone either lied to or nagged.
-    const result = (await res.json().catch(() => ({ sent: false, reason: "unreadable" }))) || {};
+    const result = (await res.json().catch(() => ({}))) || {};
     if (!result.sent) {
-      console.warn(`Confirmation email not sent (${res.status}): ${result.reason || result.error}`);
+      console.warn(`Confirmation email not sent (${res.status}):`, result);
     }
-    return result;
+    return { sent: !!result.sent, reason: result.reason || result.error || `http ${res.status}` };
   } catch (err) {
-    console.warn("Could not send the confirmation email:", err?.message || err);
-    return { sent: false, reason: "error" };
+    // Carries the actual message: "error" on its own cost three rounds of
+    // guessing at what had gone wrong.
+    console.warn("Could not send the confirmation email:", err);
+    return { sent: false, reason: err?.message || "network error" };
   }
 }
 

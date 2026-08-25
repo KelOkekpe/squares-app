@@ -548,7 +548,7 @@ const entriesHook = readFile("../src/hooks/usePickemEntries.js");
 
 check(
   "confirming a pick'em entry emails them",
-  /sendConfirmationEmail\(\{ spaceCode, poolId, entryId, kind: "pickem" \}\)/.test(entriesHook)
+  /sendConfirmationEmail\(\s*\{ spaceCode, poolId, entryId, kind: "pickem" \},/.test(entriesHook)
 );
 // Un-marking is a correction; "your entry no longer counts" is a conversation
 // for the admin to have, not an automated email.
@@ -613,7 +613,8 @@ check("a successful send says so", /emailed to \{entry\.email\}/.test(noticeSrc)
 // has to come back from the endpoint.
 check(
   "the send reports its outcome",
-  /const result = \(await res\.json\(\)/.test(readFile("../src/utils/notify.js"))
+  /const result = \(await res\.json\(\)/.test(readFile("../src/utils/notify.js")) &&
+    /reason: result\.reason \|\| result\.error/.test(readFile("../src/utils/notify.js"))
 );
 check("and the approval records it", /\{ \.\.\.n, emailed: !!emailed\?\.sent/.test(board));
 

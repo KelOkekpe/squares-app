@@ -495,14 +495,17 @@ export function GameBoard({ spaceCode, onExit }) {
       }
       const emailed = saved?.error
         ? { sent: false, reason: `contact not saved: ${saved.error}` }
-        : await sendConfirmationEmail({
-            spaceCode,
-            poolId: activePoolId,
-            entryId,
-            kind: "squares",
-            amount: entry.amount,
-            coords: formatCoordinates(cellsToCoordinates(cells, headers), config),
-          });
+        : await sendConfirmationEmail(
+            {
+              spaceCode,
+              poolId: activePoolId,
+              entryId,
+              kind: "squares",
+              amount: entry.amount,
+              coords: formatCoordinates(cellsToCoordinates(cells, headers), config),
+            },
+            (await supabase.auth.getSession()).data?.session?.access_token
+          );
 
       // The notice keeps its manual fallback only when the automatic send
       // failed, so an admin is never asked to do by hand something already done.

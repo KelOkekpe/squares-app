@@ -8,6 +8,7 @@ import {
   buildApprovalMessage,
   buildMailtoLink,
 } from "../src/utils/notify.js";
+import { readFileSync } from "node:fs";
 
 let failed = 0;
 const check = (l, c) => {
@@ -82,6 +83,19 @@ check("mailto encodes spaces, not plus signs", !link.includes("+") || !/body=[^&
 
 // Missing headers must degrade, not throw
 check("missing headers yields no coordinates", cellsToCoordinates(cells, null).length === 0);
+
+// notify.js is otherwise pure string building and is imported by this script,
+// which runs in node where import.meta.env does not exist. Reaching for the
+// Supabase client from here — even dynamically — is a build error waiting to
+// happen, so the caller supplies the token.
+const notifySrc = readFileSync(new URL("../src/utils/notify.js", import.meta.url), "utf8");
+check("notify.js does not import the Supabase client", !/lib\/supabase/.test(notifySrc));
+check(
+  "the access token is passed in",
+  /sendConfirmationEmail\(payload, accessToken\)/.test(notifySrc)
+);
+// "error" with no detail is what made this take several rounds to place.
+check("a thrown failure carries its message", /reason: err\?\.message/.test(notifySrc));
 
 console.log(failed === 0 ? "\nAll notify cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);
