@@ -208,5 +208,14 @@ check(
   /payment_status !== "paid"/.test(webhook)
 );
 
+// Inline price_data creates an ad-hoc product per session, so a coupon
+// restricted by product matches nothing. It is deliberate — a static Price ID
+// would show every buyer one product name regardless of what they bought — but
+// it means the line item name has to stay dynamic to be worth the trade.
+check(
+  "the line item is named from the board, not a static product",
+  /product_data:[\s\S]{0,400}name: `\$\{isPickem \?/.test(checkout)
+);
+
 console.log(failed === 0 ? "\nAll API safety cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);
