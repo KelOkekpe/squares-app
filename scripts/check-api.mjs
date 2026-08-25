@@ -230,5 +230,27 @@ check(
 );
 check("the mail key carries no VITE_ prefix", !/VITE_[A-Z_]*RESEND/.test(sendPicks));
 
+// send-confirmation is admin-initiated, unlike send-picks, so it takes the
+// real guard rather than the bounded-anonymous treatment.
+const sendConf = read("api/send-confirmation.js");
+check(
+  "confirmation email requires a space admin",
+  /requireSpaceAdmin\(req, spaceCode\)/.test(sendConf)
+);
+check("it rejects non-POST", /status\(405\)/.test(sendConf));
+// An admin of one space must not be able to mail an arbitrary address.
+check(
+  "the recipient is looked up, not supplied",
+  !/to: req\.body/.test(sendConf) && /to: contact\.email/.test(sendConf)
+);
+check("it only reads", !/\.(insert|update|upsert|delete)\(/.test(sendConf));
+// The squares are already assigned by the time this runs.
+check(
+  "a mail failure never reads as a failed approval",
+  /sent: false, reason: "provider_error"/.test(sendConf) && !/status\(500\)/.test(sendConf)
+);
+// A player with no stored address is ordinary, not an error.
+check("a missing address is a normal outcome", /reason: "no_email"/.test(sendConf));
+
 console.log(failed === 0 ? "\nAll API safety cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

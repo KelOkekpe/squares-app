@@ -543,5 +543,22 @@ check(
   /Mark as Paid/.test(readFile("../src/components/admin/PickemSettingsSection.jsx"))
 );
 
+// ── confirming a payment tells the player ──
+const entriesHook = readFile("../src/hooks/usePickemEntries.js");
+
+check(
+  "confirming a pick'em entry emails them",
+  /sendConfirmationEmail\(\{ spaceCode, poolId, entryId, kind: "pickem" \}\)/.test(entriesHook)
+);
+// Un-marking is a correction; "your entry no longer counts" is a conversation
+// for the admin to have, not an automated email.
+check("un-marking someone sends nothing", /!result\?\.error && paid/.test(entriesHook));
+// The grid stores names, so which squares someone owns is knowable only at
+// approval — the email has to carry them or they are lost.
+check(
+  "a squares approval emails the coordinates",
+  /kind: "squares"[\s\S]{0,120}coords: formatCoordinates/.test(board)
+);
+
 console.log(failed === 0 ? "\nAll pick'em cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

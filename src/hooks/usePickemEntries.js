@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "../lib/supabase";
 import { withTimeout } from "../utils/async";
+import { sendConfirmationEmail } from "../utils/notify";
 
 const POLL_MS = 60 * 1000;
 
@@ -76,8 +77,8 @@ export function usePickemEntries(spaceCode, poolId) {
   );
 
   const setPaid = useCallback(
-    (entryId, paid) =>
-      mutate(
+    async (entryId, paid) => {
+      const result = await mutate(
         () =>
           supabase.rpc("set_pickem_paid", {
             p_space_code: spaceCode,
@@ -86,7 +87,16 @@ export function usePickemEntries(spaceCode, poolId) {
             p_paid: paid,
           }),
         "update that entry"
-      ),
+      );
+
+      // Only on confirmation, and only once it stuck. Un-marking someone is a
+      // correction, and telling them their entry no longer counts is a
+      // conversation for their admin to have, not an automated email.
+      if (!result?.error && paid) {
+        sendConfirmationEmail({ spaceCode, poolId, entryId, kind: "pickem" });
+      }
+      return result;
+    },
     [mutate, spaceCode, poolId]
   );
 

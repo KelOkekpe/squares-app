@@ -35,7 +35,12 @@ import {
   useLiveScores,
 } from "./hooks";
 import { supabase, isSupabaseEnabled } from "./lib/supabase";
-import { cellsToCoordinates, buildApprovalMessage } from "./utils/notify";
+import {
+  cellsToCoordinates,
+  formatCoordinates,
+  buildApprovalMessage,
+  sendConfirmationEmail,
+} from "./utils/notify";
 import { playerFacingError } from "./utils/errors";
 import { pageStyle, containerStyle } from "./styles";
 import { colors, cardStyle, inputStyle, btnPrimary, btnSecondary } from "./styles";
@@ -466,6 +471,17 @@ export function GameBoard({ spaceCode, onExit }) {
         typeof crypto !== "undefined" && crypto.randomUUID
           ? crypto.randomUUID()
           : `e${Date.now()}${Math.round(Math.random() * 1e6)}`;
+
+      // The coordinates only exist here — the grid stores names, so this is the
+      // one moment they are knowable.
+      sendConfirmationEmail({
+        spaceCode,
+        poolId: activePoolId,
+        entryId,
+        kind: "squares",
+        amount: entry.amount,
+        coords: formatCoordinates(cellsToCoordinates(cells, headers), config),
+      });
 
       setParticipants((p) => [
         ...p,

@@ -159,7 +159,9 @@ Entry submissions require an email. **Phone numbers are not collected anywhere**
 
 Entrant **contact and payout details are never written into the `participants` blob**. That blob is world-readable and cannot be gated — the board draws its names from it — so email, phone and payout handles live in `entry_contacts`, admin-only by RLS, keyed by an `id` now carried on each participant. `migration_entry_privacy.sql` moved the existing ones; its backfill deliberately leaves an entry that already has an id alone, because regenerating would orphan every contact. `npm run check:deletion` fails if the approval path puts any of those fields back.
 
-`placeParticipant` returns the cells it filled, because the grid stores only names — approval is the one moment a player's actual squares are knowable. `src/utils/notify.js` turns those into grid coordinates and an approval message.
+`placeParticipant` returns the cells it filled, because the grid stores only names — approval is the one moment a player's actual squares are knowable. That is also why `api/send-confirmation.js` accepts the coordinates from the caller rather than looking them up: there is nowhere to look them up from afterwards.
+
+**Confirming a payment emails the player**, for both game types — squares get their coordinates, pick'em get "your sheet now counts". Unlike `send-picks` this is admin-initiated, so it takes the real guard (`requireSpaceAdmin`) rather than the bounded-anonymous treatment. The recipient is still looked up from the contacts table, never supplied. Un-marking someone sends nothing: that is a correction, and "your entry no longer counts" is a conversation for the admin to have. `src/utils/notify.js` turns those into grid coordinates and an approval message.
 
 Entries are gated by admin confirmation: a submission lands in a pending queue and only reaches the board when an admin approves it.
 

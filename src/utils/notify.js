@@ -15,6 +15,28 @@ export function cellsToCoordinates(cells = [], headers) {
     .map(([r, c]) => ({ x: headers.x[c], y: headers.y[r] }));
 }
 
+/**
+ * Fires the confirmation email an admin's approval triggers.
+ *
+ * Deliberately not awaited by its callers: the squares are already assigned and
+ * the money already confirmed by the time this runs, so a mail failure must not
+ * make the approval look like it did not take.
+ */
+export async function sendConfirmationEmail(payload) {
+  try {
+    const { data } = await import("../lib/supabase.js").then((m) => m.supabase.auth.getSession());
+    const token = data?.session?.access_token;
+    if (!token) return;
+    await fetch("/api/send-confirmation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    console.warn("Could not send the confirmation email:", err?.message || err);
+  }
+}
+
 export function formatCoordinates(coords = [], config = {}) {
   const teamX = config.teamX || "Team X";
   const teamY = config.teamY || "Team Y";
