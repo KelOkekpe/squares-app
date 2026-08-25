@@ -574,7 +574,7 @@ check(
 );
 check(
   "and no email is attempted if that write failed",
-  /if \(!saved\?\.error\) \{\s*sendConfirmationEmail/.test(approveBody)
+  /saved\?\.error\s*\?[\s\S]{0,120}:\s*await sendConfirmationEmail/.test(approveBody)
 );
 // Same ordering on the pick'em side: the RPC is awaited before the send.
 check(
@@ -598,6 +598,27 @@ check(
 // A <select> shows one row at a time, so the label has to carry it.
 check("the picker names pending submissions", /PENDING SUBMISSION/.test(panel));
 check("the tab carries a count", /t\.key === "board" && totalPending > 0/.test(panel));
+
+// ── the manual email is a fallback, not a duplicate ──
+// Approval emails the player their coordinates. Leaving the mailto button there
+// unconditionally asked the admin to do by hand what had already happened, and
+// if they did it the player got the same message twice.
+const noticeSrc = readFile("../src/components/admin/ApprovalNotice.jsx");
+check(
+  "the manual send only appears when the automatic one failed",
+  /\{!notice\.emailed && \(/.test(noticeSrc)
+);
+check("a successful send says so", /emailed to \{entry\.email\}/.test(noticeSrc));
+// Guessing either way leaves the admin lied to or nagged, so the real outcome
+// has to come back from the endpoint.
+check(
+  "the send reports its outcome",
+  /return \(await res\.json\(\)/.test(readFile("../src/utils/notify.js"))
+);
+check(
+  "and the approval records it",
+  /setApprovalNotice\(\(n\) => \(n \? \{ \.\.\.n, emailed/.test(board)
+);
 
 console.log(failed === 0 ? "\nAll pick'em cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

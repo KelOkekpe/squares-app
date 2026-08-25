@@ -490,16 +490,20 @@ export function GameBoard({ spaceCode, onExit }) {
 
       // The coordinates only exist here: the grid stores names, so which
       // squares this player owns is knowable at this moment and nowhere after.
-      if (!saved?.error) {
-        sendConfirmationEmail({
-          spaceCode,
-          poolId: activePoolId,
-          entryId,
-          kind: "squares",
-          amount: entry.amount,
-          coords: formatCoordinates(cellsToCoordinates(cells, headers), config),
-        });
-      }
+      const emailed = saved?.error
+        ? { sent: false, reason: "no_contact_row" }
+        : await sendConfirmationEmail({
+            spaceCode,
+            poolId: activePoolId,
+            entryId,
+            kind: "squares",
+            amount: entry.amount,
+            coords: formatCoordinates(cellsToCoordinates(cells, headers), config),
+          });
+
+      // The notice keeps its manual fallback only when the automatic send
+      // failed, so an admin is never asked to do by hand something already done.
+      setApprovalNotice((n) => (n ? { ...n, emailed: !!emailed?.sent } : n));
 
       setPending((list) => list.filter((p) => p.id !== id));
     },

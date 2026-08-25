@@ -58,8 +58,17 @@ export function ApprovalNotice({ notice, onDismiss }) {
       </div>
 
       <p style={{ color: colors.textMuted, fontSize: 12, margin: "0 0 8px" }}>
-        {coords.length} square{coords.length === 1 ? "" : "s"} assigned. Send {entry.email} their
-        coordinates:
+        {coords.length} square{coords.length === 1 ? "" : "s"} assigned
+        {notice.emailed ? (
+          <>
+            {" — "}
+            <span style={{ color: colors.accentGreenBright, fontWeight: 700 }}>
+              emailed to {entry.email}
+            </span>
+          </>
+        ) : (
+          `. Send ${entry.email} their coordinates:`
+        )}
       </p>
 
       <div
@@ -88,26 +97,32 @@ export function ApprovalNotice({ notice, onDismiss }) {
         ))}
       </div>
 
-      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-        <a
-          href={buildMailtoLink(message, entry.email)}
-          style={{ ...btnPrimary, padding: "8px 16px", fontSize: 13, textDecoration: "none" }}
-        >
-          Email {entry.firstName || "them"}
-        </a>
-        <button
-          type="button"
-          onClick={() => {
-            navigator.clipboard?.writeText(message.body).then(() => {
-              setCopied(true);
-              setTimeout(() => setCopied(false), 2000);
-            });
-          }}
-          style={{ ...btnSecondary, padding: "8px 16px", fontSize: 13 }}
-        >
-          {copied ? "Copied" : "Copy message"}
-        </button>
-      </div>
+      {/* Only when the automatic send didn't happen. Approval emails the
+          player their coordinates now, so leaving this here permanently asked
+          an admin to do by hand something already done — and if they did, the
+          player got the same message twice. */}
+      {!notice.emailed && (
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <a
+            href={buildMailtoLink(message, entry.email)}
+            style={{ ...btnPrimary, padding: "8px 16px", fontSize: 13, textDecoration: "none" }}
+          >
+            Email {entry.firstName || "them"}
+          </a>
+          <button
+            type="button"
+            onClick={() => {
+              navigator.clipboard?.writeText(message.body).then(() => {
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+              });
+            }}
+            style={{ ...btnSecondary, padding: "8px 16px", fontSize: 13 }}
+          >
+            {copied ? "Copied" : "Copy message"}
+          </button>
+        </div>
+      )}
     </div>
   );
 }
