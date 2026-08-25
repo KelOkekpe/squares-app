@@ -11,6 +11,43 @@ const escape = (s) =>
     .replace(/"/g, "&quot;");
 
 /**
+ * The same sheet as plain text.
+ *
+ * Sent alongside the HTML. A message with no text alternative scores worse with
+ * spam filters, and a brand-new sending subdomain has no reputation to spend —
+ * so this is cheap insurance on whether the thing arrives at all.
+ */
+export function renderPicksText({ contestName, playerName, games, picks, tiebreak }) {
+  const lines = (games || []).map((game) => {
+    const side = picks?.[game.id];
+    const away = game.away?.abbr || game.away?.name || "?";
+    const home = game.home?.abbr || game.home?.name || "?";
+    const pick = side === "away" ? away : side === "home" ? home : "no pick";
+    return `  ${away} @ ${home}  ->  ${pick}`;
+  });
+
+  return [
+    "YOUR PICKS ARE IN",
+    "",
+    `${playerName} - ${contestName}`,
+    "",
+    ...lines,
+    "",
+    tiebreak == null || tiebreak === "" ? null : `Tiebreaker: ${tiebreak}`,
+    "",
+    "Everyone's picks stay hidden until the first kickoff, so you can't see",
+    "them in the app until then - keep this email.",
+    "",
+    "Submitting again with the same email replaces this sheet, right up",
+    "until the first kickoff.",
+    "",
+    "SquarePool",
+  ]
+    .filter((l) => l !== null)
+    .join("\n");
+}
+
+/**
  * A player's sheet, as an email.
  *
  * Sent because a sheet is invisible until the first kickoff — picks stay hidden

@@ -1,5 +1,5 @@
 import { adminClient } from "./_lib/supabaseAdmin.js";
-import { renderPicksEmail } from "./_lib/pickEmail.js";
+import { renderPicksEmail, renderPicksText } from "./_lib/pickEmail.js";
 
 const RECENT_MS = 60 * 60 * 1000;
 
@@ -73,14 +73,16 @@ export default async function handler(req, res) {
     if (!entry) return res.status(404).json({ error: "No such entry" });
 
     const slate = byType.slate || {};
-    const html = renderPicksEmail({
+    const parts = {
       contestName: slate.label || pool?.name || "Your contest",
       playerName: entry.name,
       games: slate.games || [],
       picks: entry.picks,
       tiebreak: entry.tiebreak,
       spaceCode,
-    });
+    };
+    const html = renderPicksEmail(parts);
+    const text = renderPicksText(parts);
 
     const send = await fetch("https://api.resend.com/emails", {
       method: "POST",
@@ -90,6 +92,7 @@ export default async function handler(req, res) {
         to: contact.email,
         subject: `Your picks — ${slate.label || pool?.name || "SquarePool"}`,
         html,
+        text,
       }),
     });
 

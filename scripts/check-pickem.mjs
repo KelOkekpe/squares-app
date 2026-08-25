@@ -452,6 +452,12 @@ check(
 );
 check("the picked side is filled", /background:\$\{chosen \? PURPLE/.test(emailTpl));
 check("player-supplied values are escaped", /escape\(playerName\)/.test(emailTpl));
+// An HTML-only message scores worse with spam filters, and a new sending
+// subdomain has no reputation to spend.
+check(
+  "a plain-text alternative is sent too",
+  /text,/.test(sendPicks) && /renderPicksText/.test(emailTpl)
+);
 
 // The confirmation is a dialog now: as a panel it sat above the standings it
 // was pointing at, permanently.
