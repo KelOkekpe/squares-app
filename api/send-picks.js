@@ -94,13 +94,24 @@ export default async function handler(req, res) {
     });
 
     if (!send.ok) {
-      console.error("send-picks: provider rejected", send.status, await send.text());
-      return res.status(200).json({ sent: false, reason: "provider_error" });
+      // Logged with the from-address because that is nearly always the cause:
+      // a sender that isn't on the verified domain, or a key scoped to a
+      // different one. The key itself is never logged.
+      const detail = await send.text();
+      console.error(
+        `send-picks: provider rejected ${send.status} sending as "${from}" to a ${contact.email.split("@")[1]} address — ${detail}`
+      );
+      return res.status(200).json({ sent: false, reason: "provider_error", status: send.status });
     }
 
+    const accepted = await send.json().catch(() => ({}));
+    console.log(`send-picks: accepted by provider as ${accepted.id || "?"} (from "${from}")`);
     return res.status(200).json({ sent: true });
   } catch (err) {
-    console.error("send-picks error:", err);
+    // Every outcome here is a 200 on purpose — the picks are already saved, and
+    // a mail failure must not read to the player as a failed submission. That
+    // makes the log the only place the reason appears, so it says everything.
+    console.error("send-picks error:", err?.message || err, err?.stack || "");
     return res.status(200).json({ sent: false, reason: "error" });
   }
 }
