@@ -129,7 +129,7 @@ export function PrivacyPage({ onBack }) {
     <LegalPage
       title="Privacy Policy"
       intro={[
-        "This explains what SquarePool collects, why, and who else ever sees it. It describes what the software actually does today, not what a template says it might.",
+        `SquarePool is operated by ${OPERATOR_NAME}. This explains what we collect, why, and who else ever sees it. It describes what the software actually does today, not what a template says it might.`,
       ]}
       sections={sections}
       onBack={onBack}

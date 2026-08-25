@@ -11,14 +11,12 @@
 export const SUPPORT_EMAIL = "support@squarepool.app";
 
 /**
- * The entity users are contracting with.
- *
- * Left as a marked placeholder until the LLC name and formation state are
- * filled in. check:legal fails if either still reads PLACEHOLDER while the
- * pages are reachable in a production build, so this cannot ship unset.
+ * The entity users are contracting with, and the law their agreement runs
+ * under. Every mention in both documents reads from here — a Terms and a
+ * Privacy Policy that name different operators would undermine both.
  */
-export const OPERATOR_NAME = "PLACEHOLDER_LLC_NAME";
-export const OPERATOR_STATE = "PLACEHOLDER_STATE";
+export const OPERATOR_NAME = "InvestKO LLC";
+export const OPERATOR_STATE = "Georgia";
 
 /** Shown at the top of both documents. Bump when the terms materially change. */
 export const LEGAL_UPDATED = "August 25, 2026";
