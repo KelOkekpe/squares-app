@@ -37,6 +37,8 @@ export function PickemSettingsSection({
   const graded = gradedCount(slate);
   const standings = rankEntries(picks || [], slate);
   const paidCount = (picks || []).filter((p) => p.paid).length;
+  const chargesEntry = Number(config?.entryFee) > 0;
+  const awaitingCount = (picks || []).length - paidCount;
 
   const togglePaid = async (id, paid) => {
     const result = await onSetPaid?.(id, !paid);
@@ -67,11 +69,19 @@ export function PickemSettingsSection({
             Entries <strong style={{ color: colors.textPrimary }}>{picks?.length || 0}</strong>
           </span>
           <span style={{ color: colors.textMuted }}>
-            Paid{" "}
+            Confirmed{" "}
             <strong style={{ color: paidCount ? colors.accentGreenBright : colors.textPrimary }}>
               {paidCount}
             </strong>
           </span>
+          {/* The number that needs the admin to do something. Unconfirmed
+              sheets are recorded but kept out of the standings, so this is a
+              queue rather than a statistic. */}
+          {chargesEntry && awaitingCount > 0 && (
+            <span style={{ color: colors.accentOrange, fontWeight: 700 }}>
+              {awaitingCount} awaiting confirmation
+            </span>
+          )}
         </div>
         <p
           style={{
@@ -191,7 +201,9 @@ export function PickemSettingsSection({
                   key={p.id}
                   style={{
                     background: colors.surface2,
-                    border: `1px solid ${colors.border}`,
+                    border: `1px solid ${
+                      chargesEntry && !p.paid ? colors.borderGold : colors.border
+                    }`,
                     borderRadius: radii.lg,
                     padding: "10px 14px",
                   }}

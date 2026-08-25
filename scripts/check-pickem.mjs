@@ -382,5 +382,42 @@ check(
   )
 );
 
+// ── a paid entry has to be confirmed before it counts ──
+// Squares entries already work this way. Pick'em sheets went straight into the
+// standings, so anyone could submit and appear to be leading without paying.
+const standingsSrc = readFile("../src/components/pickem/Standings.jsx");
+const approvalSql = readFile("../supabase/migration_pickem_approval.sql");
+
+check(
+  "a charging contest counts only confirmed sheets",
+  /requiresPayment \? all\.filter\(\(e\) => e\.paid\) : all/.test(standingsSrc)
+);
+check("unconfirmed sheets are reported, not hidden", /awaiting/.test(standingsSrc));
+
+// The picks themselves must still be recorded on arrival — they have to be
+// locked in before kickoff, and a queue would lose them.
+check(
+  "the sheet is still recorded immediately",
+  /INSERT INTO spaces[\s\S]{0,200}'picks'/.test(approvalSql)
+);
+
+// A free contest has nothing to confirm; leaving those pending would strand
+// every player behind an approval that never comes.
+check("a free contest confirms itself", /'paid', \(v_fee <= 0\)/.test(approvalSql));
+// Reading the fee from the request would let a client declare itself free.
+check(
+  "the fee is read from the board, not the caller",
+  /SELECT coalesce\(\(value ->> 'entryFee'\)::numeric, 0\) INTO v_fee FROM spaces/.test(approvalSql)
+);
+// Sheets submitted before the gate existed were never going to be confirmed.
+check(
+  "existing sheets are grandfathered rather than dropped",
+  /WHEN e \? 'paid' THEN e[\s\S]{0,80}jsonb_build_object\('paid', true\)/.test(approvalSql)
+);
+
+// Scoring itself stays payment-blind: the filter belongs to the view, not the
+// rules of the game.
+check("rankEntries is not aware of payment", !/paid/.test(readFile("../src/utils/pickem.js")));
+
 console.log(failed === 0 ? "\nAll pick'em cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

@@ -54,7 +54,7 @@ export function PicksSubmitted({ name, gameCount, tiebreak, entryFee, onViewStan
       >
         <p style={{ color: colors.textMuted, fontSize: 14, margin: 0, lineHeight: 1.6 }}>
           {owes
-            ? "Your picks are locked in. Send your entry fee to your admin — they'll confirm it and you're set."
+            ? "Your picks are locked in and can't be changed after the first kickoff. They join the standings once your admin confirms your entry fee arrived."
             : "Your picks are locked in. Standings update on their own as games finish."}
         </p>
         <p style={{ color: colors.textDim, fontSize: 12, margin: "8px 0 0" }}>

@@ -111,9 +111,16 @@ function PicksBreakdown({ entry, slate }) {
  * Before kickoff a visible sheet is a sheet to copy, so the disclosure is tied
  * to the same instant that picks stop being editable.
  */
-export function Standings({ slate, entries }) {
+export function Standings({ slate, entries, requiresPayment = false }) {
   const [expanded, setExpanded] = useState(() => new Set());
-  const rows = rankEntries(entries || [], slate);
+  // A contest that charges only counts sheets an admin has confirmed. The
+  // picks are recorded either way — that has to happen before kickoff — but
+  // appearing to lead a contest you have not paid for is the thing this
+  // prevents. A free contest confirms nothing, so everyone counts.
+  const all = entries || [];
+  const counted = requiresPayment ? all.filter((e) => e.paid) : all;
+  const awaiting = all.length - counted.length;
+  const rows = rankEntries(counted, slate);
   const graded = gradedCount(slate);
   const total = slate?.games?.length || 0;
   const tb = tiebreakGame(slate);
@@ -130,7 +137,11 @@ export function Standings({ slate, entries }) {
   if (!rows.length) {
     return (
       <div style={{ ...cardStyle, textAlign: "center" }}>
-        <p style={{ color: colors.textMuted, fontSize: 14, margin: 0 }}>No picks submitted yet.</p>
+        <p style={{ color: colors.textMuted, fontSize: 14, margin: 0 }}>
+          {awaiting
+            ? `${awaiting} sheet${awaiting === 1 ? "" : "s"} waiting on payment confirmation.`
+            : "No picks submitted yet."}
+        </p>
       </div>
     );
   }
@@ -155,6 +166,12 @@ export function Standings({ slate, entries }) {
           ? `Tiebreaker settled — ${tb.shortName} totalled ${tb.total}.`
           : `Ties break on ${tb?.shortName || "the final game"}: closest total without going over.`}
       </p>
+      {awaiting > 0 && (
+        <p style={{ color: colors.accentOrange, fontSize: 12, margin: "0 0 6px" }}>
+          {awaiting} sheet{awaiting === 1 ? "" : "s"} not counted yet — waiting on the admin to
+          confirm payment.
+        </p>
+      )}
       <p style={{ color: colors.textDim, fontSize: 11, margin: "0 0 16px" }}>
         {revealed
           ? "Picks are locked — tap anyone to see their sheet."

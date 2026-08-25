@@ -150,7 +150,9 @@ Entrant **contact and payout details are never written into the `participants` b
 
 `placeParticipant` returns the cells it filled, because the grid stores only names — approval is the one moment a player's actual squares are knowable. `src/utils/notify.js` turns those into grid coordinates and an approval message.
 
-Entries are gated by admin confirmation: a submission lands in a pending queue and only reaches the board when an admin approves it. The trust boundary is a human, not the database.
+Entries are gated by admin confirmation: a submission lands in a pending queue and only reaches the board when an admin approves it.
+
+**Pick'em is gated too, but differently.** The sheet is recorded immediately — picks have to be locked in before kickoff, and holding them in a queue until an admin looked would lose them. What waits is whether the sheet **counts**: `Standings` ranks only `paid` entries when `config.entryFee > 0`, and reports the rest as awaiting confirmation rather than hiding them. A contest with no fee marks entries paid on arrival, decided from the board's own config inside `submit_picks` — reading the fee from the request would let a client declare itself free. `rankEntries` stays payment-blind; the filter belongs to the view, not the rules of the game. The trust boundary is a human, not the database.
 
 **Password recovery** is detected from the `PASSWORD_RECOVERY` auth event, never by reading `type=recovery` from the fragment — supabase-js clears the fragment as soon as it consumes the token, before React renders. The recovery link **signs the user in**, so `App` checks `recovering` ahead of the auth callback and every route; without that they land in the dashboard with the forgotten password still set and are never asked to change it. Cancelling therefore has to sign out. The reset form returns the same message for a known and an unknown address, so it can't be used to enumerate accounts. `npm run check:async` covers all four.
 

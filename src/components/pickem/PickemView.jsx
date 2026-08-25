@@ -81,7 +81,11 @@ export function PickemView({
         {locked ? (
           <>
             <div ref={standingsRef}>
-              <Standings slate={slate} entries={entries} />
+              <Standings
+                slate={slate}
+                entries={entries}
+                requiresPayment={Number(config?.entryFee) > 0}
+              />
             </div>
             <div style={{ marginTop: 16 }}>
               <PickSheet
@@ -106,7 +110,11 @@ export function PickemView({
             />
             <div style={{ marginTop: 16 }}>
               <div ref={standingsRef}>
-                <Standings slate={slate} entries={entries} />
+                <Standings
+                  slate={slate}
+                  entries={entries}
+                  requiresPayment={Number(config?.entryFee) > 0}
+                />
               </div>
             </div>
           </>
