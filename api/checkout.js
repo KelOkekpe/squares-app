@@ -28,7 +28,7 @@ export default async function handler(req, res) {
     // Confirm the board exists in this space and still needs paying for.
     const { data: pool, error: poolError } = await supabase
       .from("pools")
-      .select("id, name, paid, space_code")
+      .select("id, name, paid, space_code, game_type")
       .eq("id", poolId)
       .eq("space_code", spaceCode)
       .maybeSingle();
@@ -36,6 +36,7 @@ export default async function handler(req, res) {
     if (poolError || !pool) return res.status(404).json({ error: "No such board" });
     if (pool.paid) return res.status(409).json({ error: "This board is already active" });
 
+    const isPickem = pool.game_type === "pickem";
     const stripe = new Stripe(requireEnv("STRIPE_SECRET_KEY"));
     // Recorded on every session so the logs answer "which mode was this
     // deployment in" without anyone having to recall what they pasted into
@@ -57,8 +58,13 @@ export default async function handler(req, res) {
                 currency: "usd",
                 unit_amount: BOARD_PRICE_CENTS,
                 product_data: {
-                  name: `Squares board — ${pool.name}`,
-                  description: `Activates "${pool.name}" in /${spaceCode} so players can join.`,
+                  // A pick'em contest was being sold as a "Squares board" on
+                  // the payment page — the one screen where a charge has to
+                  // look like what it is.
+                  name: `${isPickem ? "Pick'em contest" : "Squares board"} — ${pool.name}`,
+                  description: `Activates "${pool.name}" in /${spaceCode} so ${
+                    isPickem ? "players can make their picks" : "players can join"
+                  }.`,
                 },
               },
             },

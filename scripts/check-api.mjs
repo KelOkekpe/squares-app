@@ -186,5 +186,16 @@ check(
   /Stripe \$\{stripeMode\(\)\} mode/.test(checkout)
 );
 
+// The payment page is the one screen where the charge has to look like what it
+// is. A pick'em contest was being sold as a "Squares board".
+check(
+  "the charge names the contest type it is selling",
+  /isPickem \? "Pick'em contest" : "Squares board"/.test(checkout)
+);
+check(
+  "the game type is read from the database, not the request",
+  /game_type/.test(checkout) && /pool\.game_type/.test(checkout)
+);
+
 console.log(failed === 0 ? "\nAll API safety cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);
