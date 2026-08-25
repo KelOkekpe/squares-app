@@ -13,6 +13,7 @@ import {
 import { BackgroundDecor } from "../layout/BackgroundDecor";
 import { PasswordInput } from "../common";
 import { ThemeToggle } from "../common";
+import { LegalConsent } from "../common";
 
 /**
  * Admin site entry point (/admin). Sign in or sign up with email + password.
@@ -393,6 +394,11 @@ export function AdminLanding() {
                     ? "Email me a reset link"
                     : "Sign In"}
             </button>
+
+            {/* Only on the branch that creates an account — signing in again
+                does not re-form the agreement, and the notice would just be
+                noise on a screen someone sees every week. */}
+            {mode === "register" && <LegalConsent action="creating an account" />}
 
             {/* Only on sign-in: there is nothing to recover mid-signup, and the
                 recovery screen is where you land coming back from the email. */}

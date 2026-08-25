@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { colors, radii, pageStyle, containerStyle, btnPrimary, btnSecondary } from "../../styles";
 import { useIsMobile } from "../../hooks/useMediaQuery";
-import { normalizeCode, spaceUrlPrefix } from "../../utils";
+import { normalizeCode, spaceUrlPrefix, SUPPORT_EMAIL } from "../../utils";
 import { BackgroundDecor } from "../layout/BackgroundDecor";
 import { ThemeToggle } from "../common";
 import { HeroCarousel } from "./HeroCarousel";
@@ -685,6 +685,24 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
             style={{ color: colors.textMuted, fontSize: 12, textDecoration: "none" }}
           >
             Organiser sign in
+          </a>
+          <a
+            href="/terms"
+            style={{ color: colors.textMuted, fontSize: 12, textDecoration: "none" }}
+          >
+            Terms
+          </a>
+          <a
+            href="/privacy"
+            style={{ color: colors.textMuted, fontSize: 12, textDecoration: "none" }}
+          >
+            Privacy
+          </a>
+          <a
+            href={`mailto:${SUPPORT_EMAIL}`}
+            style={{ color: colors.textMuted, fontSize: 12, textDecoration: "none" }}
+          >
+            Support
           </a>
         </span>
       </footer>

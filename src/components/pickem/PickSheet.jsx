@@ -13,6 +13,7 @@ import { TeamLogo } from "../common";
 import { PayoutPicker } from "../join/PayoutPicker";
 import { loadProfile, saveProfile, loadSheet, saveSheet } from "../../utils";
 import { PicksSubmitted } from "./PicksSubmitted";
+import { LegalConsent } from "../common";
 import { PickemPaymentStep } from "./PickemPaymentStep";
 
 function TeamButton({ team, label, selected, onClick, disabled }) {
@@ -361,6 +362,7 @@ export function PickSheet({
                   ? `${remaining} game${remaining === 1 ? "" : "s"} left to pick`
                   : "Submit picks"}
             </button>
+            <LegalConsent action="submitting picks" />
           </>
         )}
       </div>

@@ -3,6 +3,7 @@ import { useRoute } from "./hooks/useRoute";
 import { useAuth } from "./hooks/useAuth";
 import { isSupabaseEnabled } from "./lib/supabase";
 import { spacePath, ADMIN_PATH, JOIN_PATH, isAuthCallbackHash } from "./utils/routes";
+import { TermsPage, PrivacyPage } from "./components/legal";
 import { PlayerLanding } from "./components/landing";
 import { MarketingPage } from "./components/marketing";
 import { AdminApp, AuthCallback, ResetPasswordScreen } from "./components/admin";
@@ -65,6 +66,19 @@ export default function App() {
 
   if (route.name === "space") {
     return <GameBoard spaceCode={route.code} onExit={exitSpace} />;
+  }
+
+  // Legal pages are reachable without an account and from inside a space, so
+  // "back" returns to the previous page rather than a fixed destination — a
+  // player sent here from a join form should land back on the join form.
+  const leaveLegal = () => (window.history.length > 1 ? window.history.back() : navigate("/"));
+
+  if (route.name === "terms") {
+    return <TermsPage onBack={leaveLegal} />;
+  }
+
+  if (route.name === "privacy") {
+    return <PrivacyPage onBack={leaveLegal} />;
   }
 
   if (route.name === "join") {

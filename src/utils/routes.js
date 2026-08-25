@@ -6,6 +6,8 @@
  *
  *   /            → marketing page
  *   /join        → player join form (enter a space code)
+ *   /terms       → terms of service
+ *   /privacy     → privacy policy
  *   /admin       → admin site (sign in / sign up, then dashboard)
  *   /superadmin  → superadmin console (superadmin role only)
  *   /#<code>     → a space
@@ -17,6 +19,8 @@
 export const ADMIN_PATH = "/admin";
 export const SUPERADMIN_PATH = "/superadmin";
 export const JOIN_PATH = "/join";
+export const TERMS_PATH = "/terms";
+export const PRIVACY_PATH = "/privacy";
 
 /** Lowercase, strip anything that isn't a-z, 0-9 or a dash. */
 export function normalizeCode(raw) {
@@ -97,6 +101,11 @@ export function parseLocation(pathname, hash) {
   // "/" is the marketing page now, so the join form needs its own address for
   // players who arrive without a link.
   if (segment === "join") return { name: "join" };
+  // Legal pages are sites, not spaces. Without these two lines they fall
+  // through to the legacy path-form branch below and redirect to /#terms —
+  // a space whose code happens to be "terms".
+  if (segment === "terms") return { name: "terms" };
+  if (segment === "privacy") return { name: "privacy" };
 
   // Spaces live in the fragment. Accepts both "#code" and the legacy "#/code".
   const rawHash = String(hash || "");

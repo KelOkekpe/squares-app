@@ -14,3 +14,4 @@ export * from "./nflTeams.js";
 export * from "./teamLogo.js";
 export * from "./invite.js";
 export * from "./playerStore.js";
+export * from "./legal.js";

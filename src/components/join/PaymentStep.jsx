@@ -1,5 +1,6 @@
 import React from "react";
 import { inputStyle, labelStyle, btnPrimary, btnSecondary, radii } from "../../styles";
+import { LegalConsent } from "../common";
 import { buildPaymentLink, configuredProviders } from "../../utils";
 import { colors } from "../../styles";
 
@@ -234,6 +235,8 @@ export function PaymentStep({
           View Board
         </button>
       </div>
+
+      <LegalConsent action="submitting an entry" />
     </div>
   );
 }

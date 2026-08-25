@@ -26,7 +26,8 @@
     "check:deletion": "node scripts/check-deletion.mjs",
     "check:undef": "eslint src api scripts",
     "check:counts": "node scripts/check-pending-counts.mjs",
-    "check": "npm run -s check:keys && npm run -s check:routes && npm run -s check:async && npm run -s check:theme && npm run -s check:pools && npm run -s check:imports && npm run -s check:notify && npm run -s check:hooks && npm run -s check:api && npm run -s check:payments && npm run -s check:scores && npm run -s check:smartfill && npm run -s check:pickem && npm run -s check:deletion && npm run -s check:undef && npm run -s check:counts"
+    "check": "npm run -s check:keys && npm run -s check:routes && npm run -s check:async && npm run -s check:theme && npm run -s check:pools && npm run -s check:imports && npm run -s check:notify && npm run -s check:hooks && npm run -s check:api && npm run -s check:payments && npm run -s check:scores && npm run -s check:smartfill && npm run -s check:pickem && npm run -s check:deletion && npm run -s check:undef && npm run -s check:counts && npm run -s check:legal",
+    "check:legal": "node scripts/check-legal.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.5",
