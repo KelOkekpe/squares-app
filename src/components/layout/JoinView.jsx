@@ -13,8 +13,6 @@ export function JoinView({
   setLastName,
   email,
   setEmail,
-  phone,
-  setPhone,
   payoutMethod,
   setPayoutMethod,
   payoutHandles,
@@ -67,8 +65,6 @@ export function JoinView({
             setLastName={setLastName}
             email={email}
             setEmail={setEmail}
-            phone={phone}
-            setPhone={setPhone}
             payoutMethod={payoutMethod}
             setPayoutMethod={setPayoutMethod}
             payoutHandles={payoutHandles}

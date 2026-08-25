@@ -9,12 +9,10 @@ const PAYOUT_METHODS = [
 ];
 
 export const isValidEmail = (v) => /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(String(v || "").trim());
-export const isValidPhone = (v) => String(v || "").replace(/\D/g, "").length >= 7;
-
 /**
  * Step 1 of joining: who you are and how to reach you.
  *
- * Email and phone are required — an approved entry is money owed, and a name
+ * Email is required — an approved entry is money owed, and a name
  * alone gives an admin no way to reach a winner or tell two players with the
  * same name apart. Payout details are optional and only matter if you win.
  */
@@ -27,8 +25,6 @@ export function NameStep({
   setLastName,
   email,
   setEmail,
-  phone,
-  setPhone,
   payoutMethod,
   setPayoutMethod,
   payoutHandles,
@@ -38,8 +34,7 @@ export function NameStep({
   fullName,
 }) {
   const emailOk = isValidEmail(email);
-  const phoneOk = isValidPhone(phone);
-  const isValid = firstName.trim() && lastName.trim() && emailOk && phoneOk;
+  const isValid = firstName.trim() && lastName.trim() && emailOk;
 
   const setHandle = (key, value) => setPayoutHandles({ ...payoutHandles, [key]: value });
 
@@ -122,24 +117,8 @@ export function NameStep({
             )}
           </div>
 
-          <div style={{ marginBottom: 14 }}>
-            <label style={labelStyle}>Phone *</label>
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              style={inputStyle}
-              placeholder="(555) 123-4567"
-            />
-            {phone && !phoneOk && (
-              <p style={{ color: colors.accentRed, fontSize: 11, margin: "4px 0 0" }}>
-                That doesn't look like a valid phone number
-              </p>
-            )}
-          </div>
-
           <p style={{ color: colors.textDim, fontSize: 11, margin: "0 0 18px" }}>
-            Your admin uses these to confirm your payment and reach you if you win.
+            Your admin uses this to confirm your payment and reach you if you win.
           </p>
 
           {/* Optional — only relevant if they win */}

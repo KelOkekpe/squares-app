@@ -106,7 +106,7 @@ export function PendingEntriesSection({ pending, emptyCount, onApprove, onReject
                   </span>
                 </div>
 
-                {(entry.email || entry.phone) && (
+                {entry.email && (
                   <p style={{ margin: "0 0 6px", color: colors.textMuted, fontSize: 11 }}>
                     {entry.email && (
                       <a
@@ -114,15 +114,6 @@ export function PendingEntriesSection({ pending, emptyCount, onApprove, onReject
                         style={{ color: colors.accentViolet, textDecoration: "none" }}
                       >
                         {entry.email}
-                      </a>
-                    )}
-                    {entry.email && entry.phone ? " · " : ""}
-                    {entry.phone && (
-                      <a
-                        href={`tel:${entry.phone}`}
-                        style={{ color: colors.textMuted, textDecoration: "none" }}
-                      >
-                        {entry.phone}
                       </a>
                     )}
                   </p>

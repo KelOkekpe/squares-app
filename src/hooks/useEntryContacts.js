@@ -19,7 +19,7 @@ export function useEntryContacts(spaceCode, poolId, enabled = true) {
     }
     const { data, error } = await supabase
       .from("entry_contacts")
-      .select("entry_id, email, phone, payout_method, payout_handles")
+      .select("entry_id, email, payout_method, payout_handles")
       .eq("space_code", spaceCode)
       .eq("pool_id", poolId);
 
@@ -33,7 +33,6 @@ export function useEntryContacts(spaceCode, poolId, enabled = true) {
           r.entry_id,
           {
             email: r.email,
-            phone: r.phone,
             payoutMethod: r.payout_method,
             payoutHandles: r.payout_handles,
           },
@@ -57,7 +56,6 @@ export function useEntryContacts(spaceCode, poolId, enabled = true) {
           entry_id: entryId,
           name: entry.name || null,
           email: entry.email || null,
-          phone: entry.phone || null,
           payout_method: entry.payoutMethod || null,
           payout_handles: entry.payoutHandles || null,
         },
@@ -71,7 +69,6 @@ export function useEntryContacts(spaceCode, poolId, enabled = true) {
         ...prev,
         [entryId]: {
           email: entry.email || null,
-          phone: entry.phone || null,
           payoutMethod: entry.payoutMethod || null,
           payoutHandles: entry.payoutHandles || null,
         },

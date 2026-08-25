@@ -214,7 +214,6 @@ export function GameBoard({ spaceCode, onExit }) {
   const [middleInitial, setMiddleInitial] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [payoutMethod, setPayoutMethod] = useState("");
   const [payoutHandles, setPayoutHandles] = useState({});
   // Generated up front: the player pays before submitting, so the reference has
@@ -352,7 +351,6 @@ export function GameBoard({ spaceCode, onExit }) {
     setMiddleInitial("");
     setLastName("");
     setEmail("");
-    setPhone("");
     setPayoutMethod("");
     setPayoutHandles({});
     setNameSubmitted(false);
@@ -383,7 +381,6 @@ export function GameBoard({ spaceCode, onExit }) {
         middleInitial,
         lastName: lastName.trim(),
         email: email.trim(),
-        phone: phone.trim(),
         payoutMethod,
         payoutHandles,
       },
@@ -407,7 +404,6 @@ export function GameBoard({ spaceCode, onExit }) {
     middleInitial,
     lastName,
     email,
-    phone,
     payoutMethod,
     payoutHandles,
     paymentRef,
@@ -748,8 +744,6 @@ export function GameBoard({ spaceCode, onExit }) {
               setMiddleInitial={setMiddleInitial}
               email={email}
               setEmail={setEmail}
-              phone={phone}
-              setPhone={setPhone}
               payoutMethod={payoutMethod}
               setPayoutMethod={setPayoutMethod}
               payoutHandles={payoutHandles}

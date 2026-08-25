@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { colors, radii, cardStyle, inputStyle, labelStyle, btnPrimary } from "../../styles";
 import { isSlateLocked, tiebreakGame, missingPicks, PICK_AWAY, PICK_HOME } from "../../utils";
-import { isValidEmail, isValidPhone } from "../join/NameStep";
+import { isValidEmail } from "../join/NameStep";
 import { TeamLogo } from "../common";
 
 function TeamButton({ team, label, selected, onClick, disabled }) {
@@ -48,7 +48,6 @@ export function PickSheet({ slate, onSubmit, submitting }) {
   const [tiebreak, setTiebreak] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [error, setError] = useState("");
   const [done, setDone] = useState(null);
   // Collapsed by default: sixteen games and four fields buried the standings,
@@ -58,7 +57,7 @@ export function PickSheet({ slate, onSubmit, submitting }) {
   const locked = isSlateLocked(slate);
   const tb = tiebreakGame(slate);
   const remaining = missingPicks(sheet, slate);
-  const contactOk = name.trim() && isValidEmail(email) && isValidPhone(phone);
+  const contactOk = name.trim() && isValidEmail(email);
   const ready = !remaining && tiebreak !== "" && contactOk && !locked;
 
   const submit = async () => {
@@ -66,7 +65,6 @@ export function PickSheet({ slate, onSubmit, submitting }) {
     const result = await onSubmit({
       name: name.trim(),
       email: email.trim(),
-      phone: phone.trim(),
       picks: sheet,
       tiebreak,
     });
@@ -264,16 +262,6 @@ export function PickSheet({ slate, onSubmit, submitting }) {
                 onChange={(e) => setEmail(e.target.value)}
                 style={inputStyle}
                 placeholder="you@example.com"
-              />
-            </div>
-            <div>
-              <label style={labelStyle}>Phone *</label>
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                style={inputStyle}
-                placeholder="(555) 123-4567"
               />
             </div>
           </div>

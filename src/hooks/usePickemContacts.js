@@ -22,7 +22,7 @@ export function usePickemContacts(spaceCode, poolId, enabled = true) {
     (async () => {
       const { data, error } = await supabase
         .from("pickem_contacts")
-        .select("entry_id, email, phone")
+        .select("entry_id, email")
         .eq("space_code", spaceCode)
         .eq("pool_id", poolId);
 
@@ -31,11 +31,7 @@ export function usePickemContacts(spaceCode, poolId, enabled = true) {
         console.error("Could not load entrant contacts:", error.message);
         return;
       }
-      setContacts(
-        Object.fromEntries(
-          (data || []).map((r) => [r.entry_id, { email: r.email, phone: r.phone }])
-        )
-      );
+      setContacts(Object.fromEntries((data || []).map((r) => [r.entry_id, { email: r.email }])));
     })();
 
     return () => {

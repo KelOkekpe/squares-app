@@ -177,5 +177,40 @@ check(
   /- 'email' - 'phone' - 'payoutMethod' - 'payoutHandles'/.test(privacySql)
 );
 
+// ── phone numbers are not collected at all ──
+// The field was required and never used. The only use would have been SMS,
+// which US carriers block without A2P registration, and gambling is a
+// rejection category for that registration — so the numbers had no future,
+// and the app never asked consent to text anyone anyway.
+const phoneSql = sql["migration_drop_phone.sql"] || "";
+check("the drop-phone migration exists", phoneSql.length > 0);
+check(
+  "both contact tables lose the column",
+  /ALTER TABLE public\.entry_contacts\s+DROP COLUMN IF EXISTS phone/.test(phoneSql) &&
+    /ALTER TABLE public\.pickem_contacts DROP COLUMN IF EXISTS phone/.test(phoneSql)
+);
+// The pending queue holds its own copy on live rows an admin is still working.
+check("existing blobs are stripped, not left behind", /jsonb_agg\(e - 'phone'/.test(phoneSql));
+check(
+  "the pending queue is included in the sweep",
+  /type IN \('pending', 'participants', 'picks'\)/.test(phoneSql)
+);
+// Neither RPC may write one, even if a stale client still sends it.
+const noPhoneWrite = !/'phone',\s*left\(v_phone/.test(phoneSql) && !/v_phone/.test(phoneSql);
+check("neither submit function stores a phone", noPhoneWrite);
+// Grants are re-stated because CREATE OR REPLACE only keeps them while the
+// signature matches — and hand-typed signatures are how they went missing before.
+check(
+  "grants are re-applied from pg_proc rather than typed out",
+  /oid::regprocedure[\s\S]{0,400}submit_entry_request/.test(phoneSql)
+);
+
+// And nothing in the client collects one.
+const clientFiles = ["src/components/join/NameStep.jsx", "src/components/pickem/PickSheet.jsx"];
+for (const rel of clientFiles) {
+  const src = readFileSync(new URL(`../${rel}`, import.meta.url), "utf8");
+  check(`${rel.split("/").pop()} has no phone field`, !/type="tel"/.test(src));
+}
+
 console.log(failed === 0 ? "\nAll deletion cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

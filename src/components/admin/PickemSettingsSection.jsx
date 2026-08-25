@@ -202,8 +202,7 @@ export function PickemSettingsSection({
                         ) : (
                           <span style={{ color: colors.textDimmest }}>contact hidden</span>
                         )}
-                        {contacts[p.id]?.phone ? ` · ${contacts[p.id].phone}` : ""} · TB{" "}
-                        {p.tiebreak ?? "—"}
+                        {" · "}TB {p.tiebreak ?? "—"}
                       </div>
                     </div>
                     <span style={{ fontWeight: 800, fontSize: 14, color: colors.textPrimary }}>

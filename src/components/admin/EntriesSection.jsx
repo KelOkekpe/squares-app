@@ -99,7 +99,6 @@ export function EntriesSection({ participants, contacts = {}, onRemove }) {
                         >
                           {contact.email}
                         </a>
-                        {contact.phone ? ` · ${contact.phone}` : ""}
                       </div>
                     )}
                   </div>
