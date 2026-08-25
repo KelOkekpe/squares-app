@@ -17,6 +17,7 @@ export function PickemView({
   onBack,
 }) {
   const { slate, submit, submitting } = usePickem(spaceCode, poolId);
+  const standingsRef = useRef(null);
 
   // A fresh sheet has to come back through the RPC — the response the player
   // gets is their own entry, not the list.
@@ -24,6 +25,14 @@ export function PickemView({
     const result = await submit(sheet);
     if (!result.error) onEntriesChanged?.();
     return result;
+  };
+
+  // Standings are already on this page, so "View standings" scrolls to them
+  // rather than navigating. Refreshing first means the sheet just submitted is
+  // in the table by the time they get there.
+  const showStandings = () => {
+    onEntriesChanged?.();
+    standingsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   if (!slate?.games?.length) {

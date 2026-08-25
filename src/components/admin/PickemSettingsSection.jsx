@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { adminSectionStyle, labelStyle, btnSecondary, radii } from "../../styles";
+import { adminSectionStyle, adminInputStyle, labelStyle, btnSecondary, radii } from "../../styles";
 import { colors } from "../../styles";
 import { tiebreakGame, slateLocksAt, isSlateLocked, gradedCount, rankEntries } from "../../utils";
 import { usePickemContacts } from "../../hooks";

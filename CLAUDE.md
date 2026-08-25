@@ -7,6 +7,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `npm run dev` (or `start`) — Vite dev server on port 3000
 - `npm run build`
 - `npm run check:imports` / `check:keys` / `check:routes` / `check:async` / `check:theme` / `check:pools` / `check:deletion` — plain node scripts in `scripts/`. There is no test framework; these are the only automated checks. Run them all before committing.
+- `check:hooks`, `check:imports` and `check:undef` matter most, because all three catch runtime-only failures — the build succeeds and the page throws. `check:undef` is ESLint with exactly one rule, `no-undef`; it is kept to that so it stays instant and never produces a finding anyone has to argue about. It would have caught all three failures that have shipped from here.
 - `check:hooks` and `check:imports` matter most, because both catch runtime-only failures. A hook dependency array is evaluated immediately, so listing a `const` declared further down the component throws "Cannot access 'x' before initialization" — define callbacks *below* the state they depend on.
 - `check:imports`: Vite doesn't resolve identifiers, so a component used without being imported builds clean and throws `X is not defined` at runtime. That has shipped twice.
 

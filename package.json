@@ -23,7 +23,8 @@
     "check:scores": "node scripts/check-scores.mjs",
     "check:smartfill": "node scripts/check-smartfill.mjs",
     "check:pickem": "node scripts/check-pickem.mjs",
-    "check:deletion": "node scripts/check-deletion.mjs"
+    "check:deletion": "node scripts/check-deletion.mjs",
+    "check:undef": "eslint src api scripts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.38.5",
@@ -36,6 +37,8 @@
     "@types/react": "^18.2.43",
     "@types/react-dom": "^18.2.17",
     "@vitejs/plugin-react": "^4.2.1",
+    "eslint": "^9.39.5",
+    "globals": "^17.11.0",
     "prettier": "^3.9.6",
     "vite": "^5.0.8"
   },
