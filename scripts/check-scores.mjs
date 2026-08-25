@@ -1,6 +1,7 @@
 // Score sync decides who gets paid, so the accumulation and the "is this
 // quarter actually over" rule are checked against a real finished game.
 import { getQuarterTotals, listGames } from "../api/_lib/espn.js";
+import { readFileSync } from "node:fs";
 
 let failed = 0;
 const check = (l, c) => {
@@ -69,6 +70,63 @@ check("games carry both team ids for axis mapping", !!wk[0]?.away?.id && !!wk[0]
 // NFL seasons span the new year, so the season year is not just "this year"
 check("August belongs to that year's season", seasonYear(new Date("2026-08-15")) === 2026);
 check("January belongs to the previous year's season", seasonYear(new Date("2027-01-15")) === 2026);
+
+// ── the score ticker ──
+const espnSrc = readFileSync(new URL("../api/_lib/espn.js", import.meta.url), "utf8");
+const ticker = readFileSync(
+  new URL("../src/components/common/GameTicker.jsx", import.meta.url),
+  "utf8"
+);
+const tickerCode = ticker.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/.*$/gm, "");
+const html = readFileSync(new URL("../index.html", import.meta.url), "utf8");
+
+// listGames feeds the board picker and the ticker. The ticker's fields are
+// additive so the picker is unaffected, but they have to exist.
+check("listGames reports game state", /state: comp\.status\?\.type\?\.state/.test(espnSrc));
+check(
+  "listGames reports a display detail",
+  /detail: comp\.status\?\.type\?\.shortDetail/.test(espnSrc)
+);
+check(
+  "listGames reports scores for both sides",
+  (espnSrc.match(/score: \w+\.score == null/g) || []).length === 2
+);
+
+// ESPN sends 0-0 before kickoff, which reads as a scoreless game in progress.
+check(
+  "scores are hidden until a game has started",
+  /const a = started \? game\.away\?\.score : null/.test(tickerCode)
+);
+
+// A single copy of the list snaps back visibly at the loop point; two copies
+// moved by exactly -50% put the second where the first was.
+check("the track is doubled for a seamless loop", /\[0, 1\]\.map/.test(tickerCode));
+check("the animation travels exactly half the track", /translateX\(-50%\)/.test(html));
+
+// Keyframes cannot be expressed in an inline style object, so they live in the
+// one <style> block the app has.
+check("the ticker keyframes are defined", /@keyframes sp-ticker/.test(html));
+check(
+  "reduced motion stops the ticker rather than hiding it",
+  /prefers-reduced-motion[\s\S]{0,160}\.sp-ticker-track[\s\S]{0,80}animation: none/.test(html)
+);
+
+// It is decoration over someone's board; a provider outage must not surface.
+check(
+  "a scoreboard failure is not shown to the user",
+  /console\.warn\("Scoreboard unavailable/.test(
+    readFileSync(new URL("../src/hooks/useScoreboard.js", import.meta.url), "utf8")
+  )
+);
+check("an empty scoreboard renders nothing", /if \(!games\.length\) return null/.test(tickerCode));
+
+// The bar is fixed, so content needs the room reserved or its last row hides.
+check(
+  "views reserve room for the fixed bar",
+  /height: TICKER_HEIGHT/.test(
+    readFileSync(new URL("../src/GameBoard.jsx", import.meta.url), "utf8")
+  )
+);
 
 console.log(failed === 0 ? "\nAll score-sync cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

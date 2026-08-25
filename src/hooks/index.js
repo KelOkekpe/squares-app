@@ -17,3 +17,4 @@ export { usePickem } from "./usePickem";
 export { usePickemEntries } from "./usePickemEntries";
 export { usePickemContacts } from "./usePickemContacts";
 export { useEntryContacts } from "./useEntryContacts";
+export { useScoreboard } from "./useScoreboard";

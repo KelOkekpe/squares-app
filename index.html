@@ -200,6 +200,23 @@
         margin: 0;
         background: var(--page-bg);
       }
+    
+      /* The score ticker. Keyframes are the one thing an inline style object
+         cannot express, and this <style> block is already where the theme
+         palettes live, so it is the established place for them. */
+      @keyframes sp-ticker {
+        from { transform: translateX(0); }
+        to   { transform: translateX(-50%); }
+      }
+
+      /* Someone who asked for less motion gets a ticker that simply sits
+         still, rather than no scores at all. */
+      @media (prefers-reduced-motion: reduce) {
+        .sp-ticker-track {
+          animation: none !important;
+          transform: none !important;
+        }
+      }
     </style>
 
     <!-- Resolve the theme before first paint so there's no flash of the wrong one -->

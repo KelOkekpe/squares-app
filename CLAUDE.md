@@ -107,6 +107,8 @@ A board can be linked to a real game (`config.game`), after which quarter scores
 
 ESPN reports points scored *within* each quarter; squares pay on the **cumulative** score, so totals are accumulated. A quarter is only recorded once it has ended (`period - 1`, or all four when final) — recording a quarter still in play would award it to whoever happened to lead mid-drive. Q4 uses the final score so overtime settles there.
 
+A **score ticker** runs along the bottom of every space view (`GameTicker`), fed by `/api/nfl-games` through `useScoreboard`. It's mounted once in `GameBoard` rather than per view, so home, board and pick'em can't drift and the scoreboard is fetched once. Two details are load-bearing: the game list is rendered **twice** and the animation travels exactly `-50%`, which is what makes the loop seamless; and ESPN reports **0-0 before kickoff**, so scores are suppressed until a game has started. Keyframes are the one thing an inline style object can't express, so `@keyframes sp-ticker` and the `prefers-reduced-motion` rule live in the `<style>` block in `index.html` alongside the theme palettes.
+
 Polling runs from whoever has the board open rather than a cron job, since scheduled functions need a paid Vercel tier. `/api/sync-scores` is unauthenticated by design and throttled server-side to 45s per board; it can only ever write the scores row of a board that was explicitly linked to a game.
 
 ## Billing

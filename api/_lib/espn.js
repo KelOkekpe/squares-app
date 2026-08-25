@@ -71,6 +71,12 @@ export async function listGames(opts = {}) {
       shortName: event.shortName,
       startsAt: event.date,
       status: comp.status?.type?.name || "STATUS_SCHEDULED",
+      // Added for the live ticker. "pre" | "in" | "post" is what decides how a
+      // game is rendered; shortDetail is ESPN's own one-liner ("Final",
+      // "Q3 7:42", the kickoff time) and saves reconstructing it from period
+      // and clock, which gets the halftime and overtime cases wrong.
+      state: comp.status?.type?.state || "pre",
+      detail: comp.status?.type?.shortDetail || "",
       // Logos are frozen into the slate with everything else. Slates created
       // before this carry none; teamLogoUrl() derives those from the abbr.
       away: {
@@ -78,12 +84,14 @@ export async function listGames(opts = {}) {
         name: away.team?.displayName,
         abbr: away.team?.abbreviation,
         logo: away.team?.logo || null,
+        score: away.score == null ? null : Number(away.score),
       },
       home: {
         id: home.id,
         name: home.team?.displayName,
         abbr: home.team?.abbreviation,
         logo: home.team?.logo || null,
+        score: home.score == null ? null : Number(home.score),
       },
     };
   });

@@ -48,7 +48,7 @@ import {
 import { AdminPanel, NewBoardModal } from "./components/admin";
 import { PasswordInput } from "./components/common";
 import { PickemView } from "./components/pickem";
-import { InviteModal } from "./components/common";
+import { InviteModal, GameTicker, TICKER_HEIGHT } from "./components/common";
 
 export function GameBoard({ spaceCode, onExit }) {
   const { isSpaceAdmin, isOwner } = useAuth();
@@ -837,6 +837,13 @@ export function GameBoard({ spaceCode, onExit }) {
         filledCount={100 - emptyCount}
         poolName={pools.find((p) => p.id === activePoolId)?.name}
       />
+
+      {/* Mounted once here rather than in each view: home, board and pick'em
+          all render inside this component, so they can't drift apart, and the
+          scoreboard is fetched once instead of three times. The spacer keeps
+          the fixed bar off the last row of content. */}
+      <div style={{ height: TICKER_HEIGHT }} />
+      <GameTicker />
     </div>
   );
 }
