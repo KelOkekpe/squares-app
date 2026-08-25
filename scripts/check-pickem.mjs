@@ -613,12 +613,9 @@ check("a successful send says so", /emailed to \{entry\.email\}/.test(noticeSrc)
 // has to come back from the endpoint.
 check(
   "the send reports its outcome",
-  /return \(await res\.json\(\)/.test(readFile("../src/utils/notify.js"))
+  /const result = \(await res\.json\(\)/.test(readFile("../src/utils/notify.js"))
 );
-check(
-  "and the approval records it",
-  /setApprovalNotice\(\(n\) => \(n \? \{ \.\.\.n, emailed/.test(board)
-);
+check("and the approval records it", /\{ \.\.\.n, emailed: !!emailed\?\.sent/.test(board));
 
 console.log(failed === 0 ? "\nAll pick'em cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);
