@@ -217,6 +217,30 @@
           transform: none !important;
         }
       }
+    
+      /* The success check. Drawing the stroke rather than fading in a glyph:
+         the motion is what reads as "that worked". */
+      @keyframes sp-check-ring {
+        from { stroke-dashoffset: 166; }
+        to   { stroke-dashoffset: 0; }
+      }
+      @keyframes sp-check-mark {
+        from { stroke-dashoffset: 48; }
+        to   { stroke-dashoffset: 0; }
+      }
+      @keyframes sp-modal-in {
+        from { opacity: 0; transform: translateY(8px) scale(0.97); }
+        to   { opacity: 1; transform: none; }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        .sp-check-ring,
+        .sp-check-mark,
+        .sp-modal {
+          animation: none !important;
+          stroke-dashoffset: 0 !important;
+        }
+      }
     </style>
 
     <!-- Resolve the theme before first paint so there's no flash of the wrong one -->

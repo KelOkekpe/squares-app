@@ -217,5 +217,18 @@ check(
   /product_data:[\s\S]{0,400}name: `\$\{isPickem \?/.test(checkout)
 );
 
+// send-picks is unauthenticated — a player is anonymous by design — so the
+// things stopping it being a mail cannon are worth pinning.
+const sendPicks = read("api/send-picks.js");
+check("send-picks rejects non-POST", /status\(405\)/.test(sendPicks));
+check("it never mails an address from the request", !/to: req\.body/.test(sendPicks));
+check("it only reads", !/\.(insert|update|upsert|delete)\(/.test(sendPicks));
+// Missing config must degrade quietly: the picks are already saved.
+check(
+  "an unconfigured provider is a no-op, not a 500",
+  /not_configured/.test(sendPicks) && /RESEND_API_KEY/.test(sendPicks)
+);
+check("the mail key carries no VITE_ prefix", !/VITE_[A-Z_]*RESEND/.test(sendPicks));
+
 console.log(failed === 0 ? "\nAll API safety cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

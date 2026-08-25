@@ -96,21 +96,9 @@ export function PickSheet({
       paymentRef,
     });
     if (result.error) return setError(result.error);
+    setOpen(false);
     setDone(result.entry);
   };
-
-  if (done) {
-    return (
-      <PicksSubmitted
-        name={done.name || name.trim()}
-        gameCount={slate?.games?.length || 0}
-        tiebreak={done.tiebreak ?? tiebreak}
-        entryFee={config.entryFee}
-        onViewStandings={onViewStandings}
-        onDone={() => setDone(null)}
-      />
-    );
-  }
 
   if (locked) {
     return (
@@ -127,207 +115,236 @@ export function PickSheet({
   const picked = total - remaining;
 
   return (
-    <div style={{ ...cardStyle, padding: open ? 32 : 0, overflow: "hidden" }}>
-      {/* Collapsed, this is one tappable bar showing progress. Sixteen games
+    <>
+      {/* An overlay, so the page it points at is still behind it. As an early
+          return it replaced the sheet, leaving nothing to come back to. */}
+      {done && (
+        <PicksSubmitted
+          name={done.name || name.trim()}
+          gameCount={slate?.games?.length || 0}
+          tiebreak={done.tiebreak ?? tiebreak}
+          entryFee={config.entryFee}
+          emailedTo={email.trim()}
+          onViewStandings={() => {
+            setDone(null);
+            onViewStandings?.();
+          }}
+          // Dismissing leaves them on the standings, which is where the modal
+          // was pointing them anyway.
+          onDone={() => {
+            setDone(null);
+            onViewStandings?.();
+          }}
+        />
+      )}
+
+      <div style={{ ...cardStyle, padding: open ? 32 : 0, overflow: "hidden" }}>
+        {/* Collapsed, this is one tappable bar showing progress. Sixteen games
           plus four fields buried the standings, which is what people come
           back to look at. */}
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-expanded={open}
-        style={{
-          width: "100%",
-          display: "flex",
-          alignItems: "center",
-          gap: 14,
-          padding: open ? "0 0 18px" : "20px 24px",
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          textAlign: "left",
-          fontFamily: "inherit",
-        }}
-      >
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <h3
-            style={{ margin: "0 0 4px", fontSize: 19, fontWeight: 800, color: colors.textPrimary }}
-          >
-            Make your picks
-          </h3>
-          <p style={{ color: colors.textMuted, fontSize: 13, margin: 0 }}>
-            {picked === 0
-              ? `${total} games · locks at the first kickoff`
-              : remaining === 0
-                ? "All games picked — open to submit"
-                : `${picked} of ${total} picked · ${remaining} to go`}
-          </p>
-        </div>
-
-        {picked > 0 && (
-          <span
-            style={{
-              flexShrink: 0,
-              background: remaining === 0 ? colors.accentGreenBright : colors.accentPurple,
-              color: colors.white,
-              borderRadius: radii.pill,
-              padding: "3px 11px",
-              fontSize: 11,
-              fontWeight: 800,
-            }}
-          >
-            {picked}/{total}
-          </span>
-        )}
-
-        <span
-          aria-hidden
+        <button
+          type="button"
+          onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
           style={{
-            flexShrink: 0,
-            color: colors.accentViolet,
-            fontSize: 13,
-            fontWeight: 800,
-            transform: open ? "rotate(180deg)" : "none",
-            transition: "transform 0.2s",
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            padding: open ? "0 0 18px" : "20px 24px",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            textAlign: "left",
+            fontFamily: "inherit",
           }}
         >
-          ▾
-        </span>
-      </button>
-
-      {!open && (
-        <div style={{ padding: "0 24px 20px" }}>
-          <button
-            type="button"
-            onClick={() => setOpen(true)}
-            style={{ ...btnPrimary, width: "100%" }}
-          >
-            {picked === 0
-              ? "Start picking"
-              : remaining === 0
-                ? "Review and submit"
-                : "Continue picking"}
-          </button>
-        </div>
-      )}
-
-      {open && (
-        <>
-          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
-            {(slate?.games || []).map((game) => (
-              <div key={game.id}>
-                <div style={{ display: "flex", gap: 6 }}>
-                  <TeamButton
-                    team={game.away}
-                    label={game.away?.abbr || game.away?.name}
-                    selected={sheet[game.id] === PICK_AWAY}
-                    onClick={() => setSheet((s) => ({ ...s, [game.id]: PICK_AWAY }))}
-                  />
-                  <span
-                    style={{
-                      alignSelf: "center",
-                      color: colors.textDim,
-                      fontSize: 11,
-                      flexShrink: 0,
-                    }}
-                  >
-                    @
-                  </span>
-                  <TeamButton
-                    team={game.home}
-                    label={game.home?.abbr || game.home?.name}
-                    selected={sheet[game.id] === PICK_HOME}
-                    onClick={() => setSheet((s) => ({ ...s, [game.id]: PICK_HOME }))}
-                  />
-                </div>
-                {tb?.id === game.id && (
-                  <p
-                    style={{
-                      color: colors.accentGold,
-                      fontSize: 10,
-                      margin: "3px 0 0",
-                      fontWeight: 700,
-                    }}
-                  >
-                    TIEBREAKER GAME
-                  </p>
-                )}
-              </div>
-            ))}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <h3
+              style={{
+                margin: "0 0 4px",
+                fontSize: 19,
+                fontWeight: 800,
+                color: colors.textPrimary,
+              }}
+            >
+              Make your picks
+            </h3>
+            <p style={{ color: colors.textMuted, fontSize: 13, margin: 0 }}>
+              {picked === 0
+                ? `${total} games · locks at the first kickoff`
+                : remaining === 0
+                  ? "All games picked — open to submit"
+                  : `${picked} of ${total} picked · ${remaining} to go`}
+            </p>
           </div>
 
-          <label style={labelStyle}>
-            Tiebreaker — total points in {tb?.shortName || "the final game"}
-          </label>
-          <input
-            type="number"
-            min={0}
-            max={200}
-            value={tiebreak}
-            onChange={(e) => setTiebreak(e.target.value)}
-            style={inputStyle}
-            placeholder="e.g. 47"
-          />
-          <p style={{ color: colors.textDim, fontSize: 11, margin: "5px 0 18px" }}>
-            Both teams' scores added together. Closest without going over wins a tie.
-          </p>
-
-          <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 18 }}>
-            <div>
-              <label style={labelStyle}>Your name *</label>
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                style={inputStyle}
-                placeholder="Joe Okekpe"
-              />
-            </div>
-            <div>
-              <label style={labelStyle}>Email *</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                style={inputStyle}
-                placeholder="you@example.com"
-              />
-            </div>
-          </div>
-
-          {/* Where the winnings go, if they win. */}
-          <PayoutPicker
-            compact
-            method={payoutMethod}
-            setMethod={setPayoutMethod}
-            handles={payoutHandles}
-            setHandles={setPayoutHandles}
-          />
-
-          {/* Only when the contest charges. A free contest shows nothing. */}
-          <PickemPaymentStep
-            config={config}
-            contestName={slate?.label}
-            playerName={name.trim()}
-            paymentRef={paymentRef}
-          />
-
-          {error && (
-            <p style={{ color: colors.accentRed, fontSize: 13, margin: "0 0 12px" }}>{error}</p>
+          {picked > 0 && (
+            <span
+              style={{
+                flexShrink: 0,
+                background: remaining === 0 ? colors.accentGreenBright : colors.accentPurple,
+                color: colors.white,
+                borderRadius: radii.pill,
+                padding: "3px 11px",
+                fontSize: 11,
+                fontWeight: 800,
+              }}
+            >
+              {picked}/{total}
+            </span>
           )}
 
-          <button
-            type="button"
-            onClick={submit}
-            disabled={!ready || submitting}
-            style={{ ...btnPrimary, width: "100%", opacity: ready && !submitting ? 1 : 0.45 }}
+          <span
+            aria-hidden
+            style={{
+              flexShrink: 0,
+              color: colors.accentViolet,
+              fontSize: 13,
+              fontWeight: 800,
+              transform: open ? "rotate(180deg)" : "none",
+              transition: "transform 0.2s",
+            }}
           >
-            {submitting
-              ? "Submitting…"
-              : remaining
-                ? `${remaining} game${remaining === 1 ? "" : "s"} left to pick`
-                : "Submit picks"}
-          </button>
-        </>
-      )}
-    </div>
+            ▾
+          </span>
+        </button>
+
+        {!open && (
+          <div style={{ padding: "0 24px 20px" }}>
+            <button
+              type="button"
+              onClick={() => setOpen(true)}
+              style={{ ...btnPrimary, width: "100%" }}
+            >
+              {picked === 0
+                ? "Start picking"
+                : remaining === 0
+                  ? "Review and submit"
+                  : "Continue picking"}
+            </button>
+          </div>
+        )}
+
+        {open && (
+          <>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 20 }}>
+              {(slate?.games || []).map((game) => (
+                <div key={game.id}>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <TeamButton
+                      team={game.away}
+                      label={game.away?.abbr || game.away?.name}
+                      selected={sheet[game.id] === PICK_AWAY}
+                      onClick={() => setSheet((s) => ({ ...s, [game.id]: PICK_AWAY }))}
+                    />
+                    <span
+                      style={{
+                        alignSelf: "center",
+                        color: colors.textDim,
+                        fontSize: 11,
+                        flexShrink: 0,
+                      }}
+                    >
+                      @
+                    </span>
+                    <TeamButton
+                      team={game.home}
+                      label={game.home?.abbr || game.home?.name}
+                      selected={sheet[game.id] === PICK_HOME}
+                      onClick={() => setSheet((s) => ({ ...s, [game.id]: PICK_HOME }))}
+                    />
+                  </div>
+                  {tb?.id === game.id && (
+                    <p
+                      style={{
+                        color: colors.accentGold,
+                        fontSize: 10,
+                        margin: "3px 0 0",
+                        fontWeight: 700,
+                      }}
+                    >
+                      TIEBREAKER GAME
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            <label style={labelStyle}>
+              Tiebreaker — total points in {tb?.shortName || "the final game"}
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={200}
+              value={tiebreak}
+              onChange={(e) => setTiebreak(e.target.value)}
+              style={inputStyle}
+              placeholder="e.g. 47"
+            />
+            <p style={{ color: colors.textDim, fontSize: 11, margin: "5px 0 18px" }}>
+              Both teams' scores added together. Closest without going over wins a tie.
+            </p>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 18 }}>
+              <div>
+                <label style={labelStyle}>Your name *</label>
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  style={inputStyle}
+                  placeholder="Joe Okekpe"
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Email *</label>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  style={inputStyle}
+                  placeholder="you@example.com"
+                />
+              </div>
+            </div>
+
+            {/* Where the winnings go, if they win. */}
+            <PayoutPicker
+              compact
+              method={payoutMethod}
+              setMethod={setPayoutMethod}
+              handles={payoutHandles}
+              setHandles={setPayoutHandles}
+            />
+
+            {/* Only when the contest charges. A free contest shows nothing. */}
+            <PickemPaymentStep
+              config={config}
+              contestName={slate?.label}
+              playerName={name.trim()}
+              paymentRef={paymentRef}
+            />
+
+            {error && (
+              <p style={{ color: colors.accentRed, fontSize: 13, margin: "0 0 12px" }}>{error}</p>
+            )}
+
+            <button
+              type="button"
+              onClick={submit}
+              disabled={!ready || submitting}
+              style={{ ...btnPrimary, width: "100%", opacity: ready && !submitting ? 1 : 0.45 }}
+            >
+              {submitting
+                ? "Submitting…"
+                : remaining
+                  ? `${remaining} game${remaining === 1 ? "" : "s"} left to pick`
+                  : "Submit picks"}
+            </button>
+          </>
+        )}
+      </div>
+    </>
   );
 }

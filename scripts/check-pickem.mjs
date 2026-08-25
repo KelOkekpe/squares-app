@@ -419,5 +419,60 @@ check(
 // rules of the game.
 check("rankEntries is not aware of payment", !/paid/.test(readFile("../src/utils/pickem.js")));
 
+// ── emailing a sheet the player cannot see ──
+// Picks stay hidden until the first kickoff so nobody can copy them, which
+// leaves the player with no record of what they chose.
+const sendPicks = readFile("../api/send-picks.js");
+const emailTpl = readFile("../api/_lib/pickEmail.js");
+const modalSrc = readFile("../src/components/pickem/PicksSubmitted.jsx");
+const indexHtml = readFile("../index.html");
+
+// The recipient must never come from the request, or this is a way to mail
+// anyone anything.
+check(
+  "the recipient is looked up, never supplied by the caller",
+  /from\("pickem_contacts"\)[\s\S]{0,200}\.eq\("entry_id", entryId\)/.test(sendPicks) &&
+    !/to: (req\.body|email)\b/.test(sendPicks)
+);
+check("only a recently submitted entry can be mailed", /RECENT_MS/.test(sendPicks));
+// The picks are already saved by the time this runs.
+check(
+  "a provider outage does not read as a failed submission",
+  /sent: false, reason: "provider_error"/.test(sendPicks)
+);
+check(
+  "the client does not await the send",
+  /fetch\("\/api\/send-picks"[\s\S]{0,240}\.catch\(/.test(readFile("../src/hooks/usePickem.js"))
+);
+
+// Email clients agree on tables and inline styles and nothing else.
+check(
+  "the sheet renders as a table, not flex",
+  /<table/.test(emailTpl) && !/display:\s*flex/.test(emailTpl)
+);
+check("the picked side is filled", /background:\$\{chosen \? PURPLE/.test(emailTpl));
+check("player-supplied values are escaped", /escape\(playerName\)/.test(emailTpl));
+
+// The confirmation is a dialog now: as a panel it sat above the standings it
+// was pointing at, permanently.
+check(
+  "the confirmation is a dismissible overlay",
+  /position: "fixed"[\s\S]{0,200}zIndex: 1000/.test(modalSrc)
+);
+check(
+  "dismissing lands on the standings",
+  /onDone=\{\(\) => \{[\s\S]{0,80}onViewStandings\?\.\(\)/.test(sheet)
+);
+check(
+  "the check mark is drawn, not faded in",
+  /sp-check-mark/.test(modalSrc) && /@keyframes sp-check-mark/.test(indexHtml)
+);
+check(
+  "reduced motion still shows a finished check",
+  /prefers-reduced-motion[\s\S]{0,260}stroke-dashoffset: 0/.test(indexHtml)
+);
+// Otherwise "why can't I see my own picks?" is the first support message.
+check("the modal explains why the picks are hidden", /hidden[\s\S]{0,60}kickoff/.test(modalSrc));
+
 console.log(failed === 0 ? "\nAll pick'em cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

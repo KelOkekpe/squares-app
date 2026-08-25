@@ -36,6 +36,17 @@ export function usePickem(spaceCode, poolId) {
           "submit picks"
         );
         if (error) throw error;
+
+        // Fire-and-forget: the picks are saved by the time this runs, so a mail
+        // provider being down must not read as the submission failing.
+        if (data?.id) {
+          fetch("/api/send-picks", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ spaceCode, poolId, entryId: data.id }),
+          }).catch((err) => console.warn("Could not email the sheet:", err?.message || err));
+        }
+
         return { entry: data, error: null };
       } catch (err) {
         return { entry: null, error: err?.message || "Could not submit your picks" };
