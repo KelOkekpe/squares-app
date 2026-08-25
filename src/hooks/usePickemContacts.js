@@ -22,7 +22,7 @@ export function usePickemContacts(spaceCode, poolId, enabled = true) {
     (async () => {
       const { data, error } = await supabase
         .from("pickem_contacts")
-        .select("entry_id, email, payout_method, payout_handles")
+        .select("entry_id, email, payout_method, payout_handles, payment_ref")
         .eq("space_code", spaceCode)
         .eq("pool_id", poolId);
 
@@ -35,7 +35,12 @@ export function usePickemContacts(spaceCode, poolId, enabled = true) {
         Object.fromEntries(
           (data || []).map((r) => [
             r.entry_id,
-            { email: r.email, payoutMethod: r.payout_method, payoutHandles: r.payout_handles },
+            {
+              email: r.email,
+              payoutMethod: r.payout_method,
+              payoutHandles: r.payout_handles,
+              paymentRef: r.payment_ref,
+            },
           ])
         )
       );

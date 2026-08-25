@@ -1,6 +1,13 @@
 import React, { useState } from "react";
 import { colors, radii, cardStyle, inputStyle, labelStyle, btnPrimary } from "../../styles";
-import { isSlateLocked, tiebreakGame, missingPicks, PICK_AWAY, PICK_HOME } from "../../utils";
+import {
+  isSlateLocked,
+  tiebreakGame,
+  missingPicks,
+  generatePaymentRef,
+  PICK_AWAY,
+  PICK_HOME,
+} from "../../utils";
 import { isValidEmail } from "../join/NameStep";
 import { TeamLogo } from "../common";
 import { PayoutPicker } from "../join/PayoutPicker";
@@ -62,6 +69,10 @@ export function PickSheet({
   const [done, setDone] = useState(null);
   const [payoutMethod, setPayoutMethod] = useState("");
   const [payoutHandles, setPayoutHandles] = useState({});
+  // Generated once per sheet, before payment, so the code printed on screen is
+  // the same one that reaches the admin. Regenerating on submit would leave the
+  // player quoting a reference nobody can match.
+  const [paymentRef] = useState(() => generatePaymentRef());
   // Collapsed by default: sixteen games and four fields buried the standings,
   // which is what people come back to look at. Opened straight away when they
   // arrived by pressing "Make Your Picks", since that is the whole intent.
@@ -82,6 +93,7 @@ export function PickSheet({
       tiebreak,
       payoutMethod,
       payoutHandles,
+      paymentRef,
     });
     if (result.error) return setError(result.error);
     setDone(result.entry);
@@ -293,7 +305,9 @@ export function PickSheet({
           {/* Only when the contest charges. A free contest shows nothing. */}
           <PickemPaymentStep
             config={config}
-            note={`${slate?.label || "Pick'em"} entry — ${name.trim() || "your name"}`}
+            contestName={slate?.label}
+            playerName={name.trim()}
+            paymentRef={paymentRef}
           />
 
           {error && (

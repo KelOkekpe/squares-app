@@ -230,6 +230,7 @@ export function PickemSettingsSection({
                         {contacts[p.id]?.payoutMethod
                           ? ` · pays via ${contacts[p.id].payoutMethod}`
                           : ""}
+                        {contacts[p.id]?.paymentRef ? ` · ref ${contacts[p.id].paymentRef}` : ""}
                         {" · "}TB {p.tiebreak ?? "—"}
                       </div>
                     </div>

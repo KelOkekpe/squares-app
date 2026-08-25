@@ -20,7 +20,7 @@ export function usePickem(spaceCode, poolId) {
   const inFlight = useRef(false);
 
   const submit = useCallback(
-    async ({ name, email, picks: sheet, tiebreak, payoutMethod, payoutHandles }) => {
+    async ({ name, email, picks: sheet, tiebreak, payoutMethod, payoutHandles, paymentRef }) => {
       setSubmitting(true);
       try {
         const { data, error } = await withTimeout(
@@ -30,7 +30,7 @@ export function usePickem(spaceCode, poolId) {
             p_name: name,
             p_picks: sheet,
             p_tiebreak: Number(tiebreak),
-            p_contact: { email, payoutMethod, payoutHandles },
+            p_contact: { email, payoutMethod, payoutHandles, paymentRef },
           }),
           15000,
           "submit picks"

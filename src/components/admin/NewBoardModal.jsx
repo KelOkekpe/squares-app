@@ -45,6 +45,7 @@ export function NewBoardModal({
   // handle once rather than on every board.
   const [payMethod, setPayMethod] = useState(() => lastPayment?.method || "");
   const [payHandle, setPayHandle] = useState(() => lastPayment?.handle || "");
+  const [entryFee, setEntryFee] = useState("");
   const [loadingWeeks, setLoadingWeeks] = useState(true);
   const [loadingGames, setLoadingGames] = useState(false);
   const [creating, setCreating] = useState(false);
@@ -150,6 +151,11 @@ export function NewBoardModal({
     if (!payMethod || !payHandle.trim()) {
       return setError("Add where players should send payment");
     }
+    // A contest with no price shows players no payment step at all, which is a
+    // real choice — but it has to be a deliberate one, so 0 must be typed.
+    if (gameType === "pickem" && entryFee === "") {
+      return setError("Set an entry fee (enter 0 for a free contest)");
+    }
     if (gameType === "pickem" && !games.length) return setError("Pick a week that has games in it");
     if (atLimit) {
       return setError(`This space already has ${MAX_ACTIVE_POOLS} active boards.`);
@@ -166,6 +172,7 @@ export function NewBoardModal({
       expiresAt: endsOn,
       gameType,
       payment: { method: payMethod, handle: payHandle.trim() },
+      entryFee: gameType === "pickem" ? Math.max(0, Number(entryFee) || 0) : undefined,
       game: gameType === "squares" ? game : null,
       // The slate is frozen at creation so a rescheduled game can't move
       // under picks that were already made against it.
@@ -358,6 +365,25 @@ export function NewBoardModal({
           placeholder="Week 5 — PHI @ DAL"
           style={{ ...inputStyle, marginBottom: 14 }}
         />
+
+        {gameType === "pickem" && (
+          <>
+            <label style={labelStyle}>Entry fee *</label>
+            <input
+              type="number"
+              min="0"
+              step="1"
+              value={entryFee}
+              onChange={(e) => setEntryFee(e.target.value)}
+              style={inputStyle}
+              placeholder="What each sheet costs"
+            />
+            <p style={{ color: colors.textDim, fontSize: 11, margin: "0 0 14px" }}>
+              Players see this before they submit, and their payment link is prefilled with it.
+              Enter 0 for a free contest.
+            </p>
+          </>
+        )}
 
         <label style={labelStyle}>Where players send payment *</label>
         <div style={{ display: "flex", gap: 8, marginBottom: 6 }}>

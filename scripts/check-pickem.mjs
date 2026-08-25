@@ -316,5 +316,50 @@ for (const label of ["View Board", "Standings"]) {
   );
 }
 
+// ── paying for a pick'em entry ──
+const payStepSrc = readFile("../src/components/pickem/PickemPaymentStep.jsx");
+const refSql = readFile("../supabase/migration_pickem_ref.sql");
+const newBoard = readFile("../src/components/admin/NewBoardModal.jsx");
+
+// The whole point: the link opens with the money already in it.
+check(
+  "the fee is passed to the payment link",
+  /buildPaymentLink\(provider\.key, handle, fee, note\)/.test(payStepSrc)
+);
+check("the note carries the reference", /buildPaymentNote\(/.test(payStepSrc));
+check(
+  "the fee is shown before they pay",
+  /Entry fee/.test(payStepSrc) && /\$\{amount\}/.test(payStepSrc)
+);
+
+// Generated once per sheet. Regenerating on submit would print one code and
+// send another, leaving the player quoting a reference nobody can match.
+check(
+  "the reference is generated once per sheet",
+  /useState\(\(\) => generatePaymentRef\(\)\)/.test(sheet)
+);
+
+// One player must not be able to read another's reference, so it goes to the
+// admin-only table rather than the blob list_picks returns.
+const refEntryBlob = refSql.slice(
+  refSql.indexOf("v_entry := jsonb_build_object("),
+  refSql.indexOf("-- One sheet per email")
+);
+check(
+  "the reference is stored admin-side, not in the readable blob",
+  /payment_ref/.test(refSql) && !/paymentRef/.test(refEntryBlob)
+);
+check(
+  "a pasted reference is sanitised before storage",
+  /regexp_replace\(coalesce\(p_contact ->> 'paymentRef'/.test(refSql)
+);
+
+// A free contest is a real choice, but it has to be a deliberate one.
+check(
+  "creating a pick'em requires a fee to be set",
+  /Set an entry fee \(enter 0 for a free contest\)/.test(newBoard)
+);
+check("the fee reaches the new board's config", /entryFee: gameType === "pickem"/.test(newBoard));
+
 console.log(failed === 0 ? "\nAll pick'em cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

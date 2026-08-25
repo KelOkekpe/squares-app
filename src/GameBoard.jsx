@@ -811,7 +811,7 @@ export function GameBoard({ spaceCode, onExit }) {
           initialGameType={newBoardType}
           lastPayment={lastPayment}
           onClose={() => setShowNewBoard(false)}
-          onCreate={async ({ name, expiresAt, game, gameType, slate, payment }) => {
+          onCreate={async ({ name, expiresAt, game, gameType, slate, payment, entryFee }) => {
             // Linking at creation means the board is wired for live scores and
             // smart fill before anyone has to open the admin console. The
             // payment handle is required at creation for the same reason —
@@ -821,6 +821,7 @@ export function GameBoard({ spaceCode, onExit }) {
               ...(payment?.method && payment?.handle
                 ? { paymentHandles: { [payment.method]: payment.handle } }
                 : {}),
+              ...(entryFee === undefined ? {} : { entryFee }),
               ...(game
                 ? {
                     teamX: game.away?.name,
