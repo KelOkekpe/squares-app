@@ -113,7 +113,7 @@ export function PickSheet({
       payoutMethod,
       payoutHandles,
     });
-    saveSheet(poolId, { picks: sheet, tiebreak });
+    saveSheet(poolId, { picks: sheet, tiebreak, entryId: result.entry?.id });
 
     setOpen(false);
     setDone(result.entry);

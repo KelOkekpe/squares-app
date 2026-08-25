@@ -252,15 +252,21 @@ export function PickemSettingsSection({
                     <button
                       type="button"
                       onClick={() => togglePaid(p.id, p.paid)}
+                      title={
+                        p.paid ? "Confirmed — click to undo" : "Confirm their entry fee arrived"
+                      }
                       style={{
                         ...btnSecondary,
                         padding: "4px 10px",
                         fontSize: 11,
-                        color: p.paid ? colors.accentGreenBright : colors.textDim,
-                        borderColor: p.paid ? colors.borderSuccess : colors.border,
+                        color: p.paid ? colors.accentGreenBright : colors.accentGold,
+                        borderColor: p.paid ? colors.borderSuccess : colors.borderGold,
                       }}
                     >
-                      {p.paid ? "Paid" : "Unpaid"}
+                      {/* "Unpaid" described a state, so it read as a label and
+                          nobody realised it was the control that confirms
+                          payment. The unconfirmed side now names the action. */}
+                      {p.paid ? "✓ Paid" : "Mark as Paid"}
                     </button>
                     <button
                       type="button"

@@ -118,3 +118,14 @@ export function saveSheet(poolId, sheet) {
   const all = read(KEYS.sheets, {});
   write(KEYS.sheets, { ...all, [poolId]: { ...sheet, savedAt: Date.now() } });
 }
+
+/**
+ * The entry id this browser submitted for a contest, if any.
+ *
+ * Lets the standings tell someone *their own* sheet is waiting on confirmation
+ * without telling everyone how many other people haven't paid — which is the
+ * admin's business, not theirs.
+ */
+export function myEntryId(poolId) {
+  return loadSheet(poolId)?.entryId || null;
+}

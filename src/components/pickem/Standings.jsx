@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { colors, radii, cardStyle } from "../../styles";
 import { rankEntries, tiebreakGame, gradedCount, isSlateLocked } from "../../utils";
 import { TeamLogo } from "../common";
+import { myEntryId } from "../../utils";
 
 /**
  * One player's sheet, revealed under their standings row.
@@ -111,7 +112,7 @@ function PicksBreakdown({ entry, slate }) {
  * Before kickoff a visible sheet is a sheet to copy, so the disclosure is tied
  * to the same instant that picks stop being editable.
  */
-export function Standings({ slate, entries, requiresPayment = false }) {
+export function Standings({ slate, entries, poolId, requiresPayment = false }) {
   const [expanded, setExpanded] = useState(() => new Set());
   // A contest that charges only counts sheets an admin has confirmed. The
   // picks are recorded either way — that has to happen before kickoff — but
@@ -119,8 +120,13 @@ export function Standings({ slate, entries, requiresPayment = false }) {
   // prevents. A free contest confirms nothing, so everyone counts.
   const all = entries || [];
   const counted = requiresPayment ? all.filter((e) => e.paid) : all;
-  const awaiting = all.length - counted.length;
   const rows = rankEntries(counted, slate);
+
+  // Only whether *your* sheet is waiting. How many others haven't paid is the
+  // admin's business — showing it to everyone put a running tally of other
+  // people's payment status in front of the whole pool.
+  const mine = myEntryId(poolId);
+  const yoursAwaiting = requiresPayment && mine ? all.some((e) => e.id === mine && !e.paid) : false;
   const graded = gradedCount(slate);
   const total = slate?.games?.length || 0;
   const tb = tiebreakGame(slate);
@@ -138,8 +144,8 @@ export function Standings({ slate, entries, requiresPayment = false }) {
     return (
       <div style={{ ...cardStyle, textAlign: "center" }}>
         <p style={{ color: colors.textMuted, fontSize: 14, margin: 0 }}>
-          {awaiting
-            ? `${awaiting} sheet${awaiting === 1 ? "" : "s"} waiting on payment confirmation.`
+          {yoursAwaiting
+            ? "Your sheet is in — it joins the standings once your admin confirms your entry fee."
             : "No picks submitted yet."}
         </p>
       </div>
@@ -166,10 +172,9 @@ export function Standings({ slate, entries, requiresPayment = false }) {
           ? `Tiebreaker settled — ${tb.shortName} totalled ${tb.total}.`
           : `Ties break on ${tb?.shortName || "the final game"}: closest total without going over.`}
       </p>
-      {awaiting > 0 && (
+      {yoursAwaiting && (
         <p style={{ color: colors.accentOrange, fontSize: 12, margin: "0 0 6px" }}>
-          {awaiting} sheet{awaiting === 1 ? "" : "s"} not counted yet — waiting on the admin to
-          confirm payment.
+          Your sheet isn't counted yet — waiting on your admin to confirm your entry fee.
         </p>
       )}
       <p style={{ color: colors.textDim, fontSize: 11, margin: "0 0 16px" }}>

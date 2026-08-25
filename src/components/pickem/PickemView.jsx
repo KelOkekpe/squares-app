@@ -84,6 +84,7 @@ export function PickemView({
               <Standings
                 slate={slate}
                 entries={entries}
+                poolId={poolId}
                 requiresPayment={Number(config?.entryFee) > 0}
               />
             </div>
@@ -115,6 +116,7 @@ export function PickemView({
                 <Standings
                   slate={slate}
                   entries={entries}
+                  poolId={poolId}
                   requiresPayment={Number(config?.entryFee) > 0}
                 />
               </div>

@@ -392,7 +392,19 @@ check(
   "a charging contest counts only confirmed sheets",
   /requiresPayment \? all\.filter\(\(e\) => e\.paid\) : all/.test(standingsSrc)
 );
-check("unconfirmed sheets are reported, not hidden", /awaiting/.test(standingsSrc));
+// Only ever about the reader's own sheet. A running count of who else has not
+// paid is the admin's business, and putting it in front of the whole pool told
+// everyone about everyone.
+check(
+  "the standings only mention the reader's own unconfirmed sheet",
+  /yoursAwaiting/.test(standingsSrc) && /myEntryId\(poolId\)/.test(standingsSrc)
+);
+check(
+  "no tally of other people's payment status",
+  !/sheets? not counted|sheets? waiting on payment/.test(standingsSrc)
+);
+// Needs the entry id to know which sheet is theirs.
+check("the submitted entry id is kept locally", /entryId: result\.entry\?\.id/.test(sheet));
 
 // The picks themselves must still be recorded on arrival — they have to be
 // locked in before kickoff, and a queue would lose them.
@@ -506,7 +518,7 @@ check(
 // so the server will not return them.
 check(
   "a submitted sheet is kept locally",
-  /saveSheet\(poolId, \{ picks: sheet, tiebreak \}\)/.test(sheet)
+  /saveSheet\(poolId, \{ picks: sheet, tiebreak, entryId/.test(sheet)
 );
 check("and is used to prefill", /loadSheet\(poolId\)/.test(sheet));
 
@@ -522,6 +534,13 @@ check("it is no longer session-only", !/sessionStorage/.test(access));
 check(
   "nothing local is sent to the server as truth",
   !/loadProfile\(\)[\s\S]{0,80}rpc\(/.test(board)
+);
+
+// The confirm control read as a status label, so nobody realised it was the
+// thing that marks someone paid.
+check(
+  "the admin control names the action, not the state",
+  /Mark as Paid/.test(readFile("../src/components/admin/PickemSettingsSection.jsx"))
 );
 
 console.log(failed === 0 ? "\nAll pick'em cases pass." : `\n${failed} failed.`);
