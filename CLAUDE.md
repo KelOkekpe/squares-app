@@ -84,6 +84,8 @@ A new space arrives **empty**. It used to create a "Pool 1" — an unasked-for S
 
 An expiry date is **required** on creation and a space may hold at most **16 active boards**. Both are enforced by a trigger in `migration_pool_lifecycle.sql`, not just the UI, so `createPool` surfaces the database's message verbatim. `npm run check:pools` asserts the JS and SQL agree on the cap.
 
+`usePoolAdmin.pendingCounts` is **one number per board covering both mechanisms** — squares entry requests queued for approval, plus pick'em sheets whose fee is unconfirmed. An admin cares that something is waiting, not which queue it sits in. A pick'em contest with `entryFee` 0 contributes nothing, since a free contest confirms itself and an unpaid flag there would be permanent. It feeds both the count on the Board/Game Settings tab and the `— N PENDING SUBMISSIONS` suffix in the board picker; the picker needs it because a `<select>` shows one row at a time, so an admin who never opens the list has no other way to learn another board is waiting.
+
 Which board you're *viewing* is local per-viewer state in `GameBoard`. It must not be written to `spaces` — players are anonymous and have no write access there, so persisting it silently fails for them. The space-wide default still lives in `spaceMeta.activePoolId` and is set from the admin panel only.
 
 ## Deleting boards

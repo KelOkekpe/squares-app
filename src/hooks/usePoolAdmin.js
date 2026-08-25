@@ -28,25 +28,40 @@ export function usePoolAdmin(spaceCode) {
           .from("spaces")
           .select("pool_id, type, value")
           .eq("space_code", spaceCode)
-          .in("type", ["admin", "pending"]),
+          .in("type", ["admin", "pending", "picks"]),
         8000,
         "pool configs"
       );
       if (err) throw err;
 
       const rows = data || [];
-      setConfigs(
-        Object.fromEntries(
-          rows.filter((r) => r.type === "admin").map((r) => [r.pool_id, r.value || {}])
-        )
+      const nextConfigs = Object.fromEntries(
+        rows.filter((r) => r.type === "admin").map((r) => [r.pool_id, r.value || {}])
       );
-      setPendingCounts(
-        Object.fromEntries(
-          rows
-            .filter((r) => r.type === "pending")
-            .map((r) => [r.pool_id, Array.isArray(r.value) ? r.value.length : 0])
-        )
-      );
+      setConfigs(nextConfigs);
+
+      // Both kinds of "needs you" in one number per pool, because the picker
+      // shows one row per board and an admin only cares that something is
+      // waiting — not which mechanism it is waiting in.
+      //
+      // Squares: entry requests queued for approval.
+      // Pick'em: submitted sheets whose fee has not been confirmed. Only for a
+      // contest that charges — a free one confirms itself, so an unpaid flag
+      // there would be permanent and meaningless.
+      const counts = {};
+      for (const row of rows) {
+        if (row.type === "pending") {
+          counts[row.pool_id] =
+            (counts[row.pool_id] || 0) + (Array.isArray(row.value) ? row.value.length : 0);
+        }
+        if (row.type === "picks" && Number(nextConfigs[row.pool_id]?.entryFee) > 0) {
+          const unconfirmed = Array.isArray(row.value)
+            ? row.value.filter((e) => !e?.paid).length
+            : 0;
+          counts[row.pool_id] = (counts[row.pool_id] || 0) + unconfirmed;
+        }
+      }
+      setPendingCounts(counts);
     } catch (err) {
       console.warn("Could not load pool configs:", err?.message || err);
     }

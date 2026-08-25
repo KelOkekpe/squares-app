@@ -315,18 +315,23 @@ export function AdminPanel({
                   {pools
                     .filter((p) => !p.archived)
                     .map((p) => {
-                      const waiting = poolConfigs && pendingCounts ? pendingCounts[p.id] || 0 : 0;
+                      const waiting = pendingCounts?.[p.id] || 0;
                       return (
                         <option key={p.id} value={p.id}>
                           {p.name}
-                          {waiting ? ` — ${waiting} pending` : ""}
+                          {/* Shouted, because a <select> only shows one row at
+                              a time — an admin who never opens the list has no
+                              other way to learn a different board is waiting. */}
+                          {waiting
+                            ? ` — ${waiting} PENDING SUBMISSION${waiting === 1 ? "" : "S"}`
+                            : ""}
                         </option>
                       );
                     })}
                 </select>
                 {otherPending > 0 && (
                   <p style={{ color: colors.accentOrange, fontSize: 12, margin: "8px 0 0" }}>
-                    {otherPending} entry request{otherPending === 1 ? "" : "s"} waiting on another
+                    {otherPending} submission{otherPending === 1 ? "" : "s"} waiting on another
                     board. Switch boards above to review {otherPending === 1 ? "it" : "them"}.
                   </p>
                 )}

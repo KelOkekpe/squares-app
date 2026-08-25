@@ -560,5 +560,22 @@ check(
   /kind: "squares"[\s\S]{0,120}coords: formatCoordinates/.test(board)
 );
 
+// ── the admin needs to see work waiting on a board they are not looking at ──
+const poolAdmin = readFile("../src/hooks/usePoolAdmin.js");
+const panel = readFile("../src/components/admin/AdminPanel.jsx");
+
+// One number per board covering both mechanisms — an admin cares that
+// something is waiting, not which queue it sits in.
+check("pending counts include pick'em sheets", /row\.type === "picks"/.test(poolAdmin));
+check("and still include squares entry requests", /row\.type === "pending"/.test(poolAdmin));
+// A free contest confirms itself, so an unpaid flag there would be permanent.
+check(
+  "a free contest contributes nothing",
+  /row\.type === "picks" && Number\(nextConfigs\[row\.pool_id\]\?\.entryFee\) > 0/.test(poolAdmin)
+);
+// A <select> shows one row at a time, so the label has to carry it.
+check("the picker names pending submissions", /PENDING SUBMISSION/.test(panel));
+check("the tab carries a count", /t\.key === "board" && totalPending > 0/.test(panel));
+
 console.log(failed === 0 ? "\nAll pick'em cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);
