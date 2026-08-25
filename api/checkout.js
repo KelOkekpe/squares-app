@@ -69,6 +69,12 @@ export default async function handler(req, res) {
               },
             },
       ],
+      // Stripe hides the promotion-code field unless this is set, so a code
+      // created in the Dashboard would appear to do nothing. Redemption limits
+      // and per-customer restrictions live on the code itself, not here — this
+      // only decides whether anyone is shown the box.
+      allow_promotion_codes: true,
+
       // The webhook trusts only this. Never a value posted back by the browser.
       metadata: { poolId: pool.id, spaceCode, userId: user.id },
       success_url: `${back}?board=paid`,

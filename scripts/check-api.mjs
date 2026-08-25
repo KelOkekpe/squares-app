@@ -197,5 +197,16 @@ check(
   /game_type/.test(checkout) && /pool\.game_type/.test(checkout)
 );
 
+// Stripe hides the promotion-code box unless the session asks for it, so a
+// code created in the Dashboard silently does nothing without this.
+check("checkout offers the promotion-code field", /allow_promotion_codes: true/.test(checkout));
+// A 100%-off code makes the session free, and Stripe still fires
+// checkout.session.completed with payment_status "paid" — but only the webhook
+// may decide a board is paid, never the browser.
+check(
+  "a discounted session is still confirmed by the webhook, not the client",
+  /payment_status !== "paid"/.test(webhook)
+);
+
 console.log(failed === 0 ? "\nAll API safety cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);
