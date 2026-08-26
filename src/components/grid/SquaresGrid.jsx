@@ -13,9 +13,11 @@ import { useTheme } from "../../hooks/useTheme";
 import { PrizePotBar } from "./PrizePotBar";
 import { TeamLogo } from "../common";
 
-// The light gutter is --surface-primary, which is white. Mirrored here because
-// contrast can't be computed from a var().
-const LIGHT_GUTTER_HEX = "#ffffff";
+// The surfaces the axis digits sit on. Mirrored as literals because contrast
+// cannot be computed from a var(); check:brand asserts each still equals the
+// token it mirrors, so a theme change cannot leave these behind.
+const LIGHT_GUTTER_HEX = "#ffffff"; // --grid-panel
+const DARK_BOARD_HEX = "#0e2222"; // --grid-panel
 
 export function SquaresGrid({ board, headers, config, scores }) {
   const isMobile = useIsMobile();
@@ -23,9 +25,20 @@ export function SquaresGrid({ board, headers, config, scores }) {
   // On a phone the desktop sizing forces both horizontal and a lot of vertical
   // scrolling. Shrinking the axis gutters and cell height fits 10 columns in a
   // ~360px viewport, so the whole board is visible at once.
-  const axisSize = isMobile ? 22 : 40;
+  const axisSize = isMobile ? 20 : 34;
   const cellHeight = isMobile ? 30 : 52;
-  const cellGap = isMobile ? 1 : 2;
+  // Tiles, not a table. At a 2px gap the cells fuse into a grid of lines and
+  // the board reads as a spreadsheet; at 4px each square is its own object,
+  // which is what people are actually looking for when they hunt for theirs.
+  //
+  // Phones keep the original tighter spacing. All ten columns have to fit at
+  // once, and the desktop gap and padding cost about 25px there -- two columns'
+  // worth on a narrow screen. The rounding still reads at 4px; the air does not
+  // fit. Verified down to a 500px viewport, which is as narrow as headless
+  // Chrome will lay out.
+  const cellGap = isMobile ? 1 : 4;
+  const cellRadius = isMobile ? 4 : 7;
+  const boardPad = isMobile ? 3 : 14;
   const gridMinWidth = isMobile ? 0 : 700;
   // The number gutters used to take their background from the team's colour —
   // darken(teamBg, 0.5). That produced a near-black gutter carrying near-black
@@ -39,27 +52,21 @@ export function SquaresGrid({ board, headers, config, scores }) {
   // they were painted in the team's colour regardless of whether it showed up,
   // which left black-on-grey for a white board and near-black-on-near-black for
   // a dark one.
-  const axisCell = (teamBg, teamColor) => {
-    if (isLight) {
-      // A white gutter, so the darker of the team's colours reads best.
-      const best = bestContrast([teamBg, teamColor], LIGHT_GUTTER_HEX);
-      return {
-        background: colors.surfacePrimary,
-        color:
-          contrastRatio(best, LIGHT_GUTTER_HEX) >= MIN_DIGIT_CONTRAST ? best : colors.textPrimary,
-        border: `1px solid ${colors.gridCellBorder}`,
-      };
-    }
-    const gutter = darken(teamBg, 0.5);
-    return {
-      background: gutter,
-      color: axisDigitColor({
-        candidates: [teamColor, teamBg],
-        background: gutter,
-        fallback: colors.white,
-      }),
-    };
+  // The digits float on the board surface now rather than sitting in a coloured
+  // gutter. The gutter existed to give them a background to contrast against,
+  // but it also produced a grey slab down two edges that fought the board for
+  // attention. Floating them is both lighter and simpler: there is exactly one
+  // surface to be legible against, in either theme.
+  const digitColor = (teamBg, teamColor) => {
+    const surface = isLight ? LIGHT_GUTTER_HEX : DARK_BOARD_HEX;
+    const best = bestContrast([teamColor, teamBg], surface);
+    return contrastRatio(best, surface) >= MIN_DIGIT_CONTRAST ? best : colors.textPrimary;
   };
+
+  // Banner depth scales with the team's own colour. A fixed 25% darken looked
+  // right on a navy but turned the default white into a grey slab, which is the
+  // colour most boards actually ship with.
+  const bannerDepth = (hex) => (contrastRatio(hex, "#ffffff") < 1.6 ? 0.07 : 0.25);
 
   const nameSize = (name) =>
     isMobile
@@ -146,6 +153,10 @@ export function SquaresGrid({ board, headers, config, scores }) {
           gridTemplateRows: `${axisSize}px ${axisSize}px repeat(${GRID_SIZE}, 1fr)`,
           gap: cellGap,
           minWidth: gridMinWidth,
+          background: colors.gridPanel,
+          borderRadius: isMobile ? 10 : 14,
+          padding: boardPad,
+          border: `1px solid ${colors.border}`,
         }}
       >
         {/* corner blank (2 cols × 2 rows) */}
@@ -153,8 +164,7 @@ export function SquaresGrid({ board, headers, config, scores }) {
           style={{
             gridRow: "1 / 3",
             gridColumn: "1 / 3",
-            background: colors.surfacePrimary,
-            borderRadius: "8px 0 0 0",
+            background: "transparent",
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -163,16 +173,14 @@ export function SquaresGrid({ board, headers, config, scores }) {
             textTransform: "uppercase",
             letterSpacing: 2,
           }}
-        >
-          ×
-        </div>
+        />
 
         {/* X-axis team banner */}
         <div
           style={{
             gridRow: 1,
             gridColumn: `3 / ${GRID_SIZE + 3}`,
-            background: `linear-gradient(135deg, ${teamXBg}, ${darken(teamXBg, 0.25)})`,
+            background: `linear-gradient(135deg, ${teamXBg}, ${darken(teamXBg, bannerDepth(teamXBg))})`,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -181,8 +189,12 @@ export function SquaresGrid({ board, headers, config, scores }) {
             fontWeight: 700,
             letterSpacing: isMobile ? 1 : 2,
             textTransform: "uppercase",
-            borderRadius: "0 8px 0 0",
+            borderRadius: cellRadius + 2,
             gap: 8,
+            border: `1px solid ${colors.gridCellBorder}`,
+            minWidth: 0,
+            overflow: "hidden",
+            whiteSpace: "nowrap",
           }}
         >
           <TeamLogo team={xTeam} size={isMobile ? 16 : 22} />
@@ -196,7 +208,8 @@ export function SquaresGrid({ board, headers, config, scores }) {
             style={{
               gridRow: 2,
               gridColumn: i + 3,
-              ...axisCell(teamXBg, teamXColor),
+              color: digitColor(teamXBg, teamXColor),
+              minWidth: 0,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -214,13 +227,14 @@ export function SquaresGrid({ board, headers, config, scores }) {
           style={{
             gridRow: `3 / ${GRID_SIZE + 3}`,
             gridColumn: 1,
-            background: `linear-gradient(180deg, ${teamYBg}, ${darken(teamYBg, 0.25)})`,
+            background: `linear-gradient(180deg, ${teamYBg}, ${darken(teamYBg, bannerDepth(teamYBg))})`,
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
             justifyContent: "center",
             gap: 8,
-            borderRadius: "0 0 0 8px",
+            borderRadius: cellRadius + 2,
+            border: `1px solid ${colors.gridCellBorder}`,
             color: teamYColor,
           }}
         >
@@ -249,7 +263,7 @@ export function SquaresGrid({ board, headers, config, scores }) {
               style={{
                 gridRow: r + 3,
                 gridColumn: 2,
-                ...axisCell(teamYBg, teamYColor),
+                color: digitColor(teamYBg, teamYColor),
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -278,13 +292,14 @@ export function SquaresGrid({ board, headers, config, scores }) {
                     border: winQ
                       ? `2px solid ${colors.accentGold}`
                       : `1px solid ${colors.gridCellBorder}`,
-                    borderRadius: isMobile ? 3 : 4,
+                    borderRadius: cellRadius,
                     display: "flex",
                     flexDirection: "column",
                     alignItems: "center",
                     justifyContent: "center",
                     padding: isMobile ? 1 : 4,
                     minHeight: cellHeight,
+                    minWidth: 0,
                     position: "relative",
                     transition: "all 0.2s",
                     cursor: "default",

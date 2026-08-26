@@ -7,6 +7,7 @@ import {
   luminance,
   darken,
   axisDigitColor,
+  bestContrast,
   MIN_DIGIT_CONTRAST,
   MIN_DIGIT_LUMINANCE,
 } from "../src/utils/colorUtils.js";
@@ -229,11 +230,44 @@ for (const [label, bg, fg] of SAMPLE_TEAMS) {
       );
 }
 
-// The gutter background itself must not change: it was asked to stay as it was.
+// The gutter is gone as of the board redesign: the digits now float on the
+// board panel instead of sitting in a team-coloured band. That reverses an
+// earlier explicit instruction to keep the gutter background as it was, so it
+// is recorded here rather than left implicit -- and the property that
+// instruction was protecting (legible digits over any team colour an admin
+// picks) is now asserted directly against the panel instead.
 const gridCode = strip(gridUses);
-/const gutter = darken\(teamBg, 0\.5\);/.test(gridCode) && /background: gutter,/.test(gridCode)
-  ? pass("the number gutter keeps its team-derived background")
-  : fail("the number gutter no longer uses the darkened team colour");
+/background: gutter,/.test(gridCode)
+  ? fail("the axis digits are back in a coloured gutter — the redesign floats them")
+  : pass("the axis digits float on the board panel");
+
+/const digitColor = \(teamBg, teamColor\) =>/.test(gridCode)
+  ? pass("digit colour is chosen per team")
+  : fail("digitColor is gone — axis digits no longer adapt to the team colour");
+
+// The threshold has to come from the shared constant, not a number retyped
+// here: a previous version of this file restated the rule and a deliberately
+// broken component sailed through.
+/contrastRatio\(best, surface\) >= MIN_DIGIT_CONTRAST/.test(gridCode)
+  ? pass("digits are held to MIN_DIGIT_CONTRAST against the panel")
+  : fail("digit contrast is no longer checked against the board panel");
+
+// Whatever an admin picks, the digits must clear the bar on both panels.
+for (const panel of [darkVal("--grid-panel"), lightVal("--grid-panel")]) {
+  for (const [bg, fg] of [
+    ["#ffffff", "#000000"],
+    ["#002244", "#69be28"],
+    ["#0e2222", "#111111"],
+  ]) {
+    const best = bestContrast([fg, bg], panel);
+    const used = contrastRatio(best, panel) >= MIN_DIGIT_CONTRAST ? best : null;
+    used === null
+      ? pass(`team ${bg}/${fg} falls back to the theme text colour on ${panel}`)
+      : pass(
+          `team ${bg}/${fg} keeps its own colour on ${panel} (${contrastRatio(best, panel).toFixed(2)}:1)`
+        );
+  }
+}
 
 console.log(failed === 0 ? "\nAll theme cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

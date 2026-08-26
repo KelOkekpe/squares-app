@@ -54,16 +54,47 @@ const hueOf = (hex) => {
   return (h * 60 + 360) % 360;
 };
 
+// A literal that exactly equals a live token is a mirror, not a stray colour --
+// some values (contrast maths) genuinely cannot be read from a var(). Those are
+// allowed precisely because this equality is checked: if the theme moves and the
+// mirror does not, it stops matching and this fails.
+const tokenValues = new Set(
+  (html.match(/--[a-z-]+:\s*(#[0-9a-fA-F]{6})\b/g) || []).map((m) =>
+    m.slice(m.indexOf("#")).toLowerCase()
+  )
+);
+const mirrors = [];
 for (const file of walk(join(root, "src")).filter((f) => /\.jsx?$/.test(f))) {
   const src = readFileSync(file, "utf8").replace(/\/\*[\s\S]*?\*\/|\/\/[^\n]*/g, "");
   for (const hex of src.match(/#[0-9a-fA-F]{6}\b/g) || []) {
     const h = hueOf(hex);
-    // the brand band, wherever it currently sits on the wheel
     const brandHue = hueOf(brandDark);
-    if (h !== null && brandHue !== null && Math.abs(h - brandHue) < 25) {
-      fail(`${file.replace(root, "")} inlines ${hex} — use a colors.* token`);
+    if (h === null || brandHue === null || Math.abs(h - brandHue) >= 25) continue;
+    if (tokenValues.has(hex.toLowerCase())) {
+      mirrors.push(`${file.replace(root, "")} → ${hex}`);
+    } else {
+      fail(`${file.replace(root, "")} inlines ${hex}, which matches no token — use colors.*`);
     }
   }
+}
+for (const m of mirrors) ok(`mirrors a live token: ${m}`);
+
+// The band scan above only sees colours near the brand hue, so a mirror that
+// drifts *out* of the band would slip past it entirely -- which is exactly what
+// a bad edit looks like. Named mirrors are therefore pinned to their token by
+// name, not by hue.
+const NAMED_MIRRORS = [
+  ["src/components/grid/SquaresGrid.jsx", "LIGHT_GUTTER_HEX", "--grid-panel", "light"],
+  ["src/components/grid/SquaresGrid.jsx", "DARK_BOARD_HEX", "--grid-panel", "dark"],
+];
+for (const [file, constName, token, block] of NAMED_MIRRORS) {
+  const m = read(file).match(new RegExp(`${constName} = "(#[0-9a-fA-F]{6})"`));
+  const want = tokenOf(token, block);
+  if (!m) fail(`${file} no longer defines ${constName}`);
+  else if (!want) fail(`${token} is missing from the ${block} theme`);
+  else if (m[1].toLowerCase() !== want.toLowerCase())
+    fail(`${constName} is ${m[1]} but ${token} (${block}) is ${want}`);
+  else ok(`${constName} still equals ${token}`);
 }
 if (!failed) ok("no component inlines the brand colour");
 

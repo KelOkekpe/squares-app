@@ -18,6 +18,7 @@ export const colors = {
   pageBgEnd: "var(--page-bg-end)",
   surfacePrimary: "var(--surface-primary)",
   surfaceDeep: "var(--surface-deep)",
+  gridPanel: "var(--grid-panel)",
   gridCellEmpty: "var(--grid-cell-empty)",
   gridCellFilled: "var(--grid-cell-filled)",
   gridCellBorder: "var(--grid-cell-border)",
