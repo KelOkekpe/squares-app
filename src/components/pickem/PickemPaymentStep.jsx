@@ -35,7 +35,7 @@ export function PickemPaymentStep({ config, contestName, playerName, paymentRef 
             width: 32,
             height: 32,
             borderRadius: "50%",
-            background: colors.accentPurple,
+            background: colors.accentBrand,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

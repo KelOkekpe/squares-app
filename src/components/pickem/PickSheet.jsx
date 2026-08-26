@@ -30,9 +30,9 @@ function TeamButton({ team, label, selected, onClick, disabled }) {
         flex: 1,
         padding: "11px 10px",
         borderRadius: radii.md,
-        border: `1px solid ${selected ? colors.accentPurple : colors.border}`,
+        border: `1px solid ${selected ? colors.accentBrand : colors.border}`,
         background: selected
-          ? `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`
+          ? `linear-gradient(135deg, ${colors.accentBrand}, ${colors.accentBrandAlt})`
           : colors.surface2,
         color: selected ? colors.white : colors.textSecondary,
         fontWeight: 700,
@@ -203,7 +203,7 @@ export function PickSheet({
             <span
               style={{
                 flexShrink: 0,
-                background: remaining === 0 ? colors.accentGreenBright : colors.accentPurple,
+                background: remaining === 0 ? colors.accentGreenBright : colors.accentBrand,
                 color: colors.white,
                 borderRadius: radii.pill,
                 padding: "3px 11px",
@@ -219,7 +219,7 @@ export function PickSheet({
             aria-hidden
             style={{
               flexShrink: 0,
-              color: colors.accentViolet,
+              color: colors.accentBrandAlt,
               fontSize: 13,
               fontWeight: 800,
               transform: open ? "rotate(180deg)" : "none",

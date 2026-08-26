@@ -36,7 +36,7 @@ export function PaymentStep({
             width: 32,
             height: 32,
             borderRadius: "50%",
-            background: colors.accentPurple,
+            background: colors.accentBrand,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",
@@ -125,7 +125,7 @@ export function PaymentStep({
                   <span>
                     Pay{amountLabel} with {provider.label}
                   </span>
-                  <span style={{ color: colors.accentViolet, fontSize: 12 }}>Open →</span>
+                  <span style={{ color: colors.accentBrandAlt, fontSize: 12 }}>Open →</span>
                 </a>
               );
             })}
@@ -181,7 +181,7 @@ export function PaymentStep({
           {squaresForAmount > 0 ? (
             <>
               You'll request{" "}
-              <strong style={{ color: colors.accentPurple }}>
+              <strong style={{ color: colors.accentBrand }}>
                 {Math.min(squaresForAmount, emptyCount)} square
                 {Math.min(squaresForAmount, emptyCount) !== 1 ? "s" : ""}
               </strong>

@@ -94,7 +94,7 @@ export function PicksSubmitted({
         <h2 style={{ margin: "0 0 8px", fontSize: 24, fontWeight: 800 }}>Success!</h2>
         <p style={{ color: colors.textMuted, marginBottom: 8, fontSize: 15 }}>
           <strong style={{ color: colors.textSecondary }}>{name}</strong> picked{" "}
-          <strong style={{ color: colors.accentPurple }}>
+          <strong style={{ color: colors.accentBrand }}>
             {gameCount} game{gameCount === 1 ? "" : "s"}
           </strong>
         </p>
@@ -132,7 +132,10 @@ export function PicksSubmitted({
           <button onClick={onViewStandings} style={{ ...btnPrimary, flex: 1 }}>
             View Standings
           </button>
-          <button onClick={onDone} style={{ ...btnSecondary, flex: 1, color: colors.accentViolet }}>
+          <button
+            onClick={onDone}
+            style={{ ...btnSecondary, flex: 1, color: colors.accentBrandAlt }}
+          >
             Close
           </button>
         </div>

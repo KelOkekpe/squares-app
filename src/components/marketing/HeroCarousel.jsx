@@ -89,7 +89,7 @@ export function HeroCarousel({ scale = 1 }) {
             aria-current={i === index}
             style={{
               background: i === index ? colors.surface5 : "transparent",
-              border: `1px solid ${i === index ? colors.accentViolet : colors.border}`,
+              border: `1px solid ${i === index ? colors.accentBrandAlt : colors.border}`,
               color: i === index ? colors.textPrimary : colors.textDim,
               borderRadius: radii.pill,
               padding: "5px 14px",

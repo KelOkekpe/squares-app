@@ -6,7 +6,7 @@ const TONE = {
   delete_space: colors.accentRed,
   view_as: colors.accentOrange,
   set_role: colors.accentGold,
-  transfer_space: colors.accentViolet,
+  transfer_space: colors.accentBrandAlt,
   space_password_reset: colors.accentGold,
   space_made_public: colors.accentGold,
   reopen_account: colors.accentGreenBright,

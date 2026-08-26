@@ -41,33 +41,33 @@
       :root {
         color-scheme: dark;
 
-        --page-bg: #0a0a1a;
-        --page-bg-mid: #0d0d24;
-        --page-bg-end: #10102a;
-        --surface-primary: #12122e;
-        --surface-deep: #0e0e22;
-        --surface-filled: #14142e;
+        --page-bg: #0a1a1a;
+        --page-bg-mid: #0d2424;
+        --page-bg-end: #102a2a;
+        --surface-primary: #122e2e;
+        --surface-deep: #0e2222;
+        --surface-filled: #142e2e;
 
         /* The board's own surfaces. Kept apart from the general ones because a
            grid has to stay legible at a glance from across a room, which the
            near-black page surfaces are not. */
-        --grid-cell-empty: #191939;
-        --grid-cell-filled: #272754;
+        --grid-cell-empty: #193939;
+        --grid-cell-filled: #275454;
         --grid-cell-border: #ffffff24;
-        --surface-input: #0e0e24;
-        --surface-admin-input: #1a1a3a;
-        --surface-section: #0c0c20;
+        --surface-input: #0e2424;
+        --surface-admin-input: #1a3a3a;
+        --surface-section: #0c2020;
 
         --text-headline: #ffffff;
-        --text-primary: #e0e0ff;
-        --text-secondary: #c8c8e8;
-        --text-muted: #8a8ab0;
+        --text-primary: #e0ffff;
+        --text-secondary: #c8e8e8;
+        --text-muted: #8ab0b0;
         --text-dim: #555555;
         --text-dimmer: #444444;
         --text-dimmest: #333333;
 
-        --accent-purple: #6c5ce7;
-        --accent-violet: #a855f7;
+        --accent-brand: #138484;
+        --accent-brand-alt: #068484;
         --accent-green: #22aa44;
         --accent-green-bright: #4ade80;
         --accent-green-light: #44cc66;
@@ -78,7 +78,7 @@
         --accent-gold: #ffd700;
         --accent-yellow: #facc15;
         --accent-orange: #ffaa44;
-        --accent-pink: #e8b4f8;
+        --accent-pink: #b4f8f8;
 
         /* Graded pick chips: a tint that reads as a verdict, not a fill */
         --pick-win-bg: #4ade8022;
@@ -88,7 +88,8 @@
         --pick-lead-border: #4ade8055;
         --border-success: #4ade8040;
         --border-gold: #ffd70055;
-        --border-accent-soft: #6c5ce733;
+        --border-accent-soft: #5ce7e733;
+        --surface-accent-soft: #5ce7e715;
         --border-danger: #ff6b6b55;
 
         --border: #ffffff08;
@@ -111,42 +112,42 @@
 
         --shadow-card: 0 8px 40px rgba(0, 0, 0, 0.3);
         --shadow-modal: 0 40px 80px rgba(0, 0, 0, 0.5);
-        --glow-primary: 0 4px 20px #6c5ce740;
+        --glow-primary: 0 4px 20px #5ce7e740;
         --shadow-winner: 0 0 20px #ffd70030;
 
-        --decor-1: radial-gradient(circle, #6c5ce710 0%, transparent 70%);
-        --decor-2: radial-gradient(circle, #a855f708 0%, transparent 70%);
+        --decor-1: radial-gradient(circle, #5ce7e710 0%, transparent 70%);
+        --decor-2: radial-gradient(circle, #55f7f708 0%, transparent 70%);
       }
 
       :root[data-theme="light"] {
         color-scheme: light;
 
         /* Daylight version of the same indigo — warm off-white, never stark */
-        --page-bg: #f8f6fc;
-        --page-bg-mid: #f3f0fa;
-        --page-bg-end: #ece8f7;
+        --page-bg: #f6fcfc;
+        --page-bg-mid: #f0fafa;
+        --page-bg-end: #e8f7f7;
         --surface-primary: #ffffff;
-        --surface-deep: #f4f1fb;
-        --surface-filled: #fbfaff;
+        --surface-deep: #f1fbfb;
+        --surface-filled: #faffff;
 
-        --grid-cell-empty: #f4f1fb;
-        --grid-cell-filled: #fbfaff;
-        --grid-cell-border: #1a163326;
+        --grid-cell-empty: #f1fbfb;
+        --grid-cell-filled: #faffff;
+        --grid-cell-border: #16333326;
         --surface-input: #ffffff;
         --surface-admin-input: #ffffff;
-        --surface-section: #f7f4fd;
+        --surface-section: #f4fdfd;
 
-        --text-headline: #1a1633;
-        --text-primary: #241f47;
-        --text-secondary: #3d3663;
-        --text-muted: #6b6490;
-        --text-dim: #8a83a8;
-        --text-dimmer: #a49dbd;
-        --text-dimmest: #bdb7d0;
+        --text-headline: #163333;
+        --text-primary: #1f4747;
+        --text-secondary: #366363;
+        --text-muted: #649090;
+        --text-dim: #83a8a8;
+        --text-dimmer: #9dbdbd;
+        --text-dimmest: #b7d0d0;
 
         /* Accents darkened to stay legible on white */
-        --accent-purple: #5b46d9;
-        --accent-violet: #8b3fd9;
+        --accent-brand: #1b8484;
+        --accent-brand-alt: #1a8484;
         --accent-green: #15803d;
         --accent-green-bright: #16a34a;
         --accent-green-light: #1c9c4d;
@@ -157,7 +158,7 @@
         --accent-gold: #b07d0a;
         --accent-yellow: #ca8a04;
         --accent-orange: #ea7317;
-        --accent-pink: #c026d3;
+        --accent-pink: #26d3d3;
 
         --pick-win-bg: #16a34a1a;
         --pick-win-border: #16a34a66;
@@ -166,21 +167,22 @@
         --pick-lead-border: #16a34a55;
         --border-success: #16a34a4d;
         --border-gold: #b07d0a55;
-        --border-accent-soft: #5b46d933;
+        --border-accent-soft: #46d9d933;
+        --surface-accent-soft: #46d9d914;
         --border-danger: #dc262655;
 
-        --border: #1a163314;
-        --border-light: #1a16331f;
-        --border-input: #1a163326;
-        --border-subtle: #1a16332e;
+        --border: #16333314;
+        --border-light: #1633331f;
+        --border-input: #16333326;
+        --border-subtle: #1633332e;
 
-        --surface-1: #1a163303;
-        --surface-2: #1a163306;
-        --surface-3: #1a16330a;
-        --surface-4: #1a16330f;
-        --surface-5: #1a163314;
-        --surface-6: #1a16331a;
-        --surface-7: #1a163322;
+        --surface-1: #16333303;
+        --surface-2: #16333306;
+        --surface-3: #1633330a;
+        --surface-4: #1633330f;
+        --surface-5: #16333314;
+        --surface-6: #1633331a;
+        --surface-7: #16333322;
 
         --overlay: rgba(26, 22, 51, 0.55);
         --overlay-light: rgba(26, 22, 51, 0.45);
@@ -188,11 +190,11 @@
 
         --shadow-card: 0 6px 28px rgba(26, 22, 51, 0.1);
         --shadow-modal: 0 30px 70px rgba(26, 22, 51, 0.22);
-        --glow-primary: 0 4px 18px #5b46d938;
+        --glow-primary: 0 4px 18px #46d9d938;
         --shadow-winner: 0 0 20px #b07d0a40;
 
-        --decor-1: radial-gradient(circle, #5b46d914 0%, transparent 70%);
-        --decor-2: radial-gradient(circle, #8b3fd90f 0%, transparent 70%);
+        --decor-1: radial-gradient(circle, #46d9d914 0%, transparent 70%);
+        --decor-2: radial-gradient(circle, #3fd9d90f 0%, transparent 70%);
       }
 
       html,

@@ -89,7 +89,7 @@ export function PlayerLanding({ onEnterSpace }) {
                 width: 64,
                 height: 64,
                 borderRadius: 16,
-                background: `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`,
+                background: `linear-gradient(135deg, ${colors.accentBrand}, ${colors.accentBrandAlt})`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -106,7 +106,7 @@ export function PlayerLanding({ onEnterSpace }) {
                 lineHeight: 1.1,
                 margin: "0 0 12px",
                 letterSpacing: -2,
-                background: `linear-gradient(135deg, ${colors.headline} 30%, ${colors.accentViolet})`,
+                background: `linear-gradient(135deg, ${colors.headline} 30%, ${colors.accentBrandAlt})`,
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
               }}
@@ -167,7 +167,7 @@ export function PlayerLanding({ onEnterSpace }) {
                     setError("");
                     refetchSpaces();
                   }}
-                  style={{ color: colors.accentViolet, cursor: "pointer", fontWeight: 700 }}
+                  style={{ color: colors.accentBrandAlt, cursor: "pointer", fontWeight: 700 }}
                 >
                   Retry
                 </span>
@@ -197,7 +197,7 @@ export function PlayerLanding({ onEnterSpace }) {
             Running a pool?{" "}
             <a
               href="/admin"
-              style={{ color: colors.accentViolet, fontWeight: 600, textDecoration: "none" }}
+              style={{ color: colors.accentBrandAlt, fontWeight: 600, textDecoration: "none" }}
             >
               Go to the admin site
             </a>

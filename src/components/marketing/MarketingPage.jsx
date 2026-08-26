@@ -37,7 +37,7 @@ function Eyebrow({ children, tone }) {
     >
       <span
         style={{
-          background: tone || colors.accentViolet,
+          background: tone || colors.accentBrandAlt,
           color: colors.white,
           borderRadius: radii.pill,
           padding: "3px 11px",
@@ -131,7 +131,7 @@ function Step({ n, title, children }) {
           height: 30,
           flexShrink: 0,
           borderRadius: "50%",
-          background: `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`,
+          background: `linear-gradient(135deg, ${colors.accentBrand}, ${colors.accentBrandAlt})`,
           color: colors.white,
           display: "flex",
           alignItems: "center",
@@ -198,7 +198,7 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
                 width: 30,
                 height: 30,
                 borderRadius: 8,
-                background: `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`,
+                background: `linear-gradient(135deg, ${colors.accentBrand}, ${colors.accentBrandAlt})`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -215,7 +215,7 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
                 color: colors.headline,
               }}
             >
-              SQUARE<span style={{ color: colors.accentViolet }}>POOL</span>
+              SQUARE<span style={{ color: colors.accentBrandAlt }}>POOL</span>
             </span>
           </div>
 
@@ -264,7 +264,7 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
           <a
             href="/admin"
             style={{
-              background: `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`,
+              background: `linear-gradient(135deg, ${colors.accentBrand}, ${colors.accentBrandAlt})`,
               color: colors.white,
               borderRadius: radii.pill,
               padding: isMobile ? "9px 16px" : "11px 24px",
@@ -360,7 +360,7 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
               <br />
               <span
                 style={{
-                  background: `linear-gradient(120deg, ${colors.accentViolet}, ${colors.accentPurple})`,
+                  background: `linear-gradient(120deg, ${colors.accentBrandAlt}, ${colors.accentBrand})`,
                   WebkitBackgroundClip: "text",
                   WebkitTextFillColor: "transparent",
                 }}
@@ -387,7 +387,7 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
               <a
                 href="/admin"
                 style={{
-                  background: `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`,
+                  background: `linear-gradient(135deg, ${colors.accentBrand}, ${colors.accentBrandAlt})`,
                   color: colors.white,
                   borderRadius: radii.pill,
                   padding: "15px 32px",
@@ -518,7 +518,7 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
 
         <div style={grid(300)}>
           <GameCard
-            tone={colors.accentPurple}
+            tone={colors.accentBrand}
             kicker="Squares"
             title="The grid everyone already knows"
             points={[
@@ -529,7 +529,7 @@ export function MarketingPage({ onEnterSpace, onOpenJoin }) {
             ]}
           />
           <GameCard
-            tone={colors.accentViolet}
+            tone={colors.accentBrandAlt}
             kicker="Pick'em"
             title="Pick every game, most correct wins"
             points={[

@@ -67,14 +67,14 @@ export function EmptySpace({ spaceCode, canCreate, onCreate }) {
         <Choice
           icon="▦"
           title="Squares board"
-          tone={colors.accentPurple}
+          tone={colors.accentBrand}
           blurb="The classic 10×10 grid for one game. Players buy squares, numbers are drawn once it fills, and each quarter pays out on its own."
           onClick={() => onCreate("squares")}
         />
         <Choice
           icon="🗒️"
           title="Pick'em contest"
-          tone={colors.accentViolet}
+          tone={colors.accentBrandAlt}
           blurb="A whole week of games. Everyone picks a winner in each, most correct takes it, and every sheet locks at the first kickoff."
           onClick={() => onCreate("pickem")}
         />

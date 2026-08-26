@@ -34,7 +34,7 @@ export function EntrySubmitted({
       <h2 style={{ margin: "0 0 8px", fontSize: 24, fontWeight: 800 }}>Request Submitted</h2>
       <p style={{ color: colors.textMuted, marginBottom: 8, fontSize: 15 }}>
         <strong style={{ color: colors.textSecondary }}>{fullName}</strong> requested{" "}
-        <strong style={{ color: colors.accentPurple }}>
+        <strong style={{ color: colors.accentBrand }}>
           {requestedCount} square{requestedCount !== 1 ? "s" : ""}
         </strong>
       </p>

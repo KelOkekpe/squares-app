@@ -70,7 +70,7 @@ export default async function handler(req, res) {
 <script>location.replace(${JSON.stringify(target)});</script>
 <div style="padding:40px;text-align:center">
   <p>${escape(preview.title)}</p>
-  <p><a href="${escape(target)}" style="color:#a855f7">Open this board</a></p>
+  <p><a href="${escape(target)}" style="color:#1b8484">Open this board</a></p>
 </div>
 </body>
 </html>`);

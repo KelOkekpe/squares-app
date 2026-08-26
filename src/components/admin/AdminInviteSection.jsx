@@ -135,7 +135,7 @@ export function AdminInviteSection({ spaceCode, isOwner }) {
                   <span
                     style={{
                       fontSize: 11,
-                      color: admin.role === "owner" ? colors.accentGold : colors.accentPurple,
+                      color: admin.role === "owner" ? colors.accentGold : colors.accentBrand,
                       fontWeight: 700,
                       textTransform: "uppercase",
                       letterSpacing: 0.5,

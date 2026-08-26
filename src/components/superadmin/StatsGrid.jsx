@@ -126,7 +126,7 @@ export function StatsGrid({ stats }) {
           key="e"
           label="With entries"
           value={s.boards_with_entries}
-          tone={colors.accentViolet}
+          tone={colors.accentBrandAlt}
         />,
         <Tile
           key="r"

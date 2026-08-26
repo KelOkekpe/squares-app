@@ -1,4 +1,4 @@
-const PURPLE = "#5b46d9";
+const BRAND = "#1b8484";
 const INK = "#1a1633";
 const MUTED = "#6f6a8d";
 const LINE = "#eceaf5";
@@ -66,9 +66,9 @@ export function renderPicksEmail({ contestName, playerName, games, picks, tiebre
         const label = escape(team?.abbr || team?.name || "?");
         return `<td width="50%" align="center" style="
             padding:12px 6px;
-            border:1px solid ${chosen ? PURPLE : LINE};
+            border:1px solid ${chosen ? BRAND : LINE};
             border-radius:6px;
-            background:${chosen ? PURPLE : "#ffffff"};
+            background:${chosen ? BRAND : "#ffffff"};
             color:${chosen ? "#ffffff" : MUTED};
             font-size:14px;
             font-weight:${chosen ? 800 : 600};
@@ -90,7 +90,7 @@ export function renderPicksEmail({ contestName, playerName, games, picks, tiebre
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:460px;background:#ffffff;border-radius:14px;padding:30px 26px;text-align:left">
 
-  <tr><td style="font-size:14px;font-weight:800;letter-spacing:2px;color:${PURPLE};padding-bottom:20px">SQUAREPOOL</td></tr>
+  <tr><td style="font-size:14px;font-weight:800;letter-spacing:2px;color:${BRAND};padding-bottom:20px">SQUAREPOOL</td></tr>
 
   <tr><td style="font-size:21px;font-weight:800;color:${INK};padding-bottom:6px">Your picks are in</td></tr>
   <tr><td style="font-size:14px;line-height:1.6;color:${MUTED};padding-bottom:22px">

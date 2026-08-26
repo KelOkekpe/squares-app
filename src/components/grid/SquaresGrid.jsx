@@ -126,9 +126,9 @@ export function SquaresGrid({ board, headers, config, scores }) {
                 fontSize: 11,
                 padding: "3px 10px",
                 borderRadius: 20,
-                background: scores[q] ? "#e8b4f820" : colors.surface4,
+                background: scores[q] ? colors.surfaceAccentSoft : colors.surface4,
                 color: scores[q] ? colors.accentPink : colors.textDim,
-                border: `1px solid ${scores[q] ? "#e8b4f840" : colors.borderLight}`,
+                border: `1px solid ${scores[q] ? colors.borderAccentSoft : colors.borderLight}`,
                 fontWeight: 600,
               }}
             >

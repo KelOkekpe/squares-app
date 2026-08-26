@@ -167,7 +167,7 @@ export function BoardManagementSection({
             style={{
               background:
                 newPoolName.trim() && newPoolExpiry && !atLimit
-                  ? `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`
+                  ? `linear-gradient(135deg, ${colors.accentBrand}, ${colors.accentBrandAlt})`
                   : colors.surface5,
               color:
                 newPoolName.trim() && newPoolExpiry && !atLimit ? colors.white : colors.textDim,
@@ -211,16 +211,16 @@ export function BoardManagementSection({
               flexWrap: "wrap",
               gap: 8,
               padding: "10px 14px",
-              background: p.id === activePoolId ? "#6c5ce715" : colors.surface2,
+              background: p.id === activePoolId ? colors.surfaceAccentSoft : colors.surface2,
               borderRadius: 8,
-              border: `1px solid ${p.id === activePoolId ? "#6c5ce730" : colors.border}`,
+              border: `1px solid ${p.id === activePoolId ? colors.borderAccentSoft : colors.border}`,
             }}
           >
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               {p.id === activePoolId && (
                 <span
                   style={{
-                    color: colors.accentPurple,
+                    color: colors.accentBrand,
                     fontSize: 10,
                     fontWeight: 800,
                     letterSpacing: 1,
@@ -250,7 +250,7 @@ export function BoardManagementSection({
             </div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
               {p.id !== activePoolId && (
-                <button onClick={() => onSwitchPool(p.id)} style={rowBtn(colors.accentPurple)}>
+                <button onClick={() => onSwitchPool(p.id)} style={rowBtn(colors.accentBrand)}>
                   Switch
                 </button>
               )}
@@ -261,7 +261,7 @@ export function BoardManagementSection({
                   disabled={checkoutStartingFor === p.id}
                   style={{
                     ...rowBtn(colors.white, checkoutStartingFor === p.id),
-                    background: `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`,
+                    background: `linear-gradient(135deg, ${colors.accentBrand}, ${colors.accentBrandAlt})`,
                   }}
                   title="Pay to open this board to players"
                 >

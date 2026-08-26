@@ -39,7 +39,7 @@ export function NameStep({
             width: 32,
             height: 32,
             borderRadius: "50%",
-            background: nameSubmitted ? colors.accentGreen : colors.accentPurple,
+            background: nameSubmitted ? colors.accentGreen : colors.accentBrand,
             display: "flex",
             alignItems: "center",
             justifyContent: "center",

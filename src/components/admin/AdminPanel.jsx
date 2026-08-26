@@ -192,7 +192,7 @@ export function AdminPanel({
                   fontFamily: "inherit",
                   background:
                     tab === t.key
-                      ? `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`
+                      ? `linear-gradient(135deg, ${colors.accentBrand}, ${colors.accentBrandAlt})`
                       : "transparent",
                   color: tab === t.key ? colors.white : colors.textMuted,
                 }}

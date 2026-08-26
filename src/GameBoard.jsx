@@ -603,7 +603,7 @@ export function GameBoard({ spaceCode, onExit }) {
               Taking longer than usual.{" "}
               <span
                 onClick={() => window.location.reload()}
-                style={{ color: colors.accentViolet, cursor: "pointer", fontWeight: 700 }}
+                style={{ color: colors.accentBrandAlt, cursor: "pointer", fontWeight: 700 }}
               >
                 Reload
               </span>

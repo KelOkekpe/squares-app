@@ -312,7 +312,7 @@ check("the sheet honours it", /useState\(defaultOpen\)/.test(sheet));
 for (const label of ["View Board", "Standings"]) {
   check(
     `"${label}" is not dimmed to look disabled`,
-    new RegExp(`color: colors\\.accentViolet,?[\\s\\S]{0,120}${label}`).test(home)
+    new RegExp(`color: colors\\.accentBrandAlt,?[\\s\\S]{0,120}${label}`).test(home)
   );
 }
 
@@ -462,7 +462,7 @@ check(
   "the sheet renders as a table, not flex",
   /<table/.test(emailTpl) && !/display:\s*flex/.test(emailTpl)
 );
-check("the picked side is filled", /background:\$\{chosen \? PURPLE/.test(emailTpl));
+check("the picked side is filled", /background:\$\{chosen \? BRAND/.test(emailTpl));
 check("player-supplied values are escaped", /escape\(playerName\)/.test(emailTpl));
 // An HTML-only message scores worse with spam filters, and a new sending
 // subdomain has no reputation to spend.

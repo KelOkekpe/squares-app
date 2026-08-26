@@ -65,7 +65,7 @@ export function PasswordInput({ style = inputStyle, ...props }) {
           border: "none",
           padding: 0,
           cursor: "pointer",
-          color: visible ? colors.accentViolet : colors.textDim,
+          color: visible ? colors.accentBrandAlt : colors.textDim,
           transition: "color 0.15s",
         }}
       >

@@ -20,7 +20,7 @@ export const containerStyle = {
 /* ── Buttons ────────────────────────────────────────────── */
 
 export const btnPrimary = {
-  background: `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`,
+  background: `linear-gradient(135deg, ${colors.accentBrand}, ${colors.accentBrandAlt})`,
   color: colors.white,
   border: "none",
   padding: "14px 32px",

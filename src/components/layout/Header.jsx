@@ -94,7 +94,7 @@ export function Header({ view, spaceCode, onHome, onAdmin, onNewBoard, onExit })
                 height: isMobile ? 32 : 40,
                 flexShrink: 0,
                 borderRadius: 10,
-                background: `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`,
+                background: `linear-gradient(135deg, ${colors.accentBrand}, ${colors.accentBrandAlt})`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -115,7 +115,7 @@ export function Header({ view, spaceCode, onHome, onAdmin, onNewBoard, onExit })
                   }}
                 >
                   SQUARE
-                  <span style={{ color: colors.accentViolet }}>POOL</span>
+                  <span style={{ color: colors.accentBrandAlt }}>POOL</span>
                 </span>
               )}
               {spaceCode && (

@@ -41,7 +41,7 @@ export function HeroTicket({ scale = 1 }) {
           ? won
             ? colors.pickWinBg
             : colors.pickLossBg
-          : `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`,
+          : `linear-gradient(135deg, ${colors.accentBrand}, ${colors.accentBrandAlt})`,
       border: `1px solid ${
         !picked
           ? colors.border
@@ -75,7 +75,7 @@ export function HeroTicket({ scale = 1 }) {
       >
         <div
           style={{
-            background: `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`,
+            background: `linear-gradient(135deg, ${colors.accentBrand}, ${colors.accentBrandAlt})`,
             borderRadius: px(8),
             padding: `${px(7)}px 0`,
             textAlign: "center",

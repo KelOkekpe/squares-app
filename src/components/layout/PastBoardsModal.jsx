@@ -86,7 +86,7 @@ export function PastBoardsModal({ pools, activePoolId, onSelect, onClose }) {
                       alignItems: "center",
                       gap: 10,
                       background: isCurrent ? colors.surface5 : colors.surface3,
-                      border: `1px solid ${isCurrent ? colors.accentViolet : colors.border}`,
+                      border: `1px solid ${isCurrent ? colors.accentBrandAlt : colors.border}`,
                       borderRadius: radii.lg,
                       padding: "12px 16px",
                       cursor: "pointer",

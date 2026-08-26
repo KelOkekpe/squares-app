@@ -35,7 +35,7 @@ export function HomeView({
             lineHeight: 1.1,
             margin: "0 0 16px",
             letterSpacing: -2,
-            background: `linear-gradient(135deg, ${colors.headline} 30%, ${colors.accentViolet})`,
+            background: `linear-gradient(135deg, ${colors.headline} 30%, ${colors.accentBrandAlt})`,
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
           }}
@@ -84,7 +84,7 @@ export function HomeView({
                     transition: "all 0.15s",
                     background:
                       p.id === activePoolId
-                        ? `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`
+                        ? `linear-gradient(135deg, ${colors.accentBrand}, ${colors.accentBrandAlt})`
                         : "transparent",
                     color: p.id === activePoolId ? colors.white : colors.textMuted,
                   }}
@@ -120,7 +120,7 @@ export function HomeView({
               style={{
                 background: "none",
                 border: "none",
-                color: colors.accentViolet,
+                color: colors.accentBrandAlt,
                 cursor: "pointer",
                 fontSize: 13,
                 fontWeight: 600,
@@ -145,7 +145,7 @@ export function HomeView({
               border: `1px solid ${colors.border}`,
             }}
           >
-            <span style={{ color: colors.accentPurple, fontWeight: 700, fontSize: 14 }}>
+            <span style={{ color: colors.accentBrand, fontWeight: 700, fontSize: 14 }}>
               ${config.pricePerSquare}/square
             </span>
             <span style={{ color: colors.textDimmest }}>|</span>
@@ -184,7 +184,7 @@ export function HomeView({
                     ...btnSecondary,
                     width: "100%",
                     padding: "16px",
-                    color: colors.accentViolet,
+                    color: colors.accentBrandAlt,
                   }}
                 >
                   Standings
@@ -219,7 +219,7 @@ export function HomeView({
                 ...btnSecondary,
                 width: "100%",
                 padding: "16px",
-                color: colors.accentViolet,
+                color: colors.accentBrandAlt,
               }}
             >
               View Board
@@ -240,7 +240,7 @@ export function HomeView({
               alignItems: "center",
               justifyContent: "center",
               gap: 8,
-              color: colors.accentViolet,
+              color: colors.accentBrandAlt,
             }}
           >
             <span aria-hidden="true">✉︎</span> Invite friends
@@ -291,7 +291,7 @@ export function HomeView({
                   </span>
                   <span
                     style={{
-                      color: colors.accentPurple,
+                      color: colors.accentBrand,
                       fontSize: 13,
                       fontWeight: 700,
                     }}

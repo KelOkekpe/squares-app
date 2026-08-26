@@ -290,7 +290,7 @@ export function NewBoardModal({
                 fontFamily: "inherit",
                 background:
                   gameType === t.key
-                    ? `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`
+                    ? `linear-gradient(135deg, ${colors.accentBrand}, ${colors.accentBrandAlt})`
                     : "transparent",
                 color: gameType === t.key ? colors.white : colors.textMuted,
               }}

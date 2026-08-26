@@ -1,5 +1,5 @@
 import React from "react";
-import { cardStyle } from "../../styles";
+import { cardStyle, colors } from "../../styles";
 import { NameStep } from "../join/NameStep";
 import { PaymentStep } from "../join/PaymentStep";
 import { EntrySubmitted } from "../join/EntrySubmitted";
@@ -43,7 +43,7 @@ export function JoinView({
         style={{
           background: "none",
           border: "none",
-          color: "#6c5ce7",
+          color: colors.accentBrand,
           cursor: "pointer",
           fontSize: 14,
           marginBottom: 20,

@@ -114,7 +114,7 @@ export function AdminDashboard({ onOpenSpace }) {
                   width: 40,
                   height: 40,
                   borderRadius: 10,
-                  background: `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`,
+                  background: `linear-gradient(135deg, ${colors.accentBrand}, ${colors.accentBrandAlt})`,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -228,7 +228,7 @@ export function AdminDashboard({ onOpenSpace }) {
                         fontWeight: 700,
                         textTransform: "uppercase",
                         letterSpacing: 0.5,
-                        color: s.role === "owner" ? colors.accentGold : colors.accentViolet,
+                        color: s.role === "owner" ? colors.accentGold : colors.accentBrandAlt,
                       }}
                     >
                       {s.role}
@@ -297,7 +297,7 @@ export function AdminDashboard({ onOpenSpace }) {
                     borderRadius: 14,
                     border: "none",
                     cursor: "pointer",
-                    background: isPrivate ? colors.accentPurple : colors.surface7,
+                    background: isPrivate ? colors.accentBrand : colors.surface7,
                     transition: "all 0.2s",
                     position: "relative",
                     flexShrink: 0,

@@ -8,8 +8,8 @@
  * element with more than one child needs an explicit `display: flex`, and
  * there is no cascade — styles are per-node.
  */
-const PURPLE = "#6c5ce7";
-const VIOLET = "#a855f7";
+const BRAND = "#138484";
+const BRAND_ALT = "#5ce7e7";
 const GOLD = "#ffd700";
 const INK = "#0a0a1f";
 const MUTED = "#9a9ac8";
@@ -75,7 +75,7 @@ function miniTicket() {
                   ? "#16a34a55"
                   : result === false
                     ? "#dc262655"
-                    : `linear-gradient(135deg, ${PURPLE}, ${VIOLET})`
+                    : `linear-gradient(135deg, ${BRAND}, ${BRAND_ALT})`
                 : "#191939",
             border: `1px solid ${side === "away" ? "transparent" : "#ffffff24"}`,
           },
@@ -94,7 +94,7 @@ function miniTicket() {
                   ? "#16a34a55"
                   : result === false
                     ? "#dc262655"
-                    : `linear-gradient(135deg, ${PURPLE}, ${VIOLET})`
+                    : `linear-gradient(135deg, ${BRAND}, ${BRAND_ALT})`
                 : "#191939",
             border: `1px solid ${side === "home" ? "transparent" : "#ffffff24"}`,
           },
@@ -125,7 +125,7 @@ export function ogCard({ title, subtitle, stat, tag, logos = [], variant = "squa
               width: 44,
               height: 44,
               borderRadius: 12,
-              background: `linear-gradient(135deg, ${PURPLE}, ${VIOLET})`,
+              background: `linear-gradient(135deg, ${BRAND}, ${BRAND_ALT})`,
             },
             ""
           ),

@@ -232,7 +232,7 @@ export function PickemSettingsSection({
                         {contacts[p.id]?.email ? (
                           <a
                             href={`mailto:${contacts[p.id].email}`}
-                            style={{ color: colors.accentViolet, textDecoration: "none" }}
+                            style={{ color: colors.accentBrandAlt, textDecoration: "none" }}
                           >
                             {contacts[p.id].email}
                           </a>

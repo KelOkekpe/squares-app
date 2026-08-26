@@ -6,7 +6,7 @@
  * index.html — that's the single source of truth for actual colour values, and
  * it's inlined there so the theme resolves before first paint.
  *
- * Consequence worth knowing: these are strings like "var(--accent-purple)", so
+ * Consequence worth knowing: these are strings like "var(--accent-brand)", so
  * you can no longer concatenate an alpha suffix onto them (`${colors.x}30` used
  * to work and now produces invalid CSS). Add a token in index.html instead.
  */
@@ -36,8 +36,8 @@ export const colors = {
   textDimmest: "var(--text-dimmest)",
 
   /* accents */
-  accentPurple: "var(--accent-purple)",
-  accentViolet: "var(--accent-violet)",
+  accentBrand: "var(--accent-brand)",
+  accentBrandAlt: "var(--accent-brand-alt)",
   accentGreen: "var(--accent-green)",
   accentGreenBright: "var(--accent-green-bright)",
   accentGreenLight: "var(--accent-green-light)",
@@ -50,6 +50,7 @@ export const colors = {
   borderSuccess: "var(--border-success)",
   borderGold: "var(--border-gold)",
   borderAccentSoft: "var(--border-accent-soft)",
+  surfaceAccentSoft: "var(--surface-accent-soft)",
   borderDanger: "var(--border-danger)",
   accentRedDark: "var(--accent-red-dark)",
   accentRedDeep: "var(--accent-red-deep)",

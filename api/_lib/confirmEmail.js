@@ -1,4 +1,4 @@
-const PURPLE = "#5b46d9";
+const BRAND = "#1b8484";
 const GREEN = "#16a34a";
 const INK = "#1a1633";
 const MUTED = "#6f6a8d";
@@ -16,7 +16,7 @@ function shell(title, lead, body, footer) {
 <html><body style="margin:0;background:#f6f5fb;padding:28px 12px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr><td align="center">
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:460px;background:#ffffff;border-radius:14px;padding:30px 26px;text-align:left">
-  <tr><td style="font-size:14px;font-weight:800;letter-spacing:2px;color:${PURPLE};padding-bottom:20px">SQUAREPOOL</td></tr>
+  <tr><td style="font-size:14px;font-weight:800;letter-spacing:2px;color:${BRAND};padding-bottom:20px">SQUAREPOOL</td></tr>
   <tr><td style="font-size:21px;font-weight:800;color:${INK};padding-bottom:6px">${title}</td></tr>
   <tr><td style="font-size:14px;line-height:1.6;color:${MUTED};padding-bottom:20px">${lead}</td></tr>
   ${body}
@@ -53,7 +53,7 @@ export function renderConfirmationEmail({ kind, playerName, poolName, spaceCode,
   const list = (coords || [])
     .map(
       (c) =>
-        `<tr><td align="center" style="padding:10px 4px;border:1px solid ${LINE};border-radius:6px;background:#faf9ff;font-size:15px;font-weight:800;color:${PURPLE};font-family:monospace">${escape(c)}</td></tr>
+        `<tr><td align="center" style="padding:10px 4px;border:1px solid ${LINE};border-radius:6px;background:#f4fbfb;font-size:15px;font-weight:800;color:${BRAND};font-family:monospace">${escape(c)}</td></tr>
          <tr><td height="6"></td></tr>`
     )
     .join("");

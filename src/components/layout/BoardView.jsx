@@ -12,7 +12,7 @@ export function BoardView({ board, headers, config, scores, emptyCount, onJoin, 
         style={{
           background: "none",
           border: "none",
-          color: colors.accentViolet,
+          color: colors.accentBrandAlt,
           cursor: "pointer",
           fontSize: 14,
           fontWeight: 600,

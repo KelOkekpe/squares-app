@@ -118,7 +118,7 @@ export function InviteModal({ message, url, isPrivate, onClose }) {
             style={{
               margin: "8px 0 0",
               fontSize: 12,
-              color: colors.accentViolet,
+              color: colors.accentBrandAlt,
               wordBreak: "break-all",
             }}
           >

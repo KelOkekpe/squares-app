@@ -55,7 +55,7 @@ export function PickemView({
           style={{
             background: "none",
             border: "none",
-            color: colors.accentViolet,
+            color: colors.accentBrandAlt,
             cursor: "pointer",
             fontSize: 14,
             fontWeight: 600,

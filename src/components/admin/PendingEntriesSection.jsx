@@ -72,7 +72,7 @@ export function PendingEntriesSection({ pending, emptyCount, onApprove, onReject
                           fontFamily: fonts.mono,
                           fontSize: 11,
                           fontWeight: 700,
-                          color: colors.accentViolet,
+                          color: colors.accentBrandAlt,
                         }}
                         title="Reference this player put in their payment note"
                       >
@@ -90,7 +90,7 @@ export function PendingEntriesSection({ pending, emptyCount, onApprove, onReject
                     {entry.email && (
                       <a
                         href={`mailto:${entry.email}`}
-                        style={{ color: colors.accentViolet, textDecoration: "none" }}
+                        style={{ color: colors.accentBrandAlt, textDecoration: "none" }}
                       >
                         {entry.email}
                       </a>

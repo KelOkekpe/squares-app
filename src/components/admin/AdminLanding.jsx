@@ -170,7 +170,7 @@ export function AdminLanding() {
                 width: 56,
                 height: 56,
                 borderRadius: 14,
-                background: `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`,
+                background: `linear-gradient(135deg, ${colors.accentBrand}, ${colors.accentBrandAlt})`,
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -187,7 +187,7 @@ export function AdminLanding() {
                 lineHeight: 1.1,
                 margin: "0 0 10px",
                 letterSpacing: -1.5,
-                background: `linear-gradient(135deg, ${colors.headline} 30%, ${colors.accentViolet})`,
+                background: `linear-gradient(135deg, ${colors.headline} 30%, ${colors.accentBrandAlt})`,
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
               }}
@@ -243,7 +243,7 @@ export function AdminLanding() {
                     fontFamily: "inherit",
                     background:
                       mode === m.key
-                        ? `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`
+                        ? `linear-gradient(135deg, ${colors.accentBrand}, ${colors.accentBrandAlt})`
                         : "transparent",
                     color: mode === m.key ? colors.white : colors.textMuted,
                   }}
@@ -412,7 +412,7 @@ export function AdminLanding() {
                 style={{
                   background: "none",
                   border: "none",
-                  color: colors.accentViolet,
+                  color: colors.accentBrandAlt,
                   fontSize: 13,
                   fontWeight: 600,
                   fontFamily: "inherit",
@@ -453,7 +453,7 @@ export function AdminLanding() {
                 style={{
                   background: "none",
                   border: "none",
-                  color: colors.accentViolet,
+                  color: colors.accentBrandAlt,
                   fontSize: 13,
                   fontWeight: 600,
                   fontFamily: "inherit",
@@ -478,7 +478,7 @@ export function AdminLanding() {
             Just here to play?{" "}
             <a
               href="/"
-              style={{ color: colors.accentViolet, fontWeight: 600, textDecoration: "none" }}
+              style={{ color: colors.accentBrandAlt, fontWeight: 600, textDecoration: "none" }}
             >
               Join a space
             </a>

@@ -22,7 +22,7 @@ export function LegalPage({ title, intro, sections, onBack }) {
           style={{
             background: "none",
             border: "none",
-            color: colors.accentPurple,
+            color: colors.accentBrand,
             cursor: "pointer",
             fontSize: 14,
             fontWeight: 600,
@@ -68,7 +68,7 @@ export function LegalPage({ title, intro, sections, onBack }) {
                 style={{
                   ...bodyStyle,
                   background: colors.surface4,
-                  borderLeft: `3px solid ${colors.accentPurple}`,
+                  borderLeft: `3px solid ${colors.accentBrand}`,
                   borderRadius: 6,
                   padding: "12px 14px",
                   color: colors.textSecondary,

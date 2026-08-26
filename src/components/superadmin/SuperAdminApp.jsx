@@ -74,7 +74,7 @@ export function SuperAdminApp() {
           </p>
           <a
             href="/admin"
-            style={{ color: colors.accentViolet, fontWeight: 600, textDecoration: "none" }}
+            style={{ color: colors.accentBrandAlt, fontWeight: 600, textDecoration: "none" }}
           >
             Go to the admin site
           </a>
@@ -196,7 +196,7 @@ export function SuperAdminApp() {
               fontFamily: "inherit",
               background:
                 tab === t.key
-                  ? `linear-gradient(135deg, ${colors.accentPurple}, ${colors.accentViolet})`
+                  ? `linear-gradient(135deg, ${colors.accentBrand}, ${colors.accentBrandAlt})`
                   : "transparent",
               color: tab === t.key ? colors.white : colors.textMuted,
             }}

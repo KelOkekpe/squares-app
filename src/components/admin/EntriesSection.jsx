@@ -68,7 +68,7 @@ export function EntriesSection({ participants, contacts = {}, onRemove }) {
                       <div style={{ color: colors.textDim, fontSize: 11, marginTop: 2 }}>
                         <a
                           href={`mailto:${contact.email}`}
-                          style={{ color: colors.accentViolet, textDecoration: "none" }}
+                          style={{ color: colors.accentBrandAlt, textDecoration: "none" }}
                         >
                           {contact.email}
                         </a>

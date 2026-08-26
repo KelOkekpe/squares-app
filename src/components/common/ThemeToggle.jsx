@@ -62,7 +62,7 @@ export function ThemeToggle({ size = 32, style }) {
         borderRadius: radii.pill,
         border: `1px solid ${colors.border}`,
         background: colors.surface3,
-        color: isLight ? colors.accentPurple : colors.accentGold,
+        color: isLight ? colors.accentBrand : colors.accentGold,
         cursor: "pointer",
         padding: 0,
         transition: "color 0.2s, background 0.2s",
