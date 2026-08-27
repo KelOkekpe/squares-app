@@ -58,6 +58,22 @@ export function isUnusableSessionError(err) {
   );
 }
 
+/**
+ * The token's `iat` is ahead of the database clock.
+ *
+ * PostgREST validates the issued-at claim against Postgres's own now(), so a
+ * token minted a moment ago can arrive fractionally "in the future" and be
+ * refused. It resolves itself within a second, which makes it worth retrying —
+ * and makes it emphatically not grounds for discarding the session. Signing
+ * someone out because two clocks disagreed by 300ms is the worst possible
+ * response, so this is deliberately absent from isUnusableSessionError.
+ */
+export function isClockSkewError(err) {
+  if (!err) return false;
+  const text = `${err.message || ""} ${err.code || ""}`.toLowerCase();
+  return text.includes("issued at future") || text.includes("issued in the future");
+}
+
 export function isStaleSessionError(err) {
   if (!err) return false;
   if (err.isTimeout) return true;
@@ -68,6 +84,7 @@ export function isStaleSessionError(err) {
     text.includes("jwt expired") ||
     text.includes("invalid claim") ||
     text.includes("pgrst301") ||
-    text.includes("abort")
+    text.includes("abort") ||
+    isClockSkewError(err)
   );
 }

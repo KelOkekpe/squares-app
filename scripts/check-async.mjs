@@ -1,4 +1,9 @@
-import { withTimeout, TimeoutError, isStaleSessionError } from "../src/utils/async.js";
+import {
+  isClockSkewError,
+  withTimeout,
+  TimeoutError,
+  isStaleSessionError,
+} from "../src/utils/async.js";
 let failed = 0;
 const check = (l, c) => {
   console.log((c ? "PASS  " : "FAIL  ") + l);
@@ -179,6 +184,39 @@ check(
 check(
   "an unconfirmed signup can be resent",
   /auth\.resend\(/.test(authSrc) && /handleResend/.test(landing)
+);
+
+// ── a token dated ahead of the database clock ──
+// PostgREST checks the iat claim against Postgres's own now(), so a freshly
+// minted token can arrive fractionally "in the future" and be refused. It
+// matched neither session predicate, so nothing retried and the raw message
+// reached the superadmin console as a dead end.
+const skew = { message: "JWT issued at future" };
+check("a future-dated token is recognised as clock skew", isClockSkewError(skew));
+check("clock skew is retry-worthy", isStaleSessionError(skew));
+// The distinction that matters: two clocks disagreeing by a fraction of a
+// second must never cost someone their session.
+check("clock skew never discards the session", !isUnusableSessionError(skew));
+check("an expired jwt still discards it", isUnusableSessionError({ message: "jwt expired" }));
+check(
+  "an unrelated failure is not mistaken for skew",
+  !isClockSkewError({ message: "permission denied" })
+);
+
+const superSrc = readSrc("../src/hooks/useSuperAdmin.js");
+check("the superadmin console retries a skewed token", /isClockSkewError\(err\)/.test(superSrc));
+check(
+  "and rethrows anything else untouched",
+  /if \(!isClockSkewError\(err\)\) throw err;/.test(superSrc)
+);
+// One retry, not a loop -- a persistently wrong clock must surface, not hang.
+check(
+  "it retries once rather than looping",
+  (superSrc.match(/await once\(\)/g) || []).length === 2
+);
+check(
+  "a persistent skew explains itself",
+  /sign out and back in/.test(superSrc) && /clock is set automatically/.test(superSrc)
 );
 
 console.log(failed === 0 ? "\nAll async-guard cases pass." : `\n${failed} failed.`);

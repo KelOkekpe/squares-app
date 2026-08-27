@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabase";
-import { withTimeout } from "../utils/async";
+import { withTimeout, isClockSkewError } from "../utils/async";
 
 const VIEW_AS_KEY = "sb-view-as";
 
@@ -32,9 +32,22 @@ export function useSuperAdmin() {
   const [viewAs, setViewAs] = useState(loadViewAs);
 
   const call = useCallback(async (fn, args = {}) => {
-    const { data, error: rpcError } = await withTimeout(supabase.rpc(fn, args), 10000, fn);
-    if (rpcError) throw rpcError;
-    return data;
+    const once = async () => {
+      const { data, error: rpcError } = await withTimeout(supabase.rpc(fn, args), 10000, fn);
+      if (rpcError) throw rpcError;
+      return data;
+    };
+    try {
+      return await once();
+    } catch (err) {
+      // A token whose iat is a fraction ahead of the database clock is refused
+      // until the clock catches up, which it does almost immediately. Waiting
+      // out that fraction and asking once more is the whole fix; everything
+      // else is rethrown untouched so real failures still surface.
+      if (!isClockSkewError(err)) throw err;
+      await new Promise((r) => setTimeout(r, 1200));
+      return await once();
+    }
   }, []);
 
   const refresh = useCallback(
@@ -59,10 +72,14 @@ export function useSuperAdmin() {
         // "permission denied for function" means EXECUTE was never granted,
         // which is a different problem from not holding the role — and it has
         // a specific fix rather than being a mystery.
+        // Both of these have a specific fix, and neither is guessable from the
+        // raw message alone.
         setError(
           /permission denied for function/i.test(message)
             ? `${message} — run supabase/migration_fix_superadmin_grants.sql in the SQL Editor.`
-            : message
+            : isClockSkewError(err)
+              ? `${message} — your session token is dated slightly ahead of the database. It usually clears on its own; if it persists, sign out and back in to mint a fresh one, then check this device's clock is set automatically.`
+              : message
         );
       } finally {
         setLoading(false);
