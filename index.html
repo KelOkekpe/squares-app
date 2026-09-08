@@ -63,9 +63,13 @@
         --text-primary: #e0ffff;
         --text-secondary: #c8e8e8;
         --text-muted: #8ab0b0;
-        --text-dim: #555555;
-        --text-dimmer: #444444;
-        --text-dimmest: #333333;
+        /* Lifted off pure grey. On the dark ground these sat at 2.4:1, 1.8:1
+           and 1.4:1 — the dimmest was invisible rather than de-emphasised.
+           Tinted toward the theme so the tiers read as part of the palette,
+           and each still ranks below --text-muted so the hierarchy survives. */
+        --text-dim: #6c8585;
+        --text-dimmer: #5f7474;
+        --text-dimmest: #556868;
 
         --accent-brand: #138484;
         --accent-brand-alt: #068484;
@@ -141,11 +145,11 @@
 
         --text-headline: #163333;
         --text-primary: #1f4747;
-        --text-secondary: #366363;
-        --text-muted: #649090;
-        --text-dim: #83a8a8;
-        --text-dimmer: #9dbdbd;
-        --text-dimmest: #b7d0d0;
+        --text-secondary: #3e5555;
+        --text-muted: #4c6868;
+        --text-dim: #577878;
+        --text-dimmer: #658b8b;
+        --text-dimmest: #709898;
 
         /* Accents darkened to stay legible on white */
         --accent-brand: #1b8484;

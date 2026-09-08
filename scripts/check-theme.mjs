@@ -269,5 +269,55 @@ for (const panel of [darkVal("--grid-panel"), lightVal("--grid-panel")]) {
   }
 }
 
+// ── every text tier has to be readable on its own ground ──
+// A ticker date shipped at 1.41:1 against the dark page — not de-emphasised,
+// invisible. The dim tiers were pure grey and had never been checked against
+// the ground they sit on, so nothing caught it.
+const TEXT_FLOOR = {
+  "--text-primary": 7,
+  "--text-secondary": 7,
+  "--text-muted": 4.5,
+  "--text-dim": 4.5,
+  "--text-dimmer": 3,
+  "--text-dimmest": 3,
+};
+for (const [theme, bgName] of [
+  ["dark", "--page-bg"],
+  ["light", "--page-bg"],
+]) {
+  const get = theme === "dark" ? darkVal : lightVal;
+  const bg = get(bgName);
+  for (const [token, floor] of Object.entries(TEXT_FLOOR)) {
+    const fg = get(token);
+    if (!fg || !bg) {
+      fail(`${token} missing from the ${theme} theme`);
+      continue;
+    }
+    const r = contrastRatio(fg, bg);
+    r >= floor
+      ? pass(`${token} is readable in ${theme} (${r.toFixed(2)}:1)`)
+      : fail(`${token} is only ${r.toFixed(2)}:1 on the ${theme} ground — needs ${floor}:1`);
+  }
+}
+
+// The tiers must stay ordered, or "dim" and "muted" stop meaning anything.
+for (const theme of ["dark", "light"]) {
+  const get = theme === "dark" ? darkVal : lightVal;
+  const bg = get("--page-bg");
+  const tiers = [
+    "--text-secondary",
+    "--text-muted",
+    "--text-dim",
+    "--text-dimmer",
+    "--text-dimmest",
+  ].map((t) => ({ t, r: contrastRatio(get(t), bg) }));
+  const ordered = tiers.every((x, i) => i === 0 || tiers[i - 1].r >= x.r);
+  ordered
+    ? pass(`${theme} text tiers descend in contrast as named`)
+    : fail(
+        `${theme} text tiers are out of order: ${tiers.map((x) => `${x.t} ${x.r.toFixed(1)}`).join(" > ")}`
+      );
+}
+
 console.log(failed === 0 ? "\nAll theme cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

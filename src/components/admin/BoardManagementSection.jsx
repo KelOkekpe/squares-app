@@ -28,6 +28,35 @@ export function BoardManagementSection({
   // confirmation would look exactly like success.
   const [resetError, setResetError] = useState("");
   const [archiveError, setArchiveError] = useState("");
+  // Rename is inline on the row rather than a modal: an admin renaming a board
+  // is usually fixing a typo they can see, and a dialog hides the list they are
+  // comparing against.
+  const [renaming, setRenaming] = useState(null);
+  const [renameDraft, setRenameDraft] = useState("");
+  const [renameError, setRenameError] = useState("");
+
+  const startRename = (pool) => {
+    setRenaming(pool.id);
+    setRenameDraft(pool.name);
+    setRenameError("");
+  };
+
+  const commitRename = async (pool) => {
+    const name = renameDraft.trim();
+    if (!name || name === pool.name) {
+      setRenaming(null);
+      return;
+    }
+    setRenameError("");
+    // Board names are unique among live boards, so this can be refused —
+    // updatePool already translates that into something readable.
+    const res = await updatePool(pool.id, { name });
+    if (res?.error) {
+      setRenameError(res.error);
+      return;
+    }
+    setRenaming(null);
+  };
 
   const isClosed = (poolId) => !!poolConfigs[poolId]?.submissionsDisabled;
 
@@ -229,9 +258,41 @@ export function BoardManagementSection({
                   ACTIVE
                 </span>
               )}
-              <span style={{ color: colors.textSecondary, fontSize: 13, fontWeight: 600 }}>
-                {p.name}
-              </span>
+              {renaming === p.id ? (
+                <input
+                  autoFocus
+                  value={renameDraft}
+                  onChange={(e) => setRenameDraft(e.target.value)}
+                  onBlur={() => commitRename(p)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") commitRename(p);
+                    if (e.key === "Escape") {
+                      setRenaming(null);
+                      setRenameError("");
+                    }
+                  }}
+                  aria-label="Board name"
+                  style={{ ...adminInputStyle, width: 190, padding: "4px 8px", fontSize: 13 }}
+                />
+              ) : (
+                <button
+                  onClick={() => startRename(p)}
+                  title="Rename this board"
+                  style={{
+                    background: "none",
+                    border: "none",
+                    borderBottom: `1px dashed ${colors.border}`,
+                    color: colors.textSecondary,
+                    fontSize: 13,
+                    fontWeight: 600,
+                    fontFamily: "inherit",
+                    padding: 0,
+                    cursor: "text",
+                  }}
+                >
+                  {p.name}
+                </button>
+              )}
               {p.paid === false && (
                 <span
                   style={{
@@ -247,6 +308,9 @@ export function BoardManagementSection({
               <span style={{ color: colors.textDim, fontSize: 11 }}>
                 {new Date(p.createdAt).toLocaleDateString()}
               </span>
+              {renaming === p.id && renameError && (
+                <span style={{ color: colors.accentRed, fontSize: 11 }}>{renameError}</span>
+              )}
             </div>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
               {p.id !== activePoolId && (

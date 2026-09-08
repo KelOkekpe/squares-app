@@ -65,7 +65,11 @@ function Game({ game }) {
       <Side team={game.home} score={h} winning={started && h > a} live={live} />
       <span
         style={{
-          color: live ? colors.accentGreenBright : colors.textDimmest,
+          // The kickoff time and status. Reported as unreadable in dark mode:
+          // it was on the dimmest tier, which is the wrong tier for the one
+          // piece of a ticker row people actually read when a game has not
+          // started yet.
+          color: live ? colors.accentGreenBright : colors.textSecondary,
           fontWeight: live ? 700 : 500,
           fontSize: 11,
         }}
