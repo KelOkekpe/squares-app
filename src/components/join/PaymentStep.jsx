@@ -12,7 +12,6 @@ export function PaymentStep({
   squaresForAmount,
   submitting,
   submitError,
-  paymentRef: ref,
   paymentNote: note,
   onConfirm,
   onViewBoard,
@@ -130,12 +129,19 @@ export function PaymentStep({
               );
             })}
 
-            {ref && (
-              <p style={{ color: colors.textDim, fontSize: 11, margin: "2px 0 0" }}>
-                Reference <strong style={{ color: colors.textMuted }}>{ref}</strong> is added to the
-                note so your admin can match your payment.
+            {note && (
+              <p
+                style={{
+                  color: colors.textDim,
+                  fontSize: 11.5,
+                  margin: "2px 0 0",
+                  lineHeight: 1.6,
+                }}
+              >
+                Put <strong style={{ color: colors.textSecondary }}>{note}</strong> in the memo so
+                your admin knows the payment is yours.
                 {providers.some((p) => !p.supportsNote) &&
-                  " Cash App and PayPal can't carry a note — add it yourself if you use those."}
+                  " Cash App and PayPal can't carry one automatically — type it in yourself there."}
               </p>
             )}
           </div>
@@ -202,22 +208,6 @@ export function PaymentStep({
           )}
         </p>
       )}
-
-      {/* Set expectations before they submit */}
-      <div
-        style={{
-          padding: "12px 16px",
-          background: colors.surface3,
-          border: `1px solid ${colors.border}`,
-          borderRadius: 10,
-          marginBottom: 16,
-        }}
-      >
-        <p style={{ margin: 0, color: colors.textMuted, fontSize: 12, lineHeight: 1.6 }}>
-          Send the payment first, then submit. Your squares are assigned once your admin confirms
-          the money arrived — they aren't reserved in the meantime.
-        </p>
-      </div>
 
       {submitError && (
         <p style={{ color: colors.accentRed, fontSize: 13, margin: "0 0 14px" }}>{submitError}</p>

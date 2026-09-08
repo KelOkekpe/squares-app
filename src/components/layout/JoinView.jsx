@@ -29,7 +29,6 @@ export function JoinView({
   requestedCount,
   submitting,
   submitError,
-  paymentRef,
   paymentNote,
   onSubmitRequest,
   onViewBoard,
@@ -83,7 +82,6 @@ export function JoinView({
               squaresForAmount={squaresForAmount}
               submitting={submitting}
               submitError={submitError}
-              paymentRef={paymentRef}
               paymentNote={paymentNote}
               onConfirm={onSubmitRequest}
               onViewBoard={onViewBoard}

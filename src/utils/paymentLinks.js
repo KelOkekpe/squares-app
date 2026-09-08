@@ -97,6 +97,27 @@ export function buildPaymentNote({ playerName, poolName, ref }) {
   return [poolName || "Squares", playerName, ref && `Ref ${ref}`].filter(Boolean).join(" - ");
 }
 
+/**
+ * The memo a squares buyer puts on their payment: "John Jones - 5 squares".
+ *
+ * Replaces a generated reference code. The code was unambiguous but meant
+ * nothing to either party — an organiser reading their Venmo feed had to come
+ * back to the app to find out who K7M2QX was, whereas a name and a count can be
+ * matched against the pending list at a glance.
+ *
+ * Kept separate from buildPaymentNote rather than replacing it, because
+ * pick'em still uses the reference form.
+ */
+export function buildSquaresNote({ playerName, squares }) {
+  const name = String(playerName || "").trim();
+  const n = Number(squares);
+  if (!name) return "";
+  if (!Number.isFinite(n) || n < 1) return name;
+  // Plain hyphen, for the same reason the other builder uses one: an em-dash
+  // survives the URL and then reads as noise in the payment app.
+  return `${name} - ${n} ${n === 1 ? "square" : "squares"}`;
+}
+
 /** Providers this space has actually configured, in display order. */
 export function configuredProviders(handles = {}) {
   return PAYMENT_PROVIDERS.filter((p) => clean(handles[p.key]));

@@ -8,8 +8,7 @@ import {
   saveProfile,
   inviteUrl,
   inviteMessage,
-  generatePaymentRef,
-  buildPaymentNote,
+  buildSquaresNote,
   applySmartFill,
   scaledPayouts,
   STORAGE_KEYS,
@@ -230,7 +229,6 @@ export function GameBoard({ spaceCode, onExit }) {
   const [payoutHandles, setPayoutHandles] = useState(remembered.payoutHandles);
   // Generated up front: the player pays before submitting, so the reference has
   // to exist at payment time to appear in the note the admin reconciles against.
-  const [paymentRef] = useState(generatePaymentRef);
   // Set on approval so the admin can send the player their coordinates
   const [approvalNotice, setApprovalNotice] = useState(null);
 
@@ -395,7 +393,6 @@ export function GameBoard({ spaceCode, onExit }) {
       p_amount: Number(amount),
       p_squares: requested,
       p_contact: {
-        paymentRef,
         firstName: firstName.trim(),
         middleInitial,
         lastName: lastName.trim(),
@@ -436,7 +433,6 @@ export function GameBoard({ spaceCode, onExit }) {
     email,
     payoutMethod,
     payoutHandles,
-    paymentRef,
   ]);
 
   // Admin confirmed the money arrived — assign squares and record the entry.
@@ -823,12 +819,7 @@ export function GameBoard({ spaceCode, onExit }) {
               requestedCount={requestedCount}
               submitting={submitting}
               submitError={submitError}
-              paymentRef={paymentRef}
-              paymentNote={buildPaymentNote({
-                playerName: fullName,
-                poolName: pools.find((pl) => pl.id === activePoolId)?.name,
-                ref: paymentRef,
-              })}
+              paymentNote={buildSquaresNote({ playerName: fullName, squares: squaresForAmount })}
               onSubmitRequest={submitEntryRequest}
               onViewBoard={() => setView("board")}
               onBack={() => {
