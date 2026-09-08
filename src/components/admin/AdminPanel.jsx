@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { spaceUrl, PAYMENT_PROVIDERS, livePendingCounts } from "../../utils";
+import { spaceUrl, PAYMENT_PROVIDERS, livePendingCounts, sortPools } from "../../utils";
 import { colors, radii, adminSectionStyle, adminInputStyle, labelStyle } from "../../styles";
 import { useAuth } from "../../hooks/useAuth";
 import { TeamColorSection } from "./TeamColorSection";
@@ -321,7 +321,7 @@ export function AdminPanel({
                   <option value="">Select a board…</option>
                   {/* Archived boards are excluded — unarchive from Pool
                       Management to manage one again. */}
-                  {pools
+                  {sortPools(pools, "asc")
                     .filter((p) => !p.archived)
                     .map((p) => {
                       const waiting = liveCounts?.[p.id] || 0;

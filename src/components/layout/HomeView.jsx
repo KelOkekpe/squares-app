@@ -1,7 +1,7 @@
 import React from "react";
 import { btnPrimary, btnSecondary } from "../../styles";
 import { colors, radii } from "../../styles";
-import { isPoolActive, poolStatus } from "../../utils";
+import { isPoolActive, poolStatus, sortPools } from "../../utils";
 
 export function HomeView({
   config,
@@ -18,7 +18,8 @@ export function HomeView({
   onOpenPickem,
   onInvite,
 }) {
-  const activePools = pools.filter(isPoolActive);
+  // Soonest game first, so the week being played leads the list.
+  const activePools = sortPools(pools.filter(isPoolActive), "asc");
   // GameBoard already folds the kickoff deadline and the admin's own switch
   // into config, so this is the same signal squares uses for "Submissions
   // Closed".

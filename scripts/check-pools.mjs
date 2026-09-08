@@ -3,6 +3,8 @@
 import { readFileSync } from "node:fs";
 import { POOL_STATE_TYPES } from "../src/utils/storageKeys.js";
 import {
+  sortPools,
+  poolDate,
   isPoolActive,
   isPoolCompleted,
   splitPools,
@@ -286,6 +288,89 @@ check(
     readFileSync(new URL("../src/utils/poolStatus.js", import.meta.url), "utf8")
   )
 );
+
+// ── board ordering ──
+// check() takes (label, condition) — a two-argument signature. Written as
+// (label, got, want) every one of these passed on the truthiness of a non-empty
+// string, which is how eight assertions here once reported PASS while testing
+// nothing at all. Each is an explicit comparison now.
+const wk = (name, expiresAt, createdAt) => ({
+  id: name,
+  name,
+  expiresAt,
+  createdAt,
+  archived: false,
+});
+const names = (arr) => arr.map((p) => p.name).join(",");
+{
+  const w1 = wk("Week 1", "2026-09-14", "2026-09-01T12:00:00Z");
+  const w2 = wk("Week 2", "2026-09-21", "2026-09-02T12:00:00Z");
+  const w3 = wk("Week 3", "2026-09-28", "2026-09-03T12:00:00Z");
+  check(
+    "live boards lead with the soonest game",
+    names(sortPools([w3, w1, w2], "asc")) === "Week 1,Week 2,Week 3"
+  );
+  check(
+    "finished boards lead with the most recent",
+    names(sortPools([w1, w3, w2], "desc")) === "Week 3,Week 2,Week 1"
+  );
+  check(
+    "the input order does not matter",
+    names(sortPools([w2, w1, w3], "asc")) === names(sortPools([w3, w2, w1], "asc"))
+  );
+  const input = [w3, w1, w2];
+  sortPools(input, "asc");
+  check("sorting does not mutate the caller's array", input[0].name === "Week 3");
+}
+{
+  const dated = wk("Dated", "2026-09-14", "2026-09-01T12:00:00Z");
+  const undated = { id: "u", name: "Undated", archived: false };
+  check(
+    "an undated board sorts last, not first",
+    names(sortPools([undated, dated], "asc")) === "Dated,Undated"
+  );
+  check(
+    "createdAt is used when there is no expiry",
+    poolDate({ createdAt: "2026-09-01T00:00:00Z" }) < poolDate({})
+  );
+}
+{
+  const a2 = wk("Alpha", "2026-09-14", "2026-09-01T12:00:00Z");
+  const b2 = wk("Beta", "2026-09-14", "2026-09-01T12:00:00Z");
+  check(
+    "ties break by name for a stable order",
+    names(sortPools([b2, a2], "asc")) === "Alpha,Beta"
+  );
+}
+{
+  const gone = { id: "p0", name: "Week 0", expiresAt: "2026-08-01", archived: false };
+  const soon = wk("Week 1", addDaysISO(3), "2026-09-01T12:00:00Z");
+  const later = wk("Week 2", addDaysISO(10), "2026-09-02T12:00:00Z");
+  const split = splitPools([later, soon, gone]);
+  check("splitPools orders the live list soonest-first", names(split.active) === "Week 1,Week 2");
+  check("and the finished list most-recent-first", names(split.completed) === "Week 0");
+}
+const homeSrc = readFileSync(
+  new URL("../src/components/layout/HomeView.jsx", import.meta.url),
+  "utf8"
+);
+const adminSrc = readFileSync(
+  new URL("../src/components/admin/BoardManagementSection.jsx", import.meta.url),
+  "utf8"
+);
+const panelSrc = readFileSync(
+  new URL("../src/components/admin/AdminPanel.jsx", import.meta.url),
+  "utf8"
+);
+check(
+  "the player list is sorted",
+  /sortPools\(pools\.filter\(isPoolActive\), "asc"\)/.test(homeSrc)
+);
+check(
+  "the admin board list is sorted",
+  /sortPools\(pools\.filter\(isPoolActive\), "asc"\)/.test(adminSrc)
+);
+check("the board picker is sorted", /sortPools\(pools, "asc"\)/.test(panelSrc));
 
 console.log(failed === 0 ? "\nAll pool-lifecycle cases pass." : `\n${failed} failed.`);
 process.exit(failed ? 1 : 0);

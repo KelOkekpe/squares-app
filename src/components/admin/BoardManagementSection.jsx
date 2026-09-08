@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
-import { MAX_ACTIVE_POOLS, addDaysISO, todayISO, isPoolActive, poolStatus } from "../../utils";
+import {
+  MAX_ACTIVE_POOLS,
+  addDaysISO,
+  todayISO,
+  isPoolActive,
+  poolStatus,
+  sortPools,
+} from "../../utils";
 import { colors } from "../../styles";
 import { adminSectionStyle, adminInputStyle, labelStyle } from "../../styles";
 
@@ -76,8 +83,13 @@ export function BoardManagementSection({
 
   // Active means neither archived nor past its end date — expired boards free
   // up a slot without anyone having to archive them.
-  const activePools = pools.filter(isPoolActive);
-  const completedPools = pools.filter((p) => !isPoolActive(p));
+  // Same ordering the players see: live boards soonest-first, past boards
+  // most-recent-first.
+  const activePools = sortPools(pools.filter(isPoolActive), "asc");
+  const completedPools = sortPools(
+    pools.filter((p) => !isPoolActive(p)),
+    "desc"
+  );
   const atLimit = activePools.length >= MAX_ACTIVE_POOLS;
 
   const handleCreate = async () => {

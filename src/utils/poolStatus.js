@@ -87,10 +87,45 @@ export function isPoolCompleted(pool) {
   return !!pool && !isPoolActive(pool);
 }
 
+/**
+ * The date a board is *about* — its game, not its paperwork.
+ *
+ * Falls back through what a pool row actually carries: the expiry an admin set
+ * (which for a linked board is derived from kickoff) and then creation. A board
+ * with neither sorts last rather than sorting randomly.
+ */
+export function poolDate(pool) {
+  if (pool?.expiresAt) return new Date(`${pool.expiresAt}T00:00:00`).getTime();
+  if (pool?.createdAt) return new Date(pool.createdAt).getTime();
+  return Number.MAX_SAFE_INTEGER;
+}
+
+/**
+ * Order boards so the one you want is at the top, which means opposite
+ * directions for the two lists.
+ *
+ * Live boards ascend: the soonest game first, so during Week 1 the Week 1 board
+ * leads. It keeps leading until it expires and leaves this list entirely, at
+ * which point Week 2 is first on its own — no re-sorting needed to stay
+ * pointed at whatever is next.
+ *
+ * Finished boards descend: they are a record, and the most recently played is
+ * the one anyone is looking for.
+ */
+export function sortPools(pools = [], direction = "asc") {
+  const sign = direction === "desc" ? -1 : 1;
+  return [...pools].sort((a, b) => {
+    const d = poolDate(a) - poolDate(b);
+    // Ties fall back to name so the order is stable rather than incidental —
+    // two boards created the same day should not swap places on reload.
+    return d !== 0 ? d * sign : String(a.name || "").localeCompare(String(b.name || ""));
+  });
+}
+
 export function splitPools(pools = []) {
   return {
-    active: pools.filter(isPoolActive),
-    completed: pools.filter(isPoolCompleted),
+    active: sortPools(pools.filter(isPoolActive), "asc"),
+    completed: sortPools(pools.filter(isPoolCompleted), "desc"),
   };
 }
 
