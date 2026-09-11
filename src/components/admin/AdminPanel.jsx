@@ -22,6 +22,7 @@ export function AdminPanel({
   board,
   setBoard,
   headers,
+  overrideCell,
   scores,
   setScores,
   pools,
@@ -419,7 +420,11 @@ export function AdminPanel({
                       <QuarterScoresSection config={config} scores={scores} setScores={setScores} />
 
                       {/* Override cell */}
-                      <OverrideCellSection setBoard={setBoard} />
+                      <OverrideCellSection
+                        headers={headers}
+                        board={board}
+                        overrideCell={overrideCell}
+                      />
 
                       {/* Toggle submissions */}
                       <div style={adminSectionStyle}>

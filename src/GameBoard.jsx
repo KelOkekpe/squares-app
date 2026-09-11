@@ -16,6 +16,7 @@ import {
   DEFAULT_CONFIG,
   generateHeaders,
   getInitialBoard,
+  reconcileEntries,
   getEmptySquares,
   placeParticipant,
   calculateSquares,
@@ -579,6 +580,39 @@ export function GameBoard({ spaceCode, onExit }) {
     [participants, setBoard, setParticipants, removeContact]
   );
 
+  // Assign or clear one square from the admin console.
+  //
+  // Both stores change together, which is the fix for two separate bugs. The
+  // board is addressed by *position*, and position is not what an admin reads
+  // off the grid — the axis digits are shuffled, so the caller resolves a digit
+  // to an index before it gets here. And the entry list is trued up to the
+  // board afterwards, because writing a cell directly used to leave Recent
+  // Entries disagreeing with what players could see: a cleared square kept its
+  // entry, an assigned one had none behind it.
+  const overrideCell = useCallback(
+    (row, col, rawName) => {
+      const name = String(rawName ?? "").trim() || null;
+      if (!Array.isArray(board[row]) || col < 0 || col >= board[row].length) {
+        return { error: "That square is not on the board." };
+      }
+      const previous = board[row][col] ?? null;
+      if (previous === name) return { ok: true, unchanged: true };
+
+      const next = board.map((r) => [...r]);
+      next[row][col] = name;
+      setBoard(next);
+
+      const { participants: reconciled, removedIds } = reconcileEntries(participants, next);
+      setParticipants(reconciled);
+      // An entry left holding no squares is gone, and its contact details go
+      // with it — the same rule Remove Entry already follows.
+      for (const id of removedIds) removeContact(id);
+
+      return { ok: true, previous };
+    },
+    [board, participants, setBoard, setParticipants, removeContact]
+  );
+
   // ── Checking access or private space password gate ──
   if (checkingAccess) {
     return (
@@ -702,6 +736,7 @@ export function GameBoard({ spaceCode, onExit }) {
           board={board}
           setBoard={setBoard}
           headers={headers}
+          overrideCell={overrideCell}
           scores={scores}
           setScores={setScores}
           pools={pools}

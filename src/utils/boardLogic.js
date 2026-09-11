@@ -84,3 +84,76 @@ export function calculateRemainder(amount, pricePerSquare) {
   if (!amount) return 0;
   return amount % pricePerSquare;
 }
+
+const defaultId = () =>
+  typeof crypto !== "undefined" && crypto.randomUUID
+    ? crypto.randomUUID()
+    : `ov${Date.now()}${Math.round(Math.random() * 1e6)}`;
+
+/**
+ * Make the entry list agree with the board.
+ *
+ * The board stores names in cells; the entry list stores a count per entry.
+ * They are separate stores, so writing a cell directly leaves them disagreeing
+ * — a cleared square keeps its entry in Recent Entries, and an assigned one
+ * has no entry behind it at all.
+ *
+ * The board is the truth here. It is what players see and what the quarters
+ * pay out against, so the counts are trued up to it rather than the other way
+ * round. That also means this repairs drift it did not cause.
+ *
+ * Squares are taken from the *newest* entry for a name first: an older entry
+ * is more likely to be the one somebody actually paid for, so it is the last
+ * thing touched. Names that appear on the board with no entry behind them get
+ * one marked `source: "override"` and `amount: 0`, because an admin putting a
+ * name in a square is not a payment and the accounting should not pretend it
+ * was.
+ */
+export function reconcileEntries(participants = [], board = [], opts = {}) {
+  const { now = Date.now(), makeId = defaultId } = opts;
+
+  const counts = new Map();
+  for (const row of board || []) {
+    for (const cell of row || []) {
+      if (cell) counts.set(cell, (counts.get(cell) || 0) + 1);
+    }
+  }
+
+  const next = participants.map((p) => ({ ...p }));
+  const byName = new Map();
+  next.forEach((p, i) => {
+    if (!byName.has(p.name)) byName.set(p.name, []);
+    byName.get(p.name).push(i);
+  });
+
+  for (const [name, idxs] of byName) {
+    const want = counts.get(name) || 0;
+    let have = idxs.reduce((sum, i) => sum + (Number(next[i].squares) || 0), 0);
+    const newestFirst = [...idxs].sort((a, b) => (next[b].time || 0) - (next[a].time || 0));
+
+    for (const i of newestFirst) {
+      if (have <= want) break;
+      const take = Math.min(Number(next[i].squares) || 0, have - want);
+      next[i].squares = (Number(next[i].squares) || 0) - take;
+      have -= take;
+    }
+    if (have < want) {
+      const i = newestFirst[0];
+      next[i].squares = (Number(next[i].squares) || 0) + (want - have);
+    }
+    counts.delete(name);
+  }
+
+  for (const [name, want] of counts) {
+    next.push({ id: makeId(), name, amount: 0, squares: want, time: now, source: "override" });
+  }
+
+  const removedIds = [];
+  const kept = next.filter((p) => {
+    if ((Number(p.squares) || 0) > 0) return true;
+    if (p.id) removedIds.push(p.id);
+    return false;
+  });
+
+  return { participants: kept, removedIds };
+}
